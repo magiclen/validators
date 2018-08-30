@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::ValidatorOption;
+use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Formatter};
 
@@ -33,6 +33,8 @@ impl Email {
         &self.full_email
     }
 }
+
+impl Validated for Email{}
 
 impl Display for Email {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {

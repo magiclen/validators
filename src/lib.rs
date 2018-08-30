@@ -1,4 +1,5 @@
-#![cfg_attr(feature = "nightly", feature(try_from))]
+use std::fmt::Display;
+use std::cmp::PartialEq;
 
 pub enum ValidatorOption {
     Must,
@@ -31,6 +32,8 @@ impl ValidatorOption {
         }
     }
 }
+
+pub trait Validated: Display + PartialEq {}
 
 pub mod domain;
 pub mod email;

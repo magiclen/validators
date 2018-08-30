@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::ValidatorOption;
+use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Formatter};
 use std::cmp::PartialEq;
@@ -98,6 +98,8 @@ impl Domain {
         self.is_localhost
     }
 }
+
+impl Validated for Domain{}
 
 impl Display for Domain {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
