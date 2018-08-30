@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "nightly", feature(try_from))]
+
 pub enum ValidatorOption {
     Must,
     Allow,
@@ -32,4 +34,5 @@ impl ValidatorOption {
 
 pub mod domain;
 pub mod email;
+pub mod ipv4;
 

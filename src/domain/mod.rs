@@ -25,6 +25,7 @@ pub struct DomainValidator {
 
 pub type DomainPort = u16;
 
+#[derive(Clone)]
 pub struct Domain {
     top_level_domain: usize,
     domain: usize,
@@ -364,7 +365,14 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $port:expr, $localhost:expr ) => {
+        #[derive(Clone)]
         pub struct $name(Domain);
+
+        impl From<$name> for Domain {
+            fn from(d: $name) -> Self {
+                d.0
+            }
+        }
 
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -393,22 +401,53 @@ macro_rules! extend {
         }
 
         impl $name {
-            pub fn from_string(full_domain: String) -> DomainResult {
+            pub fn from_string(full_domain: String) -> Result<$name, DomainError> {
                 let dc = DomainValidator {
                     port: $port,
                     localhost: $localhost,
                 };
 
-                dc.parse_string(full_domain)
+                Ok($name(dc.parse_string(full_domain)?))
             }
 
-            pub fn from_str(full_domain: &str) -> DomainResult {
+            pub fn from_str(full_domain: &str) -> Result<$name, DomainError> {
                 let dc = DomainValidator {
                     port: $port,
                     localhost: $localhost,
                 };
 
-                dc.parse_str(full_domain)
+                Ok($name(dc.parse_str(full_domain)?))
+            }
+
+            pub fn from_domain(domain: Domain) -> Result<$name, DomainError> {
+                 match $port {
+                    ValidatorOption::Must => {
+                        if domain.port_index == domain.full_domain_len {
+                            return Err(DomainError::PortNotFound)
+                        }
+                    },
+                    ValidatorOption::NotAllow => {
+                        if domain.port_index == domain.full_domain_len {
+                            return Err(DomainError::PortNotAllow)
+                        }
+                    }
+                    _=>()
+                }
+                match $localhost {
+                    ValidatorOption::Must => {
+                        if !domain.is_localhost {
+                            return Err(DomainError::LocalhostNotFound)
+                        }
+                    },
+                    ValidatorOption::NotAllow => {
+                        if domain.is_localhost {
+                            return Err(DomainError::LocalhostNotAllow)
+                        }
+                    }
+                    _=>()
+                }
+
+                Ok($name(domain))
             }
 
             pub fn into_domain(self) -> Domain {
