@@ -1,0 +1,7 @@
+[package]
+name = "validators"
+version = "0.1.0"
+authors = ["Magic Len <len@magiclen.org>"]
+
+[dependencies]
+regex = "1.0.4"
