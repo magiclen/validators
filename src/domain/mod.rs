@@ -33,6 +33,7 @@ pub struct Domain {
     port_index: usize,
     full_domain: String,
     full_domain_len: usize,
+    is_localhost: bool,
 }
 
 impl Domain {
@@ -91,6 +92,10 @@ impl Domain {
             None
         }
     }
+
+    pub fn is_localhost(&self) -> bool {
+        self.is_localhost
+    }
 }
 
 impl Display for Domain {
@@ -148,6 +153,8 @@ impl DomainValidator {
         };
 
         let full_domain_len = full_domain.len();
+
+        let mut is_localhost = false;
 
         let mut sub_domain = full_domain_len;
 
@@ -224,6 +231,8 @@ impl DomainValidator {
                             return Err(DomainError::IncorrectFormat);
                         }
 
+                        is_localhost = true;
+
                         full_domain_len
                     } else {
                         return Err(DomainError::IncorrectFormat);
@@ -250,6 +259,7 @@ impl DomainValidator {
             port_index,
             full_domain: String::new(),
             full_domain_len,
+            is_localhost,
         })
     }
 }
@@ -347,5 +357,179 @@ mod tests {
         };
 
         dv.parse_string(domain).unwrap();
+    }
+}
+
+// TODO ----------
+
+macro_rules! extend {
+    ( $name:ident, $port:expr, $localhost:expr ) => {
+        pub struct $name(Domain);
+
+        impl Display for $name {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                self.0.fmt(f)
+            }
+        }
+
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                self.0.eq(&other.0)
+            }
+
+            fn ne(&self, other: &Self) -> bool {
+                self.0.ne(&other.0)
+            }
+        }
+
+        impl PartialEq<Domain> for $name {
+            fn eq(&self, other: &Domain) -> bool {
+                self.0.eq(&other)
+            }
+
+            fn ne(&self, other: &Domain) -> bool {
+                self.0.ne(&other)
+            }
+        }
+
+        impl $name {
+            pub fn from_string(full_domain: String) -> DomainResult {
+                let dc = DomainValidator {
+                    port: $port,
+                    localhost: $localhost,
+                };
+
+                dc.parse_string(full_domain)
+            }
+
+            pub fn from_str(full_domain: &str) -> DomainResult {
+                let dc = DomainValidator {
+                    port: $port,
+                    localhost: $localhost,
+                };
+
+                dc.parse_str(full_domain)
+            }
+
+            pub fn into_domain(self) -> Domain {
+                self.0
+            }
+
+            pub fn get_domain(&self) -> &Domain {
+                &self.0
+            }
+        }
+    };
+}
+
+extend!(DomainLocalhostableWithPort, ValidatorOption::Must, ValidatorOption::Allow);
+
+impl DomainLocalhostableWithPort {
+    pub fn get_top_level_domain(&self) -> Option<&str> {
+        self.0.get_top_level_domain()
+    }
+
+    pub fn get_domain(&self) -> &str {
+        self.0.get_domain()
+    }
+
+    pub fn get_sub_domain(&self) -> Option<&str> {
+        self.0.get_sub_domain()
+    }
+
+    pub fn get_full_domain(&self) -> &str {
+        self.0.get_full_domain()
+    }
+
+    pub fn get_full_domain_without_port(&self) -> &str {
+        self.0.get_full_domain_without_port()
+    }
+
+    pub fn get_port(&self) -> DomainPort {
+        self.0.get_port().unwrap()
+    }
+
+    pub fn is_localhost(&self) -> bool {
+        self.0.is_localhost
+    }
+}
+
+extend!(DomainLocalhostableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::Allow);
+
+impl DomainLocalhostableWithoutPort {
+    pub fn get_top_level_domain(&self) -> Option<&str> {
+        self.0.get_top_level_domain()
+    }
+
+    pub fn get_domain(&self) -> &str {
+        self.0.get_domain()
+    }
+
+    pub fn get_sub_domain(&self) -> Option<&str> {
+        self.0.get_sub_domain()
+    }
+
+    pub fn get_full_domain(&self) -> &str {
+        self.0.get_full_domain()
+    }
+
+    pub fn get_full_domain_without_port(&self) -> &str {
+        self.0.get_full_domain_without_port()
+    }
+
+    pub fn is_localhost(&self) -> bool {
+        self.0.is_localhost
+    }
+}
+
+extend!(DomainUnlocalhostableWithPort, ValidatorOption::Must, ValidatorOption::NotAllow);
+
+impl DomainUnlocalhostableWithPort {
+    pub fn get_top_level_domain(&self) -> Option<&str> {
+        self.0.get_top_level_domain()
+    }
+
+    pub fn get_domain(&self) -> &str {
+        self.0.get_domain()
+    }
+
+    pub fn get_sub_domain(&self) -> Option<&str> {
+        self.0.get_sub_domain()
+    }
+
+    pub fn get_full_domain(&self) -> &str {
+        self.0.get_full_domain()
+    }
+
+    pub fn get_full_domain_without_port(&self) -> &str {
+        self.0.get_full_domain_without_port()
+    }
+
+    pub fn get_port(&self) -> DomainPort {
+        self.0.get_port().unwrap()
+    }
+}
+
+extend!(DomainUnlocalhostableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::NotAllow);
+
+impl DomainUnlocalhostableWithoutPort {
+    pub fn get_top_level_domain(&self) -> Option<&str> {
+        self.0.get_top_level_domain()
+    }
+
+    pub fn get_domain(&self) -> &str {
+        self.0.get_domain()
+    }
+
+    pub fn get_sub_domain(&self) -> Option<&str> {
+        self.0.get_sub_domain()
+    }
+
+    pub fn get_full_domain(&self) -> &str {
+        self.0.get_full_domain()
+    }
+
+    pub fn get_full_domain_without_port(&self) -> &str {
+        self.0.get_full_domain_without_port()
     }
 }
