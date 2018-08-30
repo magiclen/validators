@@ -4,7 +4,6 @@ use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Formatter};
-use std::cmp::PartialEq;
 
 #[derive(Debug)]
 pub enum DomainError {
@@ -99,7 +98,7 @@ impl Domain {
     }
 }
 
-impl Validated for Domain{}
+impl Validated for Domain {}
 
 impl Display for Domain {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -127,6 +126,10 @@ impl PartialEq for Domain {
 }
 
 impl DomainValidator {
+    pub fn is_domain(&self, full_domain: &str) -> bool {
+        self.parse_inner(full_domain).is_ok()
+    }
+
     pub fn parse_string(&self, full_domain: String) -> DomainResult {
         let mut domain_inner = self.parse_inner(&full_domain)?;
 
@@ -136,15 +139,11 @@ impl DomainValidator {
     }
 
     pub fn parse_str(&self, full_domain: &str) -> DomainResult {
-        let mut domain_inner = self.parse_inner(&full_domain)?;
+        let mut domain_inner = self.parse_inner(full_domain)?;
 
         domain_inner.full_domain = full_domain.to_string();
 
         Ok(domain_inner)
-    }
-
-    pub fn is_domain(&self, full_domain: &str) -> bool {
-        self.parse_inner(full_domain).is_ok()
     }
 
     fn parse_inner(&self, full_domain: &str) -> DomainResult {
@@ -495,6 +494,38 @@ impl DomainLocalhostableWithPort {
     }
 }
 
+extend!(DomainLocalhostableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow);
+
+impl DomainLocalhostableAllowPort {
+    pub fn get_top_level_domain(&self) -> Option<&str> {
+        self.0.get_top_level_domain()
+    }
+
+    pub fn get_domain(&self) -> &str {
+        self.0.get_domain()
+    }
+
+    pub fn get_sub_domain(&self) -> Option<&str> {
+        self.0.get_sub_domain()
+    }
+
+    pub fn get_full_domain(&self) -> &str {
+        self.0.get_full_domain()
+    }
+
+    pub fn get_full_domain_without_port(&self) -> &str {
+        self.0.get_full_domain_without_port()
+    }
+
+    pub fn get_port(&self) -> Option<DomainPort> {
+        self.0.get_port()
+    }
+
+    pub fn is_localhost(&self) -> bool {
+        self.0.is_localhost
+    }
+}
+
 extend!(DomainLocalhostableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl DomainLocalhostableWithoutPort {
@@ -548,6 +579,34 @@ impl DomainUnlocalhostableWithPort {
 
     pub fn get_port(&self) -> DomainPort {
         self.0.get_port().unwrap()
+    }
+}
+
+extend!(DomainUnlocalhostableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAllow);
+
+impl DomainUnlocalhostableAllowPort {
+    pub fn get_top_level_domain(&self) -> Option<&str> {
+        self.0.get_top_level_domain()
+    }
+
+    pub fn get_domain(&self) -> &str {
+        self.0.get_domain()
+    }
+
+    pub fn get_sub_domain(&self) -> Option<&str> {
+        self.0.get_sub_domain()
+    }
+
+    pub fn get_full_domain(&self) -> &str {
+        self.0.get_full_domain()
+    }
+
+    pub fn get_full_domain_without_port(&self) -> &str {
+        self.0.get_full_domain_without_port()
+    }
+
+    pub fn get_port(&self) -> Option<DomainPort> {
+        self.0.get_port()
     }
 }
 

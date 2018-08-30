@@ -7,3 +7,4 @@ authors = ["Magic Len <len@magiclen.org>"]
 regex = "1.0.4"
 
 [features]
+nightly = []

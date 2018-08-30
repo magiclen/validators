@@ -62,6 +62,10 @@ impl PartialEq for Email {
 }
 
 impl EmailValidator {
+    pub fn is_email(&self, full_email: &str) -> bool {
+        self.parse_inner(full_email).is_ok()
+    }
+
     pub fn parse_string(&self, full_email: String) -> EmailResult {
         let mut email_inner = self.parse_inner(&full_email)?;
 
@@ -71,15 +75,11 @@ impl EmailValidator {
     }
 
     pub fn parse_str(&self, full_email: &str) -> EmailResult {
-        let mut email_inner = self.parse_inner(&full_email)?;
+        let mut email_inner = self.parse_inner(full_email)?;
 
         email_inner.full_email = full_email.to_string();
 
         Ok(email_inner)
-    }
-
-    pub fn is_email(&self, full_email: &str) -> bool {
-        self.parse_inner(full_email).is_ok()
     }
 
     fn parse_inner(&self, full_email: &str) -> EmailResult {

@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "nightly", feature(ip))]
+
 use std::fmt::Display;
 use std::cmp::PartialEq;
 
