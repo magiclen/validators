@@ -40,4 +40,5 @@ pub trait Validated: Display + PartialEq {}
 pub mod domain;
 pub mod email;
 pub mod ipv4;
+pub mod ipv6;
 
