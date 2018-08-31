@@ -614,9 +614,9 @@ impl HttpUrlLocalableWithProtocol {
     }
 }
 
-extend!(HttpUrlUnLocalableWithProtocol, ValidatorOption::Must, ValidatorOption::NotAllow);
+extend!(HttpUrlUnlocalableWithProtocol, ValidatorOption::Must, ValidatorOption::NotAllow);
 
-impl HttpUrlUnLocalableWithProtocol {
+impl HttpUrlUnlocalableWithProtocol {
     pub fn get_protocol(&self) -> &str {
         if self.0.is_absolute {
             &self.0.full_http_url[..(self.0.host_index - 3)]

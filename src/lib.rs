@@ -3,7 +3,7 @@
 //! This crate provides many validators for validating data from users and modeling them to structs without much extra effort.
 //!
 //! All validators are separated into different modules and unified for two main types: **XXX** and **XXXValidator** where **XXX** is a type that you want to validate.
-//! The former is a struct or a enum which implements trait `Validated`, and the latter is a struct which can be considered as a generator of the former.
+//! The former is a struct or a enum, and the latter is a struct which can be considered as a generator of the former.
 //! A **XXXValidator** struct usually contains some values of `ValidatorOption` in order to use different rules to check data.
 //!
 //! For example, the mod `domain` has `Domain` and `DomainValidator` structs. If we want to create a `Domain` instance, we need to create a `DomainValidator` instance first.
@@ -92,7 +92,7 @@ impl ValidatorOption {
     }
 }
 
-pub trait Validated: Display + PartialEq {}
+pub trait Validated: Display + PartialEq + Clone {}
 
 pub mod domain;
 pub mod email;

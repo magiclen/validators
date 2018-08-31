@@ -17,6 +17,7 @@ pub type EmailResult = Result<Email, EmailError>;
 
 pub struct EmailValidator {}
 
+#[derive(Clone)]
 pub struct Email {
     domain: usize,
     full_email: String,
