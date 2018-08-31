@@ -48,7 +48,10 @@ pub type IPv6Port = u16;
 #[derive(Clone)]
 pub struct IPv6 {
     ip: Ipv6Addr,
-    port: Option<u16>,
+    port: u16,
+    port_index: usize,
+    full_ipv6: String,
+    full_ipv6_len: usize,
     is_local: bool,
 }
 
@@ -58,18 +61,22 @@ impl IPv6 {
     }
 
     pub fn get_port(&self) -> Option<u16> {
-        self.port
+        if self.port_index != self.full_ipv6_len {
+            Some(self.port)
+        } else {
+            None
+        }
     }
 
-    pub fn get_full_address(&self) -> String {
-        match self.port {
-            Some(p) => {
-                let mut s = self.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => self.ip.to_string()
+    pub fn get_full_ipv6(&self) -> &str {
+        &self.full_ipv6
+    }
+
+    pub fn get_full_ipv6_without_port(&self) -> &str {
+        if self.port_index != self.full_ipv6_len {
+            &self.full_ipv6[1..(self.port_index - 2)]
+        } else {
+            &self.full_ipv6
         }
     }
 
@@ -82,14 +89,7 @@ impl Validated for IPv6 {}
 
 impl Display for IPv6 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self.port {
-            Some(p) => {
-                f.write_str(&self.ip.to_string())?;
-                f.write_str(":")?;
-                f.write_str(&p.to_string())?;
-            }
-            None => f.write_str(&self.ip.to_string())?
-        }
+        f.write_str(&self.full_ipv6)?;
         Ok(())
     }
 }
@@ -118,15 +118,59 @@ impl IPv6Validator {
     }
 
     pub fn parse_string(&self, ipv6: String) -> IPv6Result {
-        self.parse_inner(&ipv6)
+        let mut ipv6_inner = self.parse_inner(&ipv6)?;
+
+        if ipv6_inner.full_ipv6_len != 0 {
+            ipv6_inner.full_ipv6 = ipv6;
+        } else {
+            let ipv6 = ipv6_inner.ip.to_string();
+            let len = ipv6.len();
+
+            if ipv6_inner.port_index == 0 {
+                ipv6_inner.full_ipv6 = ipv6;
+                ipv6_inner.full_ipv6_len = len;
+                ipv6_inner.port_index = len;
+            } else {
+                let full_ipv6 = format!("[{}]:{}", ipv6, ipv6_inner.port);
+                let full_ipv6_len = ipv6.len();
+                ipv6_inner.full_ipv6 = full_ipv6;
+                ipv6_inner.full_ipv6_len = full_ipv6_len;
+                ipv6_inner.port_index = len + 2;
+            }
+        }
+
+        Ok(ipv6_inner)
     }
 
     pub fn parse_str(&self, ipv6: &str) -> IPv6Result {
-        self.parse_inner(ipv6)
+        let mut ipv6_inner = self.parse_inner(&ipv6)?;
+
+        if ipv6_inner.full_ipv6_len != 0 {
+            ipv6_inner.full_ipv6 = ipv6.to_string();
+        } else {
+            let ipv6 = ipv6_inner.ip.to_string();
+            let len = ipv6.len();
+
+            if ipv6_inner.port_index == 0 {
+                ipv6_inner.full_ipv6 = ipv6;
+                ipv6_inner.full_ipv6_len = len;
+                ipv6_inner.port_index = len;
+            } else {
+                let full_ipv6 = format!("[{}]:{}", ipv6, ipv6_inner.port);
+                let full_ipv6_len = ipv6.len();
+                ipv6_inner.full_ipv6 = full_ipv6;
+                ipv6_inner.full_ipv6_len = full_ipv6_len;
+                ipv6_inner.port_index = len + 2;
+            }
+        }
+
+        Ok(ipv6_inner)
     }
 
     fn parse_inner(&self, ipv6: &str) -> IPv6Result {
-        let mut port = None;
+        let mut port = 0u16;
+        let mut port_index = 0;
+        let mut full_ipv6_len = 0usize;
 
         let ip = if ipv6.starts_with("[") {
             let re_ipv6 = Regex::new(r"^\[(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})](:(\d{1,5}))?$").unwrap();
@@ -145,9 +189,14 @@ impl IPv6Validator {
                     }
 
                     port = match ipv6[m.start()..m.end()].parse::<u16>() {
-                        Ok(p) => Some(p),
+                        Ok(p) => {
+                            port_index = m.start();
+                            p
+                        },
                         Err(_) => return Err(IPv6Error::IncorrectPort)
                     };
+
+                    full_ipv6_len = 1;
                 }
                 None => {
                     if self.port.must() {
@@ -183,6 +232,8 @@ impl IPv6Validator {
                                 return Err(IPv6Error::IPv4NotFound);
                             }
 
+                            full_ipv6_len = 1;
+
                             ipv6
                         }
                         None => {
@@ -206,7 +257,10 @@ impl IPv6Validator {
                                     }
 
                                     port = match ipv6[m.start()..m.end()].parse::<u16>() {
-                                        Ok(p) => Some(p),
+                                        Ok(p) => {
+                                            port_index = m.start();
+                                            p
+                                        },
                                         Err(_) => return Err(IPv6Error::IncorrectPort)
                                     };
                                 }
@@ -255,6 +309,9 @@ impl IPv6Validator {
         Ok(IPv6 {
             ip,
             port,
+            port_index,
+            full_ipv6: String::new(),
+            full_ipv6_len,
             is_local,
         })
     }
@@ -266,93 +323,93 @@ mod tests {
 
     #[test]
     fn test_ipv6_lv1() {
-        let domain = "168.17.212.1".to_string();
+        let ip = "168.17.212.1".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::NotAllow,
             ipv4: ValidatorOption::Allow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv6_lv2() {
-        let domain = "127.0.0.1".to_string();
+        let ip = "127.0.0.1".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::Allow,
             ipv4: ValidatorOption::Allow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv6_lv3() {
-        let domain = "168.17.212.1:8080".to_string();
+        let ip = "168.17.212.1:8080".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::Allow,
             local: ValidatorOption::NotAllow,
             ipv4: ValidatorOption::Allow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv6_lv4() {
-        let domain = "0000:0000:0000:0000:0000:0000:370:7348".to_string();
+        let ip = "0000:0000:0000:0000:0000:0000:370:7348".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::NotAllow,
             ipv4: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv6_lv5() {
-        let domain = "[0000:0000:0000:0000:0000:0000:370:7348]".to_string();
+        let ip = "[0000:0000:0000:0000:0000:0000:370:7348]".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::NotAllow,
             ipv4: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv6_lv6() {
-        let domain = "[0000:0000:0000:0000:0000:0000:370:7348]:8080".to_string();
+        let ip = "[0000:0000:0000:0000:0000:0000:370:7348]:8080".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::Allow,
             local: ValidatorOption::NotAllow,
             ipv4: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv6_lv7() {
-        let domain = "[FF:8888:1234:0000:0000:0000:370:7348]:8080".to_string();
+        let ip = "[FF:8888:1234:0000:0000:0000:370:7348]:8080".to_string();
 
-        let dv = IPv6Validator {
+        let iv = IPv6Validator {
             port: ValidatorOption::Allow,
             local: ValidatorOption::NotAllow,
             ipv4: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 }
 
@@ -419,12 +476,12 @@ macro_rules! extend {
             pub fn from_ipv6(ipv6: IPv6) -> Result<$name, IPv6Error> {
                  match $port {
                     ValidatorOption::Must => {
-                        if let None = ipv6.port {
+                        if ipv6.port_index == ipv6.full_ipv6_len {
                             return Err(IPv6Error::PortNotFound)
                         }
                     },
                     ValidatorOption::NotAllow => {
-                        if let Some(_) = ipv6.port {
+                        if ipv6.port_index != ipv6.full_ipv6_len {
                             return Err(IPv6Error::PortNotAllow)
                         }
                     }
@@ -461,17 +518,15 @@ macro_rules! extend {
                 &self.0.ip
             }
 
-            pub fn get_full_address(&self) -> String {
-                match self.0.port {
-                    Some(p) => {
-                        let mut s = self.0.ip.to_string();
-                        s.push_str(":");
-                        s.push_str(&p.to_string());
-                        s
-                    }
-                    None => {
-                        panic!("impossible")
-                    }
+            pub fn get_full_ipv6(&self) -> &str {
+                &self.0.full_ipv6
+            }
+
+            pub fn get_full_ipv6_without_port(&self) -> &str {
+                if self.0.port_index != self.0.full_ipv6_len {
+                    &self.0.full_ipv6[1..(self.0.port_index - 2)]
+                } else {
+                    &self.0.full_ipv6
                 }
             }
         }
@@ -482,7 +537,7 @@ extend!(IPv6LocalableWithPort, ValidatorOption::Must, ValidatorOption::Allow, Va
 
 impl IPv6LocalableWithPort {
     pub fn get_port(&self) -> u16 {
-        self.0.port.unwrap()
+        self.0.port
     }
 
     pub fn is_local(&self) -> bool {
@@ -494,7 +549,11 @@ extend!(IPv6LocalableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow, 
 
 impl IPv6LocalableAllowPort {
     pub fn get_port(&self) -> Option<u16> {
-        self.0.port
+        if self.0.port_index != self.0.full_ipv6_len {
+            Some(self.0.port)
+        } else {
+            None
+        }
     }
 
     pub fn is_local(&self) -> bool {
@@ -514,7 +573,7 @@ extend!(IPv6UnlocalableWithPort, ValidatorOption::Must, ValidatorOption::NotAllo
 
 impl IPv6UnlocalableWithPort {
     pub fn get_port(&self) -> u16 {
-        self.0.port.unwrap()
+        self.0.port
     }
 }
 
@@ -522,7 +581,11 @@ extend!(IPv6UnlocalableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAl
 
 impl IPv6UnlocalableAllowPort {
     pub fn get_port(&self) -> Option<u16> {
-        self.0.port
+        if self.0.port_index != self.0.full_ipv6_len {
+            Some(self.0.port)
+        } else {
+            None
+        }
     }
 }
 

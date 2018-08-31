@@ -36,7 +36,10 @@ pub type IPv4Port = u16;
 #[derive(Clone)]
 pub struct IPv4 {
     ip: Ipv4Addr,
-    port: Option<u16>,
+    port: u16,
+    port_index: usize,
+    full_ipv4: String,
+    full_ipv4_len: usize,
     is_local: bool,
 }
 
@@ -46,18 +49,22 @@ impl IPv4 {
     }
 
     pub fn get_port(&self) -> Option<u16> {
-        self.port
+        if self.port_index != self.full_ipv4_len {
+            Some(self.port)
+        } else {
+            None
+        }
     }
 
-    pub fn get_full_address(&self) -> String {
-        match self.port {
-            Some(p) => {
-                let mut s = self.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => self.ip.to_string()
+    pub fn get_full_ipv4(&self) -> &str {
+        &self.full_ipv4
+    }
+
+    pub fn get_full_ipv4_without_port(&self) -> &str {
+        if self.port_index != self.full_ipv4_len {
+            &self.full_ipv4[..(self.port_index - 1)]
+        } else {
+            &self.full_ipv4
         }
     }
 
@@ -70,14 +77,7 @@ impl Validated for IPv4 {}
 
 impl Display for IPv4 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        match self.port {
-            Some(p) => {
-                f.write_str(&self.ip.to_string())?;
-                f.write_str(":")?;
-                f.write_str(&p.to_string())?;
-            }
-            None => f.write_str(&self.ip.to_string())?
-        }
+        f.write_str(&self.full_ipv4)?;
         Ok(())
     }
 }
@@ -106,17 +106,61 @@ impl IPv4Validator {
     }
 
     pub fn parse_string(&self, ipv4: String) -> IPv4Result {
-        self.parse_inner(&ipv4)
+        let mut ipv4_inner = self.parse_inner(&ipv4)?;
+
+        if ipv4_inner.full_ipv4_len != 0 {
+            ipv4_inner.full_ipv4 = ipv4;
+        } else {
+            let ipv4 = ipv4_inner.ip.to_string();
+            let len = ipv4.len();
+
+            if ipv4_inner.port_index == 0 {
+                ipv4_inner.full_ipv4 = ipv4;
+                ipv4_inner.full_ipv4_len = len;
+                ipv4_inner.port_index = len;
+            } else {
+                let full_ipv4 = format!("{}:{}", ipv4, ipv4_inner.port);
+                let full_ipv4_len = ipv4.len();
+                ipv4_inner.full_ipv4 = full_ipv4;
+                ipv4_inner.full_ipv4_len = full_ipv4_len;
+                ipv4_inner.port_index = len + 1;
+            }
+        }
+
+        Ok(ipv4_inner)
     }
 
     pub fn parse_str(&self, ipv4: &str) -> IPv4Result {
-        self.parse_inner(ipv4)
+        let mut ipv4_inner = self.parse_inner(&ipv4)?;
+
+        if ipv4_inner.full_ipv4_len != 0 {
+            ipv4_inner.full_ipv4 = ipv4.to_string();
+        } else {
+            let ipv4 = ipv4_inner.ip.to_string();
+            let len = ipv4.len();
+
+            if ipv4_inner.port_index == 0 {
+                ipv4_inner.full_ipv4 = ipv4;
+                ipv4_inner.full_ipv4_len = len;
+                ipv4_inner.port_index = len;
+            } else {
+                let full_ipv4 = format!("{}:{}", ipv4, ipv4_inner.port);
+                let full_ipv4_len = ipv4.len();
+                ipv4_inner.full_ipv4 = full_ipv4;
+                ipv4_inner.full_ipv4_len = full_ipv4_len;
+                ipv4_inner.port_index = len + 1;
+            }
+        }
+
+        Ok(ipv4_inner)
     }
 
     fn parse_inner(&self, ipv4: &str) -> IPv4Result {
         let re_ipv4 = Regex::new(r"^((25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9]))(:(\d{1,5}))?$").unwrap();
 
-        let mut port = None;
+        let mut port = 0u16;
+        let mut port_index = 0;
+        let mut full_ipv4_len = 0usize;
 
         let ip = match re_ipv4.captures(&ipv4) {
             Some(c) => {
@@ -131,7 +175,10 @@ impl IPv4Validator {
                         }
 
                         port = match ipv4[m.start()..m.end()].parse::<u16>() {
-                            Ok(p) => Some(p),
+                            Ok(p) => {
+                                port_index = m.start();
+                                p
+                            }
                             Err(_) => return Err(IPv4Error::IncorrectPort)
                         };
                     }
@@ -139,11 +186,13 @@ impl IPv4Validator {
                         if self.port.must() {
                             return Err(IPv4Error::PortNotFound);
                         }
+                        port_index = ipv4.len();
                     }
                 };
 
                 match c.get(1) {
                     Some(m) => {
+                        full_ipv4_len = 1;
                         Ipv4Addr::from_str(&ipv4[m.start()..m.end()]).map_err(|_| IPv4Error::IncorrectFormat)?
                     }
                     None => {
@@ -169,7 +218,10 @@ impl IPv4Validator {
                             }
 
                             port = match ipv4[m.start()..m.end()].parse::<u16>() {
-                                Ok(p) => Some(p),
+                                Ok(p) => {
+                                    port_index = m.start();
+                                    p
+                                }
                                 Err(_) => return Err(IPv4Error::IncorrectPort)
                             };
                         }
@@ -247,6 +299,9 @@ impl IPv4Validator {
         Ok(IPv4 {
             ip,
             port,
+            port_index,
+            full_ipv4: String::new(),
+            full_ipv4_len,
             is_local,
         })
     }
@@ -258,80 +313,80 @@ mod tests {
 
     #[test]
     fn test_ipv4_lv1() {
-        let domain = "168.17.212.1".to_string();
+        let ip = "168.17.212.1".to_string();
 
-        let dv = IPv4Validator {
+        let iv = IPv4Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::NotAllow,
             ipv6: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv4_lv2() {
-        let domain = "127.0.0.1".to_string();
+        let ip = "127.0.0.1".to_string();
 
-        let dv = IPv4Validator {
+        let iv = IPv4Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::Allow,
             ipv6: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv4_lv3() {
-        let domain = "168.17.212.1:8080".to_string();
+        let ip = "168.17.212.1:8080".to_string();
 
-        let dv = IPv4Validator {
+        let iv = IPv4Validator {
             port: ValidatorOption::Allow,
             local: ValidatorOption::NotAllow,
             ipv6: ValidatorOption::NotAllow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv4_lv4() {
-        let domain = "0000:0000:0000:0000:0000:0000:370:7348".to_string();
+        let ip = "0000:0000:0000:0000:0000:0000:370:7348".to_string();
 
-        let dv = IPv4Validator {
+        let iv = IPv4Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::NotAllow,
             ipv6: ValidatorOption::Allow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv4_lv5() {
-        let domain = "[0000:0000:0000:0000:0000:0000:370:7348]".to_string();
+        let ip = "[0000:0000:0000:0000:0000:0000:370:7348]".to_string();
 
-        let dv = IPv4Validator {
+        let iv = IPv4Validator {
             port: ValidatorOption::NotAllow,
             local: ValidatorOption::NotAllow,
             ipv6: ValidatorOption::Allow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 
     #[test]
     fn test_ipv4_lv6() {
-        let domain = "[0000:0000:0000:0000:0000:0000:370:7348]:8080".to_string();
+        let ip = "[0000:0000:0000:0000:0000:0000:370:7348]:8080".to_string();
 
-        let dv = IPv4Validator {
+        let iv = IPv4Validator {
             port: ValidatorOption::Allow,
             local: ValidatorOption::NotAllow,
             ipv6: ValidatorOption::Allow,
         };
 
-        dv.parse_string(domain).unwrap();
+        iv.parse_string(ip).unwrap();
     }
 }
 
@@ -398,12 +453,12 @@ macro_rules! extend {
             pub fn from_ipv4(ipv4: IPv4) -> Result<$name, IPv4Error> {
                  match $port {
                     ValidatorOption::Must => {
-                        if let None = ipv4.port {
+                        if ipv4.port_index == ipv4.full_ipv4_len {
                             return Err(IPv4Error::PortNotFound)
                         }
                     },
                     ValidatorOption::NotAllow => {
-                        if let Some(_) = ipv4.port {
+                        if ipv4.port_index != ipv4.full_ipv4_len {
                             return Err(IPv4Error::PortNotAllow)
                         }
                     }
@@ -440,15 +495,15 @@ macro_rules! extend {
                 &self.0.ip
             }
 
-            pub fn get_full_address(&self) -> String {
-                match self.0.port {
-                    Some(p) => {
-                        let mut s = self.0.ip.to_string();
-                        s.push_str(":");
-                        s.push_str(&p.to_string());
-                        s
-                    }
-                    None => self.0.ip.to_string()
+            pub fn get_full_ipv4(&self) -> &str {
+                &self.0.full_ipv4
+            }
+
+            pub fn get_full_ipv4_without_port(&self) -> &str {
+                if self.0.port_index != self.0.full_ipv4_len {
+                    &self.0.full_ipv4[..(self.0.port_index - 1)]
+                } else {
+                    &self.0.full_ipv4
                 }
             }
         }
@@ -459,7 +514,7 @@ extend!(IPv4LocalableWithPort, ValidatorOption::Must, ValidatorOption::Allow, Va
 
 impl IPv4LocalableWithPort {
     pub fn get_port(&self) -> u16 {
-        self.0.port.unwrap()
+        self.0.port
     }
 
     pub fn is_local(&self) -> bool {
@@ -471,7 +526,11 @@ extend!(IPv4LocalableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow, 
 
 impl IPv4LocalableAllowPort {
     pub fn get_port(&self) -> Option<u16> {
-        self.0.port
+        if self.0.port_index != self.0.full_ipv4_len {
+            Some(self.0.port)
+        } else {
+            None
+        }
     }
 
     pub fn is_local(&self) -> bool {
@@ -491,7 +550,7 @@ extend!(IPv4UnlocalableWithPort, ValidatorOption::Must, ValidatorOption::NotAllo
 
 impl IPv4UnlocalableWithPort {
     pub fn get_port(&self) -> u16 {
-        self.0.port.unwrap()
+        self.0.port
     }
 }
 
@@ -499,7 +558,11 @@ extend!(IPv4UnlocalableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAl
 
 impl IPv4UnlocalableAllowPort {
     pub fn get_port(&self) -> Option<u16> {
-        self.0.port
+        if self.0.port_index != self.0.full_ipv4_len {
+            Some(self.0.port)
+        } else {
+            None
+        }
     }
 }
 
