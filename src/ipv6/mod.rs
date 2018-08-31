@@ -113,15 +113,15 @@ impl PartialEq for IPv6 {
 }
 
 impl IPv6Validator {
-    pub fn is_ipv6(&self, ipv6: &str) -> bool {
-        self.parse_inner(ipv6).is_ok()
+    pub fn is_ipv6(&self, full_ipv6: &str) -> bool {
+        self.parse_inner(full_ipv6).is_ok()
     }
 
-    pub fn parse_string(&self, ipv6: String) -> IPv6Result {
-        let mut ipv6_inner = self.parse_inner(&ipv6)?;
+    pub fn parse_string(&self, full_ipv6: String) -> IPv6Result {
+        let mut ipv6_inner = self.parse_inner(&full_ipv6)?;
 
         if ipv6_inner.full_ipv6_len != 0 {
-            ipv6_inner.full_ipv6 = ipv6;
+            ipv6_inner.full_ipv6 = full_ipv6;
         } else {
             let ipv6 = ipv6_inner.ip.to_string();
             let len = ipv6.len();
@@ -142,11 +142,11 @@ impl IPv6Validator {
         Ok(ipv6_inner)
     }
 
-    pub fn parse_str(&self, ipv6: &str) -> IPv6Result {
-        let mut ipv6_inner = self.parse_inner(&ipv6)?;
+    pub fn parse_str(&self, full_ipv6: &str) -> IPv6Result {
+        let mut ipv6_inner = self.parse_inner(&full_ipv6)?;
 
         if ipv6_inner.full_ipv6_len != 0 {
-            ipv6_inner.full_ipv6 = ipv6.to_string();
+            ipv6_inner.full_ipv6 = full_ipv6.to_string();
         } else {
             let ipv6 = ipv6_inner.ip.to_string();
             let len = ipv6.len();
@@ -320,6 +320,39 @@ impl IPv6Validator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_ipv6_methods_1() {
+        let ip = "FF:8888:1234:0000:0000:0000:370:7348".to_string();
+
+        let iv = IPv6Validator {
+            port: ValidatorOption::Allow,
+            local: ValidatorOption::NotAllow,
+            ipv4: ValidatorOption::NotAllow,
+        };
+
+        let ipv6 = iv.parse_string(ip).unwrap();
+
+        assert_eq!("FF:8888:1234:0000:0000:0000:370:7348", ipv6.get_full_ipv6());
+    }
+
+    #[test]
+    fn test_ipv6_methods_2() {
+        let ip = "[FF:8888:1234:0000:0000:0000:370:7348]:8080".to_string();
+
+        let iv = IPv6Validator {
+            port: ValidatorOption::Allow,
+            local: ValidatorOption::NotAllow,
+            ipv4: ValidatorOption::NotAllow,
+        };
+
+        let ipv6 = iv.parse_string(ip).unwrap();
+
+        assert_eq!("[FF:8888:1234:0000:0000:0000:370:7348]:8080", ipv6.get_full_ipv6());
+        assert_eq!("FF:8888:1234:0000:0000:0000:370:7348", ipv6.get_full_ipv6_without_port());
+        assert_eq!(8080, ipv6.get_port().unwrap());
+        assert_eq!(false, ipv6.is_local());
+    }
 
     #[test]
     fn test_ipv6_lv1() {

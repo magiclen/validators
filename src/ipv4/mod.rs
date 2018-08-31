@@ -101,15 +101,15 @@ impl PartialEq for IPv4 {
 }
 
 impl IPv4Validator {
-    pub fn is_ipv4(&self, ipv4: &str) -> bool {
-        self.parse_inner(ipv4).is_ok()
+    pub fn is_ipv4(&self, full_ipv4: &str) -> bool {
+        self.parse_inner(full_ipv4).is_ok()
     }
 
-    pub fn parse_string(&self, ipv4: String) -> IPv4Result {
-        let mut ipv4_inner = self.parse_inner(&ipv4)?;
+    pub fn parse_string(&self, full_ipv4: String) -> IPv4Result {
+        let mut ipv4_inner = self.parse_inner(&full_ipv4)?;
 
         if ipv4_inner.full_ipv4_len != 0 {
-            ipv4_inner.full_ipv4 = ipv4;
+            ipv4_inner.full_ipv4 = full_ipv4;
         } else {
             let ipv4 = ipv4_inner.ip.to_string();
             let len = ipv4.len();
@@ -130,11 +130,11 @@ impl IPv4Validator {
         Ok(ipv4_inner)
     }
 
-    pub fn parse_str(&self, ipv4: &str) -> IPv4Result {
-        let mut ipv4_inner = self.parse_inner(&ipv4)?;
+    pub fn parse_str(&self, full_ipv4: &str) -> IPv4Result {
+        let mut ipv4_inner = self.parse_inner(&full_ipv4)?;
 
         if ipv4_inner.full_ipv4_len != 0 {
-            ipv4_inner.full_ipv4 = ipv4.to_string();
+            ipv4_inner.full_ipv4 = full_ipv4.to_string();
         } else {
             let ipv4 = ipv4_inner.ip.to_string();
             let len = ipv4.len();
@@ -310,6 +310,24 @@ impl IPv4Validator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_ipv4_methods() {
+        let ip = "168.17.212.1:8080".to_string();
+
+        let iv = IPv4Validator {
+            port: ValidatorOption::Allow,
+            local: ValidatorOption::NotAllow,
+            ipv6: ValidatorOption::NotAllow,
+        };
+
+        let ipv4 = iv.parse_string(ip).unwrap();
+
+        assert_eq!("168.17.212.1:8080", ipv4.get_full_ipv4());
+        assert_eq!("168.17.212.1", ipv4.get_full_ipv4_without_port());
+        assert_eq!(8080, ipv4.get_port().unwrap());
+        assert_eq!(false, ipv4.is_local());
+    }
 
     #[test]
     fn test_ipv4_lv1() {

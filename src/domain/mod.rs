@@ -287,6 +287,7 @@ mod tests {
         assert_eq!("tool", domain.get_sub_domain().unwrap());
         assert_eq!("magiclen", domain.get_domain());
         assert_eq!(8080, domain.get_port().unwrap());
+        assert_eq!(false, domain.is_localhost());
     }
 
     #[test]
