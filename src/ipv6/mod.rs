@@ -451,8 +451,28 @@ macro_rules! extend {
                 self.0
             }
 
-            pub fn get_ipv6(&self) -> &IPv6 {
+            pub fn as_ipv6(&self) -> &IPv6 {
                 &self.0
+            }
+        }
+
+        impl $name {
+            pub fn get_ipv6_address(&self) -> &Ipv6Addr {
+                &self.0.ip
+            }
+
+            pub fn get_full_address(&self) -> String {
+                match self.0.port {
+                    Some(p) => {
+                        let mut s = self.0.ip.to_string();
+                        s.push_str(":");
+                        s.push_str(&p.to_string());
+                        s
+                    }
+                    None => {
+                        panic!("impossible")
+                    }
+                }
             }
         }
     };
@@ -461,26 +481,8 @@ macro_rules! extend {
 extend!(IPv6LocalableWithPort, ValidatorOption::Must, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl IPv6LocalableWithPort {
-    pub fn get_ipv6_address(&self) -> &Ipv6Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> u16 {
         self.0.port.unwrap()
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => {
-                panic!("impossible")
-            }
-        }
     }
 
     pub fn is_local(&self) -> bool {
@@ -491,24 +493,8 @@ impl IPv6LocalableWithPort {
 extend!(IPv6LocalableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl IPv6LocalableAllowPort {
-    pub fn get_ipv4_address(&self) -> &Ipv6Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> Option<u16> {
         self.0.port
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => self.0.ip.to_string()
-        }
     }
 
     pub fn is_local(&self) -> bool {
@@ -519,19 +505,6 @@ impl IPv6LocalableAllowPort {
 extend!(IPv6LocalableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl IPv6LocalableWithoutPort {
-    pub fn get_ipv4_address(&self) -> &Ipv6Addr {
-        &self.0.ip
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(_) => {
-                panic!("impossible")
-            }
-            None => self.0.ip.to_string()
-        }
-    }
-
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
@@ -540,66 +513,19 @@ impl IPv6LocalableWithoutPort {
 extend!(IPv6UnlocalableWithPort, ValidatorOption::Must, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl IPv6UnlocalableWithPort {
-    pub fn get_ipv6_address(&self) -> &Ipv6Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> u16 {
         self.0.port.unwrap()
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => {
-                panic!("impossible")
-            }
-        }
     }
 }
 
 extend!(IPv6UnlocalableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl IPv6UnlocalableAllowPort {
-    pub fn get_ipv6_address(&self) -> &Ipv6Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> Option<u16> {
         self.0.port
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => self.0.ip.to_string()
-        }
     }
 }
 
 extend!(IPv6UnlocalableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
-impl IPv6UnlocalableWithoutPort {
-    pub fn get_ipv6_address(&self) -> &Ipv6Addr {
-        &self.0.ip
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(_) => {
-                panic!("impossible")
-            }
-            None => self.0.ip.to_string()
-        }
-    }
-}
+impl IPv6UnlocalableWithoutPort {}

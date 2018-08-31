@@ -430,8 +430,26 @@ macro_rules! extend {
                 self.0
             }
 
-            pub fn get_ipv4(&self) -> &IPv4 {
+            pub fn as_ipv4(&self) -> &IPv4 {
                 &self.0
+            }
+        }
+
+        impl $name {
+            pub fn get_ipv4_address(&self) -> &Ipv4Addr {
+                &self.0.ip
+            }
+
+            pub fn get_full_address(&self) -> String {
+                match self.0.port {
+                    Some(p) => {
+                        let mut s = self.0.ip.to_string();
+                        s.push_str(":");
+                        s.push_str(&p.to_string());
+                        s
+                    }
+                    None => self.0.ip.to_string()
+                }
             }
         }
     };
@@ -440,26 +458,8 @@ macro_rules! extend {
 extend!(IPv4LocalableWithPort, ValidatorOption::Must, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl IPv4LocalableWithPort {
-    pub fn get_ipv4_address(&self) -> &Ipv4Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> u16 {
         self.0.port.unwrap()
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => {
-                panic!("impossible")
-            }
-        }
     }
 
     pub fn is_local(&self) -> bool {
@@ -470,24 +470,8 @@ impl IPv4LocalableWithPort {
 extend!(IPv4LocalableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl IPv4LocalableAllowPort {
-    pub fn get_ipv4_address(&self) -> &Ipv4Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> Option<u16> {
         self.0.port
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => self.0.ip.to_string()
-        }
     }
 
     pub fn is_local(&self) -> bool {
@@ -498,19 +482,6 @@ impl IPv4LocalableAllowPort {
 extend!(IPv4LocalableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl IPv4LocalableWithoutPort {
-    pub fn get_ipv4_address(&self) -> &Ipv4Addr {
-        &self.0.ip
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(_) => {
-                panic!("impossible")
-            }
-            None => self.0.ip.to_string()
-        }
-    }
-
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
@@ -519,66 +490,19 @@ impl IPv4LocalableWithoutPort {
 extend!(IPv4UnlocalableWithPort, ValidatorOption::Must, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl IPv4UnlocalableWithPort {
-    pub fn get_ipv4_address(&self) -> &Ipv4Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> u16 {
         self.0.port.unwrap()
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => {
-                panic!("impossible")
-            }
-        }
     }
 }
 
 extend!(IPv4UnlocalableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl IPv4UnlocalableAllowPort {
-    pub fn get_ipv4_address(&self) -> &Ipv4Addr {
-        &self.0.ip
-    }
-
     pub fn get_port(&self) -> Option<u16> {
         self.0.port
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(p) => {
-                let mut s = self.0.ip.to_string();
-                s.push_str(":");
-                s.push_str(&p.to_string());
-                s
-            }
-            None => self.0.ip.to_string()
-        }
     }
 }
 
 extend!(IPv4UnlocalableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
-impl IPv4UnlocalableWithoutPort {
-    pub fn get_ipv4_address(&self) -> &Ipv4Addr {
-        &self.0.ip
-    }
-
-    pub fn get_full_address(&self) -> String {
-        match self.0.port {
-            Some(_) => {
-                panic!("impossible")
-            }
-            None => self.0.ip.to_string()
-        }
-    }
-}
+impl IPv4UnlocalableWithoutPort {}
