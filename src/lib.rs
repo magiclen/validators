@@ -178,7 +178,13 @@ macro_rules! validated_customized_string_struct {
                 Ok($name{$field})
             }
         }
-    }
+    };
+    ( $name:ident, $field:ident, $err:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_string_struct!($name, $field, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $field:ident, $err:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_string_struct!($name, $field, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
 }
 
 #[macro_export]
@@ -190,12 +196,24 @@ macro_rules! validated_customized_string {
 
         validated_customized_string_struct!($name, s, $err, $from_string_input $from_string, $from_str_input $from_str);
     };
+    ( $name:ident, $err:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_string!($name, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $err:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_string!($name, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
     ( pub $name:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
         pub struct $name{
             s: String
         }
 
         validated_customized_string_struct!($name, s, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $err:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_string!(pub $name, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $err:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_string!(pub $name, $err, $from_string_input $from_string, $from_str_input $from_str);
     };
 }
 
@@ -206,19 +224,19 @@ mod tests {
     #[test]
     fn test_macro() {
         validated_customized_string!(S1, (),
-            input {
+            from_string input {
                 Ok(input.to_string())
             },
-            input {
+            from_str input {
                 Ok(input.to_string())
             }
         );
 
         validated_customized_string!(pub S2, (),
-            input {
+            from_string input {
                 Ok(input.to_string())
             },
-            input {
+            from_str input {
                 Ok(input.to_string())
             }
         );
