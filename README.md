@@ -2,6 +2,7 @@ Validators
 ====================
 
 [![Build Status](https://travis-ci.org/magiclen/validators.svg?branch=master)](https://travis-ci.org/magiclen/validators)
+[![Build status](https://ci.appveyor.com/api/projects/status/ex5r8e8befa9oph7/branch/master?svg=true)](https://ci.appveyor.com/project/magiclen/validators/branch/master)
 
 This crate provides many validators for validating data from users and modeling them to structs without much extra effort.
 
