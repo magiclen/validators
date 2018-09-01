@@ -406,21 +406,21 @@ macro_rules! extend {
 
         impl $name {
             pub fn from_string(full_domain: String) -> Result<$name, DomainError> {
-                let dc = DomainValidator {
+                let dv = DomainValidator {
                     port: $port,
                     localhost: $localhost,
                 };
 
-                Ok($name(dc.parse_string(full_domain)?))
+                Ok($name(dv.parse_string(full_domain)?))
             }
 
             pub fn from_str(full_domain: &str) -> Result<$name, DomainError> {
-                let dc = DomainValidator {
+                let dv = DomainValidator {
                     port: $port,
                     localhost: $localhost,
                 };
 
-                Ok($name(dc.parse_str(full_domain)?))
+                Ok($name(dv.parse_str(full_domain)?))
             }
 
             pub fn from_domain(domain: Domain) -> Result<$name, DomainError> {
@@ -478,6 +478,15 @@ macro_rules! extend {
 
             pub fn get_full_domain(&self) -> &str {
                 self.0.get_full_domain()
+            }
+        }
+
+        #[cfg(feature = "rocketly")]
+        impl<'a> ::rocket::request::FromFormValue<'a> for $name {
+            type Error = DomainError;
+
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+                $name::from_str(form_value)
             }
         }
     };

@@ -565,6 +565,15 @@ macro_rules! extend {
                 }
             }
         }
+
+         #[cfg(feature = "rocketly")]
+        impl<'a> ::rocket::request::FromFormValue<'a> for $name {
+            type Error = IPv6Error;
+
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+                $name::from_str(form_value)
+            }
+        }
     };
 }
 

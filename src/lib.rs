@@ -12,7 +12,7 @@
 //! ```
 //! extern crate validators;
 //!
-//! use validators::{ValidatorOption};
+//! use validators::ValidatorOption;
 //! use validators::domain::{Domain, DomainValidator};
 //!
 //! let domain = "tool.magiclen.org:8080".to_string();
@@ -57,12 +57,14 @@
 
 #![cfg_attr(feature = "nightly", feature(ip))]
 
-extern crate regex;
+#[doc(hidden)]
+pub extern crate regex;
+#[cfg(feature = "rocketly")]
+#[doc(hidden)]
+pub extern crate rocket;
 
 use std::fmt::Display;
 use std::cmp::PartialEq;
-
-pub use regex::Regex;
 
 pub enum ValidatorOption {
     Must,
@@ -111,16 +113,6 @@ pub enum ValidatedCustomizedStringError {
     NotMatch,
 }
 
-pub trait ValidatedCustomizedString<'a>: Validated {
-    type Error;
-
-    fn as_str(&'a self) -> &'a str;
-
-    fn from_string(s: String) -> Result<Self, Self::Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Error>;
-}
-
 #[macro_export]
 macro_rules! validated_customized_string_struct {
     ( $name:ident, $field:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
@@ -161,16 +153,14 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        impl self::validators::Validated for $name {}
+        impl ::validators::Validated for $name {}
 
-        impl<'a> self::validators::ValidatedCustomizedString<'a> for $name {
-            type Error = $err;
-
+        impl<'a> $name {
             fn as_str(&'a self) -> &'a str {
                 &self.$field
             }
 
-            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
+            fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
                 let $field = match $from_string {
                     Ok(s)=>s,
                     Err(e)=> return Err(e)
@@ -179,13 +169,22 @@ macro_rules! validated_customized_string_struct {
                 Ok($name{$field})
             }
 
-            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
+            fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
                 let $field = match $from_str {
                     Ok(s)=>s,
                     Err(e)=> return Err(e)
                 };
 
                 Ok($name{$field})
+            }
+        }
+
+        #[cfg(feature = "rocketly")]
+        impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
+            type Error = ::validators::ValidatedCustomizedStringError;
+
+            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
+                $name::from_str(form_value)
             }
         }
     };
@@ -230,23 +229,23 @@ macro_rules! validated_customized_string {
 #[macro_export]
 macro_rules! validated_customized_regex_string_struct {
     ( $name:ident, $field:ident, $re:expr ) => {
-        validated_customized_string_struct!($name, $field, self::validators::ValidatedCustomizedStringError,
+        validated_customized_string_struct!($name, $field, ::validators::ValidatedCustomizedStringError,
         input {
-            let re = self::validators::Regex::new($re).map_err(|err|self::validators::ValidatedCustomizedStringError::RegexError(err))?;
+            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input)
             } else{
-                Err(self::validators::ValidatedCustomizedStringError::NotMatch)
+                Err(::validators::ValidatedCustomizedStringError::NotMatch)
             }
         },
         input {
-            let re = self::validators::Regex::new($re).map_err(|err|self::validators::ValidatedCustomizedStringError::RegexError(err))?;
+            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input.to_string())
             } else{
-                Err(self::validators::ValidatedCustomizedStringError::NotMatch)
+                Err(::validators::ValidatedCustomizedStringError::NotMatch)
             }
         });
     };

@@ -36,7 +36,7 @@ impl Email {
     }
 }
 
-impl Validated for Email{}
+impl Validated for Email {}
 
 impl Display for Email {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -144,5 +144,30 @@ mod tests {
         let ev = EmailValidator {};
 
         ev.parse_string(email).unwrap();
+    }
+}
+
+// Email's wrapper struct is itself
+impl Email {
+    pub fn from_string(full_email: String) -> Result<Email, EmailError> {
+        let ev = EmailValidator {};
+
+        ev.parse_string(full_email)
+    }
+
+    pub fn from_str(full_email: &str) -> Result<Email, EmailError> {
+        let ev = EmailValidator {};
+
+        ev.parse_str(full_email)
+    }
+}
+
+
+#[cfg(feature = "rocketly")]
+impl<'a> ::rocket::request::FromFormValue<'a> for Email {
+    type Error = EmailError;
+
+    fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+        Email::from_str(form_value)
     }
 }

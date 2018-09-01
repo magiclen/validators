@@ -597,6 +597,15 @@ macro_rules! extend {
                 self.0.is_https
             }
         }
+
+         #[cfg(feature = "rocketly")]
+        impl<'a> ::rocket::request::FromFormValue<'a> for $name {
+            type Error = HttpUrlError;
+
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+                $name::from_str(form_value)
+            }
+        }
     };
 }
 

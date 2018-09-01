@@ -16,7 +16,7 @@ When initialing a `DomainValidator`, we can choose to make this `DomainValidator
 ```rust
 extern crate validators;
 
-use validators::{ValidatorOption};
+use validators::ValidatorOption;
 use validators::domain::{Domain, DomainValidator};
 
 let domain = "tool.magiclen.org:8080".to_string();
