@@ -59,6 +59,7 @@
 
 #[doc(hidden)]
 pub extern crate regex;
+
 #[cfg(feature = "rocketly")]
 #[doc(hidden)]
 pub extern crate rocket;
@@ -180,7 +181,7 @@ macro_rules! validated_customized_string_struct {
         }
 
         #[cfg(feature = "rocketly")]
-        impl<'a> ::rocket::request::FromFormValue<'a> for $name {
+        impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
             type Error = ::validators::ValidatedCustomizedStringError;
 
             fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
