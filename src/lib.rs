@@ -151,9 +151,9 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        impl self::Validated for $name {}
+        impl self::validators::Validated for $name {}
 
-        impl<'a> ValidatedCustomizedString<'a> for $name {
+        impl<'a> self::validators::ValidatedCustomizedString<'a> for $name {
             type Error = $err;
 
             fn as_str(&'a self) -> &'a str {
@@ -215,30 +215,4 @@ macro_rules! validated_customized_string {
     ( pub $name:ident, $err:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_string!(pub $name, $err, $from_string_input $from_string, $from_str_input $from_str);
     };
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_macro() {
-        validated_customized_string!(S1, (),
-            from_string input {
-                Ok(input.to_string())
-            },
-            from_str input {
-                Ok(input.to_string())
-            }
-        );
-
-        validated_customized_string!(pub S2, (),
-            from_string input {
-                Ok(input.to_string())
-            },
-            from_str input {
-                Ok(input.to_string())
-            }
-        );
-    }
 }
