@@ -1,4 +1,4 @@
-#![cfg(feature = "rocketly")]
+#![cfg(feature = "rocketly-test")]
 #![feature(plugin)]
 #![feature(custom_derive)]
 #![plugin(rocket_codegen)]
