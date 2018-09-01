@@ -1,11 +1,11 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated};
+use super::Validated;
 
 use std::fmt::{self, Display, Formatter};
 
-use super::domain::{DomainValidator, DomainError};
+use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
 #[derive(Debug)]
 pub enum EmailError {
@@ -19,16 +19,17 @@ pub struct EmailValidator {}
 
 #[derive(Clone)]
 pub struct Email {
-    domain: usize,
+    domain: Domain,
+    domain_index: usize,
     full_email: String,
 }
 
 impl Email {
     pub fn get_local(&self) -> &str {
-        &self.full_email[..(self.domain - 1)]
+        &self.full_email[..(self.domain_index - 1)]
     }
-    pub fn get_domain(&self) -> &str {
-        &self.full_email[self.domain..]
+    pub fn get_domain(&self) -> &Domain {
+        &self.domain
     }
     pub fn get_full_email(&self) -> &str {
         &self.full_email
@@ -91,11 +92,11 @@ impl EmailValidator {
             None => return Err(EmailError::IncorrectLocalPart)
         };
 
-        let domain;
+        let domain_index;
 
         match c.get(1) {
             Some(m) => {
-                domain = m.end() + 1;
+                domain_index = m.end() + 1;
 
                 m.start()
             }
@@ -104,18 +105,16 @@ impl EmailValidator {
             }
         };
 
-        let dv = DomainValidator {
-            port: ValidatorOption::NotAllow,
-            localhost: ValidatorOption::NotAllow,
+        let duwnp = match DomainUnlocalhostableWithoutPort::from_str(&full_email[domain_index..]) {
+            Ok(d) => d,
+            Err(err) => return Err(EmailError::IncorrectDomainPart(err))
         };
 
-        match dv.parse_str(&full_email[domain..]) {
-            Ok(_) => (),
-            Err(err) => return Err(EmailError::IncorrectDomainPart(err))
-        }
+        let domain = duwnp.into_domain();
 
         Ok(Email {
             domain,
+            domain_index,
             full_email: String::new(),
         })
     }
@@ -135,7 +134,7 @@ mod tests {
 
         assert_eq!("len@magiclen.org", email.get_full_email());
         assert_eq!("len", email.get_local());
-        assert_eq!("magiclen.org", email.get_domain());
+        assert_eq!("magiclen.org", email.get_domain().get_full_domain());
     }
 
     #[test]
