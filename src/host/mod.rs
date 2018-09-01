@@ -8,7 +8,7 @@ use super::domain::{DomainValidator, DomainError, Domain};
 use super::ipv4::{IPv4Validator, IPv4Error, IPv4};
 use super::ipv6::{IPv6Validator, IPv6Error, IPv6};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum HostError {
     Domain(DomainError),
     IPv4(IPv4Error),

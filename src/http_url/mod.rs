@@ -7,7 +7,7 @@ use std::fmt::{self, Display, Formatter};
 
 use super::host::{Host, HostLocalable, HostError};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum HttpUrlError {
     IncorrectFormat,
     IncorrectHostFormat(HostError),

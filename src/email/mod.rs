@@ -7,7 +7,7 @@ use std::fmt::{self, Display, Formatter};
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum EmailError {
     IncorrectLocalPart,
     IncorrectDomainPart(DomainError),

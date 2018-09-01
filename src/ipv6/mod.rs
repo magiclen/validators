@@ -23,7 +23,7 @@ fn is_local_ipv6(addr: &Ipv6Addr) -> bool {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum IPv6Error {
     IncorrectFormat,
     IncorrectPort,

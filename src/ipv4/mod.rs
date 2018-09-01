@@ -11,7 +11,7 @@ fn is_local_ipv4(addr: &Ipv4Addr) -> bool {
     addr.is_private() || addr.is_loopback() || addr.is_link_local() || addr.is_broadcast() || addr.is_documentation() || addr.is_unspecified()
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum IPv4Error {
     IncorrectFormat,
     IncorrectPort,

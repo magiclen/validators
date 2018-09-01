@@ -105,9 +105,10 @@ pub mod ipv6;
 pub mod host;
 pub mod http_url;
 
-pub enum ValidatedCustomizedStringError{
+#[derive(Debug, PartialEq, Clone)]
+pub enum ValidatedCustomizedStringError {
     RegexError(regex::Error),
-    NotMatch
+    NotMatch,
 }
 
 pub trait ValidatedCustomizedString<'a>: Validated {

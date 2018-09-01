@@ -5,7 +5,7 @@ use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Formatter};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum DomainError {
     IncorrectFormat,
     IncorrectPort,
