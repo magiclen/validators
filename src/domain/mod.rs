@@ -3,7 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Debug, Formatter};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum DomainError {
@@ -99,6 +99,13 @@ impl Domain {
 }
 
 impl Validated for Domain {}
+
+impl Debug for Domain {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_fmt(format_args!("Domain({})", self.full_domain))?;
+        Ok(())
+    }
+}
 
 impl Display for Domain {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -378,9 +385,16 @@ macro_rules! extend {
 
         impl Validated for $name {}
 
+        impl Debug for $name {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
+                Ok(())
+            }
+        }
+
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                self.0.fmt(f)
+                Display::fmt(&self.0, f)
             }
         }
 

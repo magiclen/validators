@@ -64,7 +64,7 @@ pub extern crate regex;
 #[doc(hidden)]
 pub extern crate rocket;
 
-use std::fmt::Display;
+use std::fmt::{Display, Debug};
 use std::cmp::PartialEq;
 
 pub enum ValidatorOption {
@@ -99,7 +99,7 @@ impl ValidatorOption {
     }
 }
 
-pub trait Validated: Display + PartialEq + Clone {}
+pub trait Validated: Display + PartialEq + Clone + Debug {}
 
 pub mod domain;
 pub mod email;
@@ -146,6 +146,13 @@ macro_rules! validated_customized_string_struct {
                 let $field = self.$field.clone();
 
                 $name{$field}
+            }
+        }
+
+        impl std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
+                Ok(())
             }
         }
 

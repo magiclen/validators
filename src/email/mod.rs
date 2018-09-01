@@ -3,7 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::Validated;
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Debug, Formatter};
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
@@ -37,6 +37,13 @@ impl Email {
 }
 
 impl Validated for Email {}
+
+impl Debug for Email {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_fmt(format_args!("Email({})", self.full_email))?;
+        Ok(())
+    }
+}
 
 impl Display for Email {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {

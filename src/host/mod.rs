@@ -2,7 +2,7 @@ extern crate regex;
 
 use super::{ValidatorOption, Validated};
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Debug, Formatter};
 
 use super::domain::{DomainValidator, DomainError, Domain};
 use super::ipv4::{IPv4Validator, IPv4Error, IPv4};
@@ -59,12 +59,25 @@ impl Host {
 
 impl Validated for Host {}
 
+impl Debug for Host {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_str("Host(")?;
+        match self {
+            Host::Domain(d) => Debug::fmt(d, f),
+            Host::IPv4(d) => Debug::fmt(d, f),
+            Host::IPv6(d) => Debug::fmt(d, f),
+        }?;
+        f.write_str(")")?;
+        Ok(())
+    }
+}
+
 impl Display for Host {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Host::Domain(d) => d.fmt(f),
-            Host::IPv4(d) => d.fmt(f),
-            Host::IPv6(d) => d.fmt(f),
+            Host::Domain(d) => Display::fmt(d, f),
+            Host::IPv4(d) => Display::fmt(d, f),
+            Host::IPv6(d) => Display::fmt(d, f),
         }
     }
 }
@@ -225,9 +238,16 @@ macro_rules! extend {
 
         impl Validated for $name {}
 
+        impl Debug for $name {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
+                Ok(())
+            }
+        }
+
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                self.0.fmt(f)
+                Display::fmt(&self.0, f)
             }
         }
 
@@ -412,5 +432,4 @@ impl HostLocalable {
 
 extend!(HostUnlocalable, ValidatorOption::NotAllow);
 
-impl HostUnlocalable {
-}
+impl HostUnlocalable {}

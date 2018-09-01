@@ -3,7 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
@@ -74,6 +74,13 @@ impl IPv4 {
 }
 
 impl Validated for IPv4 {}
+
+impl Debug for IPv4 {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_fmt(format_args!("IPv4({})", self.full_ipv4))?;
+        Ok(())
+    }
+}
 
 impl Display for IPv4 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -423,9 +430,16 @@ macro_rules! extend {
 
         impl Validated for $name {}
 
+        impl Debug for $name {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
+                Ok(())
+            }
+        }
+
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                self.0.fmt(f)
+                Display::fmt(&self.0, f)
             }
         }
 

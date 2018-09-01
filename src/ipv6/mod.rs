@@ -3,7 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "nightly")]
 use std::net::Ipv6MulticastScope;
@@ -86,6 +86,13 @@ impl IPv6 {
 }
 
 impl Validated for IPv6 {}
+
+impl Debug for IPv6 {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_fmt(format_args!("IPv6({})", self.full_ipv6))?;
+        Ok(())
+    }
+}
 
 impl Display for IPv6 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -461,9 +468,16 @@ macro_rules! extend {
 
         impl Validated for $name {}
 
+        impl Debug for $name {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
+                Ok(())
+            }
+        }
+
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                self.0.fmt(f)
+                Display::fmt(&self.0, f)
             }
         }
 

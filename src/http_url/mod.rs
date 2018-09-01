@@ -3,7 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Display, Debug, Formatter};
 
 use super::host::{Host, HostLocalable, HostError};
 
@@ -118,6 +118,13 @@ impl HttpUrl {
 }
 
 impl Validated for HttpUrl {}
+
+impl Debug for HttpUrl {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        f.write_fmt(format_args!("HttpUrl({})", self.full_http_url))?;
+        Ok(())
+    }
+}
 
 impl Display for HttpUrl {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -451,9 +458,16 @@ macro_rules! extend {
 
         impl Validated for $name {}
 
+        impl Debug for $name {
+            fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+                f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
+                Ok(())
+            }
+        }
+
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-                self.0.fmt(f)
+                Display::fmt(&self.0, f)
             }
         }
 
