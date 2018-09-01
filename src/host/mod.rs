@@ -223,6 +223,8 @@ macro_rules! extend {
             }
         }
 
+        impl Validated for $name {}
+
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 self.0.fmt(f)
