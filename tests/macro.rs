@@ -25,4 +25,10 @@ mod tests {
             }
         );
     }
+
+    #[test]
+    fn test_validated_customized_regex_string() {
+        validated_customized_regex_string!(S1, "^(Hi|Hello)$");
+        validated_customized_regex_string!(pub S2, "^(Hi|Hello)$");
+    }
 }

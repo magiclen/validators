@@ -57,8 +57,12 @@
 
 #![cfg_attr(feature = "nightly", feature(ip))]
 
+extern crate regex;
+
 use std::fmt::Display;
 use std::cmp::PartialEq;
+
+pub use regex::Regex;
 
 pub enum ValidatorOption {
     Must,
@@ -100,6 +104,11 @@ pub mod ipv4;
 pub mod ipv6;
 pub mod host;
 pub mod http_url;
+
+pub enum ValidatedCustomizedStringError{
+    RegexError(regex::Error),
+    NotMatch
+}
 
 pub trait ValidatedCustomizedString<'a>: Validated {
     type Error;
@@ -214,5 +223,48 @@ macro_rules! validated_customized_string {
     };
     ( pub $name:ident, $err:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_string!(pub $name, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+}
+
+#[macro_export]
+macro_rules! validated_customized_regex_string_struct {
+    ( $name:ident, $field:ident, $re:expr ) => {
+        validated_customized_string_struct!($name, $field, self::validators::ValidatedCustomizedStringError,
+        input {
+            let re = self::validators::Regex::new($re).map_err(|err|self::validators::ValidatedCustomizedStringError::RegexError(err))?;
+
+            if re.is_match(&input) {
+                Ok(input)
+            } else{
+                Err(self::validators::ValidatedCustomizedStringError::NotMatch)
+            }
+        },
+        input {
+            let re = self::validators::Regex::new($re).map_err(|err|self::validators::ValidatedCustomizedStringError::RegexError(err))?;
+
+            if re.is_match(&input) {
+                Ok(input.to_string())
+            } else{
+                Err(self::validators::ValidatedCustomizedStringError::NotMatch)
+            }
+        });
+    };
+}
+
+#[macro_export]
+macro_rules! validated_customized_regex_string {
+    ( $name:ident, $re:expr ) => {
+        struct $name{
+            s: String
+        }
+
+        validated_customized_regex_string_struct!($name, s, $re);
+    };
+    ( pub $name:ident, $re:expr ) => {
+        pub struct $name{
+            s: String
+        }
+
+        validated_customized_regex_string_struct!($name, s, $re);
     };
 }
