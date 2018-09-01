@@ -21,22 +21,22 @@ mod tests {
     fn test_from_form_value() {
         #[derive(FromForm)]
         struct Model1{
-            a: DomainLocalhostableWithPort,
-            b: Email
+            _a: DomainLocalhostableWithPort,
+            _b: Email
         }
 
-        let m1 = Model1{
-            a: DomainLocalhostableWithPort::from_str("localhost:8080").unwrap(),
-            b: Email::from_str("len@magiclen.org").unwrap(),
+        let _m1 = Model1{
+            _a: DomainLocalhostableWithPort::from_str("localhost:8080").unwrap(),
+            _b: Email::from_str("len@magiclen.org").unwrap(),
         };
 
         #[derive(FromForm)]
         struct Model2{
-            a: Lang,
+            _a: Lang,
         }
 
-        let m2 = Model2{
-            a: Lang::from_str("tw").unwrap(),
+        let _m2 = Model2{
+            _a: Lang::from_str("tw").unwrap(),
         };
     }
 }

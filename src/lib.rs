@@ -114,6 +114,7 @@ pub enum ValidatedCustomizedStringError {
     NotMatch,
 }
 
+#[cfg(feature = "rocketly")]
 #[macro_export]
 macro_rules! validated_customized_string_struct {
     ( $name:ident, $field:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
@@ -180,12 +181,87 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        #[cfg(feature = "rocketly")]
+        // #[cfg(feature = "rocketly")]
         impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
             type Error = ::validators::ValidatedCustomizedStringError;
 
             fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
                 $name::from_str(form_value)
+            }
+        }
+    };
+    ( $name:ident, $field:ident, $err:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_string_struct!($name, $field, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $field:ident, $err:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_string_struct!($name, $field, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+}
+
+#[cfg(not(feature = "rocketly"))]
+#[macro_export]
+macro_rules! validated_customized_string_struct {
+    ( $name:ident, $field:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+        impl Clone for $name {
+            fn clone(&self) -> Self{
+                let $field = self.$field.clone();
+
+                $name{$field}
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str(&self.$field)?;
+                Ok(())
+            }
+        }
+
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                self.$field.eq(&other.$field)
+            }
+
+            fn ne(&self, other: &Self) -> bool {
+                self.$field.ne(&other.$field)
+            }
+        }
+
+        impl AsRef<[u8]> for $name {
+            fn as_ref(&self) -> &[u8] {
+                self.$field.as_bytes()
+            }
+        }
+
+        impl AsRef<str> for $name {
+            fn as_ref(&self) -> &str {
+                self.$field.as_ref()
+            }
+        }
+
+        impl ::validators::Validated for $name {}
+
+        impl<'a> $name {
+            fn as_str(&'a self) -> &'a str {
+                &self.$field
+            }
+
+            fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
+                let $field = match $from_string {
+                    Ok(s)=>s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
+
+            fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
+                let $field = match $from_str {
+                    Ok(s)=>s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
             }
         }
     };
