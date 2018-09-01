@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate validators;
+#[cfg(feature = "rocketly")]
+pub extern crate rocket;
 
 #[cfg(test)]
 mod tests {
