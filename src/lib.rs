@@ -49,7 +49,7 @@
 //! assert_eq!("org", domain.get_top_level_domain().unwrap());
 //! assert_eq!("tool", domain.get_sub_domain().unwrap());
 //! assert_eq!("magiclen", domain.get_domain());
-//! assert_eq!(8080, domain.get_port()); // This function does not used `Option` for its return value, because the struct `DomainLocalhostableWithPort` makes sure the input must have a port number!
+//! assert_eq!(8080, domain.get_port()); // This function does not use `Option` as its return value, because the struct `DomainLocalhostableWithPort` has already made sure the input must have a port number!
 //! ```
 //!
 //! This crate aims to use the simplest and slackest way (normally only use regular expressions) to validate data, in order to minimize the overhead.
