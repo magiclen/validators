@@ -101,3 +101,126 @@ pub mod ipv6;
 pub mod host;
 pub mod http_url;
 
+pub trait ValidatedCustomizedString<'a>: Validated {
+    type Error;
+
+    fn as_str(&'a self) -> &'a str;
+
+    fn from_string(s: String) -> Result<Self, Self::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Error>;
+}
+
+#[macro_export]
+macro_rules! validated_customized_string_struct {
+    ( $name:ident, $field:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+        impl Clone for $name {
+            fn clone(&self) -> Self{
+                let $field = self.$field.clone();
+
+                $name{$field}
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                f.write_str(&self.$field)?;
+                Ok(())
+            }
+        }
+
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                self.$field.eq(&other.$field)
+            }
+
+            fn ne(&self, other: &Self) -> bool {
+                self.$field.ne(&other.$field)
+            }
+        }
+
+        impl AsRef<[u8]> for $name {
+            fn as_ref(&self) -> &[u8] {
+                self.$field.as_bytes()
+            }
+        }
+
+        impl AsRef<str> for $name {
+            fn as_ref(&self) -> &str {
+                self.$field.as_ref()
+            }
+        }
+
+        impl Validated for $name {}
+
+        impl<'a> ValidatedCustomizedString<'a> for $name {
+            type Error = $err;
+
+            fn as_str(&'a self) -> &'a str {
+                &self.$field
+            }
+
+            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
+                let $field = match $from_string {
+                    Ok(s)=>s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
+
+            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
+                let $field = match $from_str {
+                    Ok(s)=>s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! validated_customized_string {
+    ( $name:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+        struct $name{
+            s: String
+        }
+
+        validated_customized_string_struct!($name, s, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $err:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+        pub struct $name{
+            s: String
+        }
+
+        validated_customized_string_struct!($name, s, $err, $from_string_input $from_string, $from_str_input $from_str);
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_macro() {
+        validated_customized_string!(S1, (),
+            input {
+                Ok(input.to_string())
+            },
+            input {
+                Ok(input.to_string())
+            }
+        );
+
+        validated_customized_string!(pub S2, (),
+            input {
+                Ok(input.to_string())
+            },
+            input {
+                Ok(input.to_string())
+            }
+        );
+    }
+}
