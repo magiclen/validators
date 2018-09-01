@@ -151,7 +151,7 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        impl Validated for $name {}
+        impl self::Validated for $name {}
 
         impl<'a> ValidatedCustomizedString<'a> for $name {
             type Error = $err;
