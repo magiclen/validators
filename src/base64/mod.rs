@@ -4,10 +4,12 @@ use self::regex::Regex;
 use super::Validated;
 
 use std::fmt::{self, Display, Debug, Formatter};
+use std::str::Utf8Error;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Base64Error {
     IncorrectFormat,
+    UTF8Error(Utf8Error),
 }
 
 pub type Base64Result = Result<Base64, Base64Error>;
@@ -130,6 +132,6 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Base64 {
     type Error = Base64Error;
 
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Base64::from_str(form_value)
+        Base64::from_string(form_value.url_decode().map_err(|err| Base64Error::UTF8Error(err))?)
     }
 }

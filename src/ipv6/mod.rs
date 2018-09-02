@@ -7,7 +7,7 @@ use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "nightly")]
 use std::net::Ipv6MulticastScope;
-use std::str::FromStr;
+use std::str::{Utf8Error, FromStr};
 
 #[cfg(not(feature = "nightly"))]
 fn is_local_ipv6(addr: &Ipv6Addr) -> bool {
@@ -33,6 +33,7 @@ pub enum IPv6Error {
     LocalNotFound,
     IPv4NotAllow,
     IPv4NotFound,
+    UTF8Error(Utf8Error),
 }
 
 pub type IPv6Result = Result<IPv6, IPv6Error>;
@@ -585,7 +586,7 @@ macro_rules! extend {
             type Error = IPv6Error;
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_str(form_value)
+                $name::from_string(form_value.url_decode().map_err(|err| IPv6Error::UTF8Error(err))?)
             }
         }
     };

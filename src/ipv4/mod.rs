@@ -5,7 +5,7 @@ use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
-use std::str::FromStr;
+use std::str::{Utf8Error, FromStr};
 
 fn is_local_ipv4(addr: &Ipv4Addr) -> bool {
     addr.is_private() || addr.is_loopback() || addr.is_link_local() || addr.is_broadcast() || addr.is_documentation() || addr.is_unspecified()
@@ -21,6 +21,7 @@ pub enum IPv4Error {
     LocalNotFound,
     IPv6NotAllow,
     IPv6NotFound,
+    UTF8Error(Utf8Error),
 }
 
 pub type IPv4Result = Result<IPv4, IPv4Error>;
@@ -547,7 +548,7 @@ macro_rules! extend {
             type Error = IPv4Error;
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_str(form_value)
+                $name::from_string(form_value.url_decode().map_err(|err| IPv4Error::UTF8Error(err))?)
             }
         }
     };

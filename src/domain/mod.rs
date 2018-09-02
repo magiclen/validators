@@ -4,6 +4,7 @@ use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Debug, Formatter};
+use std::str::Utf8Error;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum DomainError {
@@ -13,6 +14,7 @@ pub enum DomainError {
     PortNotFound,
     LocalhostNotAllow,
     LocalhostNotFound,
+    UTF8Error(Utf8Error),
 }
 
 pub type DomainResult = Result<Domain, DomainError>;
@@ -500,7 +502,7 @@ macro_rules! extend {
             type Error = DomainError;
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_str(form_value)
+                $name::from_string(form_value.url_decode().map_err(|err| DomainError::UTF8Error(err))?)
             }
         }
     };

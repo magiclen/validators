@@ -147,6 +147,7 @@ pub extern crate rocket;
 
 use std::fmt::{Display, Debug};
 use std::cmp::PartialEq;
+use std::str::Utf8Error;
 
 pub enum ValidatorOption {
     Must,
@@ -200,6 +201,7 @@ pub mod short_crypt_qr_code_alphanumeric;
 pub enum ValidatedCustomizedStringError {
     RegexError(regex::Error),
     NotMatch,
+    UTF8Error(Utf8Error)
 }
 
 #[cfg(feature = "rocketly")]
@@ -211,7 +213,7 @@ macro_rules! validated_customized_string_struct_implement_from_form_value {
             type Error = ::validators::ValidatedCustomizedStringError;
 
             fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_str(form_value)
+                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
             }
         }
     }
@@ -392,6 +394,7 @@ pub enum ValidatedCustomizedNumberError {
     ParseError(String),
     OutRange,
     NotMatch,
+    UTF8Error(Utf8Error),
 }
 
 #[cfg(feature = "rocketly")]
@@ -403,7 +406,7 @@ macro_rules! validated_customized_number_struct_implement_from_form_value {
             type Error = ::validators::ValidatedCustomizedNumberError;
 
             fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_str(form_value)
+                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedNumberError::UTF8Error(err))?)
             }
         }
     }

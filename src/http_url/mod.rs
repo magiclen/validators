@@ -4,6 +4,7 @@ use self::regex::Regex;
 use super::{ValidatorOption, Validated};
 
 use std::fmt::{self, Display, Debug, Formatter};
+use std::str::Utf8Error;
 
 use super::host::{Host, HostLocalable, HostError};
 
@@ -15,6 +16,7 @@ pub enum HttpUrlError {
     LocalNotFound,
     ProtocolNotAllow,
     ProtocolNotFound,
+    UTF8Error(Utf8Error),
 }
 
 pub type HttpUrlResult = Result<HttpUrl, HttpUrlError>;
@@ -617,7 +619,7 @@ macro_rules! extend {
             type Error = HttpUrlError;
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_str(form_value)
+                $name::from_string(form_value.url_decode().map_err(|err| HttpUrlError::UTF8Error(err))?)
             }
         }
     };

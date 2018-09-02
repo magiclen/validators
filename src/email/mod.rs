@@ -4,6 +4,7 @@ use self::regex::Regex;
 use super::Validated;
 
 use std::fmt::{self, Display, Debug, Formatter};
+use std::str::Utf8Error;
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
@@ -11,6 +12,7 @@ use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 pub enum EmailError {
     IncorrectLocalPart,
     IncorrectDomainPart(DomainError),
+    UTF8Error(Utf8Error),
 }
 
 pub type EmailResult = Result<Email, EmailError>;
@@ -175,6 +177,6 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Email {
     type Error = EmailError;
 
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Email::from_str(form_value)
+        Email::from_string(form_value.url_decode().map_err(|err| EmailError::UTF8Error(err))?)
     }
 }
