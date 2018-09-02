@@ -149,6 +149,9 @@ use std::fmt::{Display, Debug};
 use std::cmp::PartialEq;
 use std::str::Utf8Error;
 
+#[doc(hidden)]
+pub const REGEX_SIZE_LIMIT: usize = 26214400;
+
 pub enum ValidatorOption {
     Must,
     Allow,
@@ -346,7 +349,7 @@ macro_rules! validated_customized_regex_string_struct {
     ( $name:ident, $field:ident, $re:expr ) => {
         validated_customized_string_struct!($name, $field,
         input {
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
+            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input)
@@ -355,7 +358,7 @@ macro_rules! validated_customized_regex_string_struct {
             }
         },
         input {
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
+            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input.to_string())
@@ -563,7 +566,7 @@ macro_rules! validated_customized_regex_number_struct {
     ( $name:ident, $field:ident, $t:ty, $re:expr ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
+            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
@@ -572,7 +575,7 @@ macro_rules! validated_customized_regex_number_struct {
             }
         },
         input {
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
+            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
@@ -583,7 +586,7 @@ macro_rules! validated_customized_regex_number_struct {
         input {
             let input = input.to_string();
 
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
+            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
