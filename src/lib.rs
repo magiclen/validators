@@ -102,10 +102,9 @@
 //! features = ["rocketly"]
 //! ```
 //!
-//! For example, (the first `cfg` line can be ignored)
+//! For example,
 //!
-//! ```
-//! #![cfg(feature = "rocketly-test")]
+//! ```rust,ignore
 //! #![feature(plugin)]
 //! #![feature(custom_derive)]
 //! #![plugin(rocket_codegen)]
