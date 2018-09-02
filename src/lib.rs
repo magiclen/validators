@@ -131,7 +131,7 @@
 //! }
 //!
 //! #[post("/contact", data = "<model>")]
-//! fn contact<'a>(model: Form<ContactModel>) -> &'static str {
+//! fn contact(model: Form<ContactModel>) -> &'static str {
 //!     println!("{:?}", model);
 //!     "do something..."
 //! }
