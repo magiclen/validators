@@ -106,10 +106,9 @@ version = "*"
 features = ["rocketly"]
 ```
 
-For example, (the first `cfg` line can be ignored)
+For example,
 
 ```rust
-#![cfg(feature = "rocketly-test")]
 #![feature(plugin)]
 #![feature(custom_derive)]
 #![plugin(rocket_codegen)]
