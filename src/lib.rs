@@ -53,7 +53,89 @@
 //! ```
 //!
 //! This crate aims to use the simplest and slackest way (normally only use regular expressions) to validate data, in order to minimize the overhead.
-//! Therefore, it may not be competent in some critical situations. Use it carefully.
+//! Therefore, it may not be competent in some critical situations. Use it carefully. Check out the documentation to see more useful validators and wrapper types.
+//!
+//! ## Customization
+//!
+//! This crate also provides macros to create customized validated structs for any strings and numbers.
+//!
+//! For example, to create a struct which only allows **"Hi"** or **"Hello"** restricted by a regular expression,
+//!
+//! ```
+//! #[macro_use] extern crate validators;
+//!
+//! validated_customized_regex_string!(Greet, "^(Hi|Hello)$");
+//!
+//! let s = Greet::from_str("Hi").unwrap();
+//! ```
+//!
+//! You can also make your struct public by adding a **pub** keyword,
+//!
+//! ```
+//! #[macro_use] extern crate validators;
+//!
+//! validated_customized_regex_string!(pub Greet, "^(Hi|Hello)$");
+//!
+//! let s = Greet::from_str("Hi").unwrap();
+//! ```
+//!
+//! For numbers limited in a range,
+//!
+//! ```
+//! #[macro_use] extern crate validators;
+//!
+//! validated_customized_ranged_number!(Score, u8, 0, 100);
+//!
+//! let score = Score::from_str("80").unwrap();
+//! ```
+//!
+//! Read the documentation to know more helpful customized macros.
+//!
+//! ## Rocket Support
+//!
+//! This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement `FromFormValue` trait.
+//! To use with Rocket support, you have to enable **rocketly** feature for this crate.
+//!
+//! ```toml
+//! [dependencies.validators]
+//! version = "*"
+//! features = ["rocketly"]
+//! ```
+//!
+//! For example, (the first `cfg` line can be ignored)
+//!
+//! ```
+//! #![cfg(feature = "rocketly-test")]
+//! #![feature(plugin)]
+//! #![feature(custom_derive)]
+//! #![plugin(rocket_codegen)]
+//!
+//! #[macro_use] extern crate validators;
+//!
+//! extern crate rocket;
+//!
+//! use rocket::request::Form;
+//!
+//! use validators::http_url::HttpUrlUnlocalableWithProtocol;
+//! use validators::email::Email;
+//!
+//! validated_customized_regex_string!(Name, r"^[\S ]{1,80}$");
+//! validated_customized_ranged_number!(PersonAge, u8, 0, 130);
+//!
+//! #[derive(Debug, FromForm)]
+//! struct ContactModel {
+//!     name: Name,
+//!     age: Option<PersonAge>,
+//!     email: Email,
+//!     url: Option<HttpUrlUnlocalableWithProtocol>
+//! }
+//!
+//! #[post("/contact", data = "<model>")]
+//! fn contact<'a>(model: Form<ContactModel>) -> &'static str {
+//!     println!("{:?}", model);
+//!     "do something..."
+//! }
+//! ```
 
 #![cfg_attr(feature = "nightly", feature(ip))]
 
@@ -107,6 +189,11 @@ pub mod ipv4;
 pub mod ipv6;
 pub mod host;
 pub mod http_url;
+pub mod base64;
+pub mod base64_url;
+pub mod base32;
+pub mod short_crypt_url_component;
+pub mod short_crypt_qr_code_alphanumeric;
 
 // TODO -----ValidatedCustomizedString START-----
 
