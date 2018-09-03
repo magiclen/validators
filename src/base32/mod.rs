@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::Validated;
+use super::{Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 
@@ -111,14 +111,26 @@ mod tests {
 }
 
 // Base32's wrapper struct is itself
+impl ValidatedWrapper for Base32 {
+    type Error = Base32Error;
+
+    fn from_string(base32: String) -> Result<Self, Self::Error> {
+        Base32::from_string(base32)
+    }
+
+    fn from_str(base32: &str) -> Result<Self, Self::Error> {
+        Base32::from_str(base32)
+    }
+}
+
 impl Base32 {
-    pub fn from_string(base32: String) -> Result<Base32, Base32Error> {
+    pub fn from_string(base32: String) -> Result<Self, Base32Error> {
         let bv = Base32Validator {};
 
         bv.parse_string(base32)
     }
 
-    pub fn from_str(base32: &str) -> Result<Base32, Base32Error> {
+    pub fn from_str(base32: &str) -> Result<Self, Base32Error> {
         let bv = Base32Validator {};
 
         bv.parse_str(base32)

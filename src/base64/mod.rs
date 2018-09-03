@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::Validated;
+use super::{Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
@@ -113,14 +113,26 @@ mod tests {
 }
 
 // Base64's wrapper struct is itself
+impl ValidatedWrapper for Base64 {
+    type Error = Base64Error;
+
+    fn from_string(base64: String) -> Result<Self, Self::Error> {
+        Base64::from_string(base64)
+    }
+
+    fn from_str(base64: &str) -> Result<Self, Self::Error> {
+        Base64::from_str(base64)
+    }
+}
+
 impl Base64 {
-    pub fn from_string(base64: String) -> Result<Base64, Base64Error> {
+    pub fn from_string(base64: String) -> Result<Self, Base64Error> {
         let bv = Base64Validator {};
 
         bv.parse_string(base64)
     }
 
-    pub fn from_str(base64: &str) -> Result<Base64, Base64Error> {
+    pub fn from_str(base64: &str) -> Result<Self, Base64Error> {
         let bv = Base64Validator {};
 
         bv.parse_str(base64)

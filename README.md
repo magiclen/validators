@@ -93,6 +93,24 @@ validated_customized_ranged_number!(Score, u8, 0, 100);
 let score = Score::from_str("80").unwrap();
 ```
 
+For a Vec whose length is limited in a range,
+
+```rust
+#[macro_use] extern crate validators;
+
+validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+validated_customized_ranged_length_vec!(Names, 1, 5);
+
+let mut names = Vec::new();
+
+names.push(Name::from_str("Ron").unwrap());
+names.push(Name::from_str("Magic Len").unwrap());
+
+let names = Names::from_vec(names).unwrap();
+```
+
+All validated wrapper types and validated customized structs implement `ValidatedWrapper` trait.
+
 Read the documentation to know more helpful customized macros.
 
 ## Rocket Support

@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::Validated;
+use super::{Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 
@@ -111,14 +111,26 @@ mod tests {
 }
 
 // Base64Url's wrapper struct is itself
+impl ValidatedWrapper for Base64Url {
+    type Error = Base64UrlError;
+
+    fn from_string(base64_url: String) -> Result<Self, Self::Error> {
+        Base64Url::from_string(base64_url)
+    }
+
+    fn from_str(base64_url: &str) -> Result<Self, Self::Error> {
+        Base64Url::from_str(base64_url)
+    }
+}
+
 impl Base64Url {
-    pub fn from_string(base64_url: String) -> Result<Base64Url, Base64UrlError> {
+    pub fn from_string(base64_url: String) -> Result<Self, Base64UrlError> {
         let bv = Base64UrlValidator {};
 
         bv.parse_string(base64_url)
     }
 
-    pub fn from_str(base64_url: &str) -> Result<Base64Url, Base64UrlError> {
+    pub fn from_str(base64_url: &str) -> Result<Self, Base64UrlError> {
         let bv = Base64UrlValidator {};
 
         bv.parse_str(base64_url)

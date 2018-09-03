@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated};
+use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
@@ -459,6 +459,18 @@ macro_rules! extend {
         }
 
         impl Validated for $name {}
+
+        impl ValidatedWrapper for $name {
+            type Error = HttpUrlError;
+
+            fn from_string(full_http_url: String) -> Result<Self, Self::Error>{
+                $name::from_string(full_http_url)
+            }
+
+            fn from_str(full_http_url: &str) -> Result<Self, Self::Error>{
+                $name::from_str(full_http_url)
+            }
+        }
 
         impl Debug for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {

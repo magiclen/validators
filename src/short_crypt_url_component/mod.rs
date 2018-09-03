@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::Validated;
+use super::{Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 
@@ -111,14 +111,26 @@ mod tests {
 }
 
 // ShortCryptUrlComponent's wrapper struct is itself
+impl ValidatedWrapper for ShortCryptUrlComponent {
+    type Error = ShortCryptUrlComponentError;
+
+    fn from_string(short_crypt_url_component_url: String) -> Result<Self, Self::Error> {
+        ShortCryptUrlComponent::from_string(short_crypt_url_component_url)
+    }
+
+    fn from_str(short_crypt_url_component_url: &str) -> Result<Self, Self::Error> {
+        ShortCryptUrlComponent::from_str(short_crypt_url_component_url)
+    }
+}
+
 impl ShortCryptUrlComponent {
-    pub fn from_string(short_crypt_url_component_url: String) -> Result<ShortCryptUrlComponent, ShortCryptUrlComponentError> {
+    pub fn from_string(short_crypt_url_component_url: String) -> Result<Self, ShortCryptUrlComponentError> {
         let bv = ShortCryptUrlComponentValidator {};
 
         bv.parse_string(short_crypt_url_component_url)
     }
 
-    pub fn from_str(short_crypt_url_component_url: &str) -> Result<ShortCryptUrlComponent, ShortCryptUrlComponentError> {
+    pub fn from_str(short_crypt_url_component_url: &str) -> Result<Self, ShortCryptUrlComponentError> {
         let bv = ShortCryptUrlComponentValidator {};
 
         bv.parse_str(short_crypt_url_component_url)

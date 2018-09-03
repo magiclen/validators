@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::Validated;
+use super::{Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 
@@ -111,14 +111,26 @@ mod tests {
 }
 
 // ShortCryptQRCodeAlphanumericComponent's wrapper struct is itself
+impl ValidatedWrapper for ShortCryptQRCodeAlphanumericComponent {
+    type Error = ShortCryptQRCodeAlphanumericComponentError;
+
+    fn from_string(short_crypt_qr_code_alphanumeric_url: String) -> Result<Self, Self::Error> {
+        ShortCryptQRCodeAlphanumericComponent::from_string(short_crypt_qr_code_alphanumeric_url)
+    }
+
+    fn from_str(short_crypt_qr_code_alphanumeric_url: &str) -> Result<Self, Self::Error> {
+        ShortCryptQRCodeAlphanumericComponent::from_str(short_crypt_qr_code_alphanumeric_url)
+    }
+}
+
 impl ShortCryptQRCodeAlphanumericComponent {
-    pub fn from_string(short_crypt_qr_code_alphanumeric_url: String) -> Result<ShortCryptQRCodeAlphanumericComponent, ShortCryptQRCodeAlphanumericComponentError> {
+    pub fn from_string(short_crypt_qr_code_alphanumeric_url: String) -> Result<Self, ShortCryptQRCodeAlphanumericComponentError> {
         let bv = ShortCryptQRCodeAlphanumericComponentValidator {};
 
         bv.parse_string(short_crypt_qr_code_alphanumeric_url)
     }
 
-    pub fn from_str(short_crypt_qr_code_alphanumeric_url: &str) -> Result<ShortCryptQRCodeAlphanumericComponent, ShortCryptQRCodeAlphanumericComponentError> {
+    pub fn from_str(short_crypt_qr_code_alphanumeric_url: &str) -> Result<Self, ShortCryptQRCodeAlphanumericComponentError> {
         let bv = ShortCryptQRCodeAlphanumericComponentValidator {};
 
         bv.parse_str(short_crypt_qr_code_alphanumeric_url)

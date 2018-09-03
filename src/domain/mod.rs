@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated};
+use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
@@ -386,6 +386,18 @@ macro_rules! extend {
         }
 
         impl Validated for $name {}
+
+        impl ValidatedWrapper for $name {
+            type Error = DomainError;
+
+            fn from_string(full_domain: String) -> Result<Self, Self::Error>{
+                $name::from_string(full_domain)
+            }
+
+            fn from_str(full_domain: &str) -> Result<Self, Self::Error>{
+                $name::from_str(full_domain)
+            }
+        }
 
         impl Debug for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {

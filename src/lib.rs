@@ -89,6 +89,24 @@
 //! let score = Score::from_str("80").unwrap();
 //! ```
 //!
+//! For a Vec whose length is limited in a range,
+//!
+//! ```
+//! #[macro_use] extern crate validators;
+//!
+//! validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+//! validated_customized_ranged_length_vec!(Names, 1, 5);
+//!
+//! let mut names = Vec::new();
+//!
+//! names.push(Name::from_str("Ron").unwrap());
+//! names.push(Name::from_str("Magic Len").unwrap());
+//!
+//! let names = Names::from_vec(names).unwrap();
+//! ```
+//!
+//! All validated wrapper types and validated customized structs implement `ValidatedWrapper` trait.
+//!
 //! Read the documentation to know more helpful customized macros.
 //!
 //! ## Rocket Support
@@ -186,6 +204,14 @@ impl ValidatorOption {
 
 pub trait Validated: Display + PartialEq + Clone + Debug {}
 
+pub trait ValidatedWrapper: Validated {
+    type Error;
+
+    fn from_string(from_string_input: String) -> Result<Self, Self::Error>;
+
+    fn from_str(from_str_input: &str) -> Result<Self, Self::Error>;
+}
+
 pub mod domain;
 pub mod email;
 pub mod ipv4;
@@ -204,7 +230,7 @@ pub mod short_crypt_qr_code_alphanumeric;
 pub enum ValidatedCustomizedStringError {
     RegexError(regex::Error),
     NotMatch,
-    UTF8Error(Utf8Error)
+    UTF8Error(Utf8Error),
 }
 
 #[cfg(feature = "rocketly")]
@@ -279,6 +305,18 @@ macro_rules! validated_customized_string_struct {
         }
 
         impl ::validators::Validated for $name {}
+
+        impl ::validators::ValidatedWrapper for $name {
+            type Error = ::validators::ValidatedCustomizedStringError;
+
+            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
+                $name::from_string($from_string_input)
+            }
+
+            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
+                $name::from_str($from_str_input)
+            }
+        }
 
         impl<'a> $name {
             fn as_str(&'a self) -> &'a str {
@@ -461,6 +499,18 @@ macro_rules! validated_customized_number_struct {
 
         impl ::validators::Validated for $name {}
 
+        impl ::validators::ValidatedWrapper for $name {
+            type Error = ::validators::ValidatedCustomizedNumberError;
+
+            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
+                $name::from_string($from_string_input)
+            }
+
+            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
+                $name::from_str($from_str_input)
+            }
+        }
+
         impl $name {
             fn get_number(&self) -> $t {
                 self.$field
@@ -542,22 +592,22 @@ macro_rules! validated_customized_number {
         validated_customized_number_struct!($name, n, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
 }
 
@@ -704,3 +754,287 @@ macro_rules! validated_customized_primitive_number {
 }
 
 // TODO -----ValidatedCustomizedNumber END-----
+
+// TODO -----ValidatedCustomizedRangedLengthVec START-----
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ValidatedCustomizedVecError {
+    Overflow,
+    Underflow,
+    NotSupport,
+    UTF8Error(Utf8Error),
+}
+
+#[cfg(feature = "rocketly")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_vec_struct_implement_from_form_value {
+    ( $name:ident ) => {
+        impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
+            type Error = ::validators::ValidatedCustomizedVecError;
+
+            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
+                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
+            }
+        }
+    }
+}
+
+#[cfg(not(feature = "rocketly"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_vec_struct_implement_from_form_value {
+    ( $name:ident ) => {
+
+    }
+}
+
+#[macro_export]
+macro_rules! validated_customized_vec_struct {
+    ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
+        impl<T: ::validators::ValidatedWrapper> Clone for $name<T> {
+            fn clone(&self) -> Self{
+                let $field = self.$field.clone();
+
+                $name{$field}
+            }
+        }
+
+        impl<T: ::validators::ValidatedWrapper> ::std::fmt::Debug for $name<T> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                f.write_fmt(format_args!("{}[", stringify!($name)))?;
+
+                let len = self.$field.len();
+
+                if len > 0 {
+                    for n in self.$field.iter().skip(1) {
+                        ::std::fmt::Debug::fmt(n, f)?;
+
+
+                        f.write_str(", ")?;
+                    }
+
+                    ::std::fmt::Debug::fmt(&self.$field[len - 1], f)?;
+                }
+
+                f.write_str("]")?;
+
+                Ok(())
+            }
+        }
+
+        impl<T: ::validators::ValidatedWrapper> ::std::fmt::Display for $name<T> {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                f.write_str("[")?;
+
+                let len = self.$field.len();
+
+                if len > 0 {
+                    for n in self.$field.iter().skip(1) {
+                        ::std::fmt::Display::fmt(n, f)?;
+
+
+                        f.write_str(", ")?;
+                    }
+
+                    ::std::fmt::Display::fmt(&self.$field[len - 1], f)?;
+                }
+
+                f.write_str("]")?;
+
+                Ok(())
+            }
+        }
+
+        impl<T: ::validators::ValidatedWrapper> ::std::cmp::PartialEq for $name<T> {
+            fn eq(&self, other: &Self) -> bool {
+                self.$field == other.$field
+            }
+
+            fn ne(&self, other: &Self) -> bool {
+                self.$field != other.$field
+            }
+        }
+
+        impl<T: ::validators::ValidatedWrapper> ::validators::Validated for $name<T> {}
+
+        impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedWrapper for $name<T> {
+            type Error = ::validators::ValidatedCustomizedVecError;
+
+            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
+                $name::from_string($from_string_input)
+            }
+
+            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
+                $name::from_str($from_str_input)
+            }
+        }
+
+        impl<T: ::validators::ValidatedWrapper> $name<T> {
+            fn as_vec(&self) -> &Vec<T> {
+                &self.$field
+            }
+
+            pub fn into_vec(self) -> Vec<T> {
+                self.$field
+            }
+
+            fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+                let $field = match $from_string {
+                    Ok(s)=> s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
+
+            fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+                let $field = match $from_str {
+                    Ok(s)=> s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
+
+            fn from_vec($from_vec_input: Vec<T>) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+                let $field = match $from_vec {
+                    Ok(s)=> s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
+        }
+
+         validated_customized_vec_struct_implement_from_form_value!($name);
+    };
+}
+
+#[macro_export]
+macro_rules! validated_customized_vec {
+    ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
+        struct $name<T: ::validators::ValidatedWrapper> {
+            v: Vec<T>
+        }
+
+        validated_customized_vec_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block ) => {
+        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block ) => {
+        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
+        pub struct $name<T: ::validators::ValidatedWrapper> {
+            v: Vec<T>
+        }
+
+        validated_customized_vec_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block ) => {
+        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block ) => {
+        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
+    };
+}
+
+#[macro_export]
+macro_rules! validated_customized_ranged_length_vec_struct {
+    ( $name:ident, $field:expr, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        validated_customized_vec_struct!($name, v,
+        $from_string_input $from_string,
+        $from_str_input $from_str,
+        input {
+            let len = input.len();
+
+            if len > $max {
+                Err(::validators::ValidatedCustomizedVecError::Overflow)
+            } else if len < $min {
+                Err(::validators::ValidatedCustomizedVecError::Underflow)
+            } else {
+                Ok(input)
+            }
+        });
+    };
+}
+
+#[macro_export]
+macro_rules! validated_customized_ranged_length_vec {
+    ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        struct $name<T: ::validators::ValidatedWrapper> {
+            v: Vec<T>
+        }
+
+        validated_customized_ranged_length_vec_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
+        validated_customized_ranged_length_vec!($name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
+        validated_customized_ranged_length_vec!($name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $min:expr, $max:expr) => {
+        validated_customized_ranged_length_vec!($name, $min, $max,
+        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)},
+        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)});
+    };
+    ( $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        validated_customized_ranged_length_vec!($name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( $name:ident, $equal:expr) => {
+        validated_customized_ranged_length_vec!($name, $equal, $equal);
+    };
+    ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        pub struct $name<T: ::validators::ValidatedWrapper> {
+            v: Vec<T>
+        }
+
+        validated_customized_ranged_length_vec_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
+        validated_customized_ranged_length_vec!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
+        validated_customized_ranged_length_vec!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $min:expr, $max:expr) => {
+        validated_customized_ranged_length_vec!(pub $name, $min, $max,
+        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)},
+        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)});
+    };
+    ( pub $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        validated_customized_ranged_length_vec!(pub $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
+    };
+    ( pub $name:ident, $equal:expr) => {
+        validated_customized_ranged_length_vec!(pub $name, $equal, $equal);
+    };
+}
+
+// TODO -----ValidatedCustomizedRangedLengthVec End-----

@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::Validated;
+use super::{Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
@@ -157,14 +157,26 @@ mod tests {
 }
 
 // Email's wrapper struct is itself
+impl ValidatedWrapper for Email {
+    type Error = EmailError;
+
+    fn from_string(email: String) -> Result<Self, Self::Error> {
+        Email::from_string(email)
+    }
+
+    fn from_str(email: &str) -> Result<Self, Self::Error> {
+        Email::from_str(email)
+    }
+}
+
 impl Email {
-    pub fn from_string(full_email: String) -> Result<Email, EmailError> {
+    pub fn from_string(full_email: String) -> Result<Self, EmailError> {
         let ev = EmailValidator {};
 
         ev.parse_string(full_email)
     }
 
-    pub fn from_str(full_email: &str) -> Result<Email, EmailError> {
+    pub fn from_str(full_email: &str) -> Result<Self, EmailError> {
         let ev = EmailValidator {};
 
         ev.parse_str(full_email)

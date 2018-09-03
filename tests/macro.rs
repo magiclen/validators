@@ -79,4 +79,39 @@ mod tests {
         validated_customized_primitive_number!(pub N2, u8);
         validated_customized_primitive_number!(N3, f32);
     }
+
+    #[test]
+    fn test_validated_customized_vec() {
+        validated_customized_vec!(V1,
+            from_string _input {
+                Ok(Vec::new())
+            },
+            from_str _input {
+                Ok(Vec::new())
+            },
+            from_vec input {
+                Ok(input)
+            }
+        );
+
+        validated_customized_vec!(pub V2,
+            from_string _input {
+                Ok(Vec::new())
+            },
+            from_str _input {
+                Ok(Vec::new())
+            },
+            from_vec input {
+                Ok(input)
+            }
+        );
+    }
+
+    #[test]
+    fn test_validated_customized_ranged_length_vec() {
+        validated_customized_ranged_length_vec!(V1, 0, 10);
+        validated_customized_ranged_length_vec!(V2, 5);
+        validated_customized_ranged_length_vec!(pub V3, 0, 10);
+        validated_customized_ranged_length_vec!(pub V4, 5);
+    }
 }

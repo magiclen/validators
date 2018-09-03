@@ -1,7 +1,7 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated};
+use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
@@ -468,6 +468,18 @@ macro_rules! extend {
         }
 
         impl Validated for $name {}
+
+        impl ValidatedWrapper for $name {
+            type Error = IPv6Error;
+
+            fn from_string(ipv6: String) -> Result<Self, Self::Error>{
+                $name::from_string(ipv6)
+            }
+
+            fn from_str(ipv6: &str) -> Result<Self, Self::Error>{
+                $name::from_str(ipv6)
+            }
+        }
 
         impl Debug for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
