@@ -109,13 +109,13 @@ names.push(Name::from_str("Magic Len").unwrap());
 let names = Names::from_vec(names).unwrap();
 ```
 
-All validated wrapper types and validated customized structs implement `ValidatedWrapper` trait.
+All validated wrapper types and validated customized structs implement the `ValidatedWrapper` trait.
 
 Read the documentation to know more helpful customized macros.
 
 ## Rocket Support
 
-This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement `FromFormValue` trait.
+This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` trait.
 To use with Rocket support, you have to enable **rocketly** feature for this crate.
 
 ```toml
