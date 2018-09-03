@@ -5,8 +5,6 @@ extern crate rocket;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_validated_customized_string() {
         validated_customized_string!(S1,

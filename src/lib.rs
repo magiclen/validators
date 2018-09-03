@@ -242,21 +242,21 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        impl std::fmt::Debug for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        impl ::std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
                 Ok(())
             }
         }
 
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        impl ::std::fmt::Display for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_str(&self.$field)?;
                 Ok(())
             }
         }
 
-        impl std::cmp::PartialEq for $name {
+        impl ::std::cmp::PartialEq for $name {
             fn eq(&self, other: &Self) -> bool {
                 self.$field.eq(&other.$field)
             }
@@ -435,21 +435,21 @@ macro_rules! validated_customized_number_struct {
             }
         }
 
-        impl std::fmt::Debug for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        impl ::std::fmt::Debug for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
                 Ok(())
             }
         }
 
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        impl ::std::fmt::Display for $name {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}", self.$field))?;
                 Ok(())
             }
         }
 
-        impl std::cmp::PartialEq for $name {
+        impl ::std::cmp::PartialEq for $name {
             fn eq(&self, other: &Self) -> bool {
                 self.$field == other.$field
             }
