@@ -5,6 +5,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 
+use std::error::Error;
 use super::domain::{DomainValidator, DomainError, Domain};
 use super::ipv4::{IPv4Validator, IPv4Error, IPv4};
 use super::ipv6::{IPv6Validator, IPv6Error, IPv6};
@@ -18,8 +19,17 @@ pub enum HostError {
     UTF8Error(Utf8Error),
 }
 
+impl Display for HostError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for HostError {}
+
 pub type HostResult = Result<Host, HostError>;
 
+#[derive(Debug, PartialEq)]
 pub struct HostValidator {
     pub domain: Option<DomainValidator>,
     pub ipv4: Option<IPv4Validator>,
@@ -287,57 +297,11 @@ macro_rules! extend {
 
         impl $name {
             pub fn from_string(host: String) -> Result<$name, HostError> {
-                let dv = DomainValidator {
-                    port: ValidatorOption::Allow,
-                    localhost: $local,
-                };
-
-                let iv4 = IPv4Validator {
-                    port: ValidatorOption::Allow,
-                    local: $local,
-                    ipv6: ValidatorOption::NotAllow,
-                };
-
-                let iv6 = IPv6Validator {
-                    port: ValidatorOption::Allow,
-                    local: $local,
-                    ipv4: ValidatorOption::NotAllow,
-                };
-
-                let hv = HostValidator{
-                    domain: Some(dv),
-                    ipv4: Some(iv4),
-                    ipv6: Some(iv6)
-                };
-
-                Ok($name(hv.parse_string(host)?))
+                Ok($name($name::create_validator().parse_string(host)?))
             }
 
             pub fn from_str(host: &str) -> Result<$name, HostError> {
-                let dv = DomainValidator {
-                    port: ValidatorOption::Allow,
-                    localhost: $local,
-                };
-
-                let iv4 = IPv4Validator {
-                    port: ValidatorOption::Allow,
-                    local: $local,
-                    ipv6: ValidatorOption::NotAllow,
-                };
-
-                let iv6 = IPv6Validator {
-                    port: ValidatorOption::Allow,
-                    local: $local,
-                    ipv4: ValidatorOption::NotAllow,
-                };
-
-                let hv = HostValidator{
-                    domain: Some(dv),
-                    ipv4: Some(iv4),
-                    ipv6: Some(iv6)
-                };
-
-                Ok($name(hv.parse_str(host)?))
+                Ok($name($name::create_validator().parse_str(host)?))
             }
 
             pub fn from_host(host: Host) -> Result<$name, HostError> {
@@ -401,6 +365,31 @@ macro_rules! extend {
             pub fn as_host(&self) -> &Host {
                 &self.0
             }
+
+            fn create_validator() -> HostValidator {
+                let dv = DomainValidator {
+                    port: ValidatorOption::Allow,
+                    localhost: $local,
+                };
+
+                let iv4 = IPv4Validator {
+                    port: ValidatorOption::Allow,
+                    local: $local,
+                    ipv6: ValidatorOption::NotAllow,
+                };
+
+                let iv6 = IPv6Validator {
+                    port: ValidatorOption::Allow,
+                    local: $local,
+                    ipv4: ValidatorOption::NotAllow,
+                };
+
+                HostValidator {
+                    domain: Some(dv),
+                    ipv4: Some(iv4),
+                    ipv6: Some(iv6)
+                }
+            }
         }
 
         impl $name {
@@ -427,6 +416,42 @@ macro_rules! extend {
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
                 $name::from_string(form_value.url_decode().map_err(|err| HostError::UTF8Error(err))?)
+            }
+        }
+
+        #[cfg(feature = "serdely")]
+        impl<'de> ::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+                struct StringVisitor;
+
+                impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
+                    type Value = $name;
+
+                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                        formatter.write_fmt(format_args!("a host({:?}) string", $name::create_validator()))
+                    }
+
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
+                        $name::from_str(v).map_err(|err| {
+                            E::custom(err.to_string())
+                        })
+                    }
+
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
+                        $name::from_string(v).map_err(|err| {
+                            E::custom(err.to_string())
+                        })
+                    }
+                }
+
+                deserializer.deserialize_string(StringVisitor)
+            }
+        }
+
+        #[cfg(feature = "serdely")]
+        impl ::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+                serializer.serialize_str(self.get_full_host())
             }
         }
     };

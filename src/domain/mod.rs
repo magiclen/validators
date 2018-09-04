@@ -3,6 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{ValidatorOption, Validated, ValidatedWrapper};
 
+use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 
@@ -17,8 +18,17 @@ pub enum DomainError {
     UTF8Error(Utf8Error),
 }
 
+impl Display for DomainError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for DomainError {}
+
 pub type DomainResult = Result<Domain, DomainError>;
 
+#[derive(Debug, PartialEq)]
 pub struct DomainValidator {
     pub port: ValidatorOption,
     pub localhost: ValidatorOption,
@@ -434,21 +444,11 @@ macro_rules! extend {
 
         impl $name {
             pub fn from_string(full_domain: String) -> Result<$name, DomainError> {
-                let dv = DomainValidator {
-                    port: $port,
-                    localhost: $localhost,
-                };
-
-                Ok($name(dv.parse_string(full_domain)?))
+                Ok($name($name::create_validator().parse_string(full_domain)?))
             }
 
             pub fn from_str(full_domain: &str) -> Result<$name, DomainError> {
-                let dv = DomainValidator {
-                    port: $port,
-                    localhost: $localhost,
-                };
-
-                Ok($name(dv.parse_str(full_domain)?))
+                Ok($name($name::create_validator().parse_str(full_domain)?))
             }
 
             pub fn from_domain(domain: Domain) -> Result<$name, DomainError> {
@@ -489,6 +489,13 @@ macro_rules! extend {
             pub fn as_domain(&self) -> &Domain {
                 &self.0
             }
+
+            fn create_validator() -> DomainValidator {
+                DomainValidator {
+                    port: $port,
+                    localhost: $localhost,
+                }
+            }
         }
 
         impl $name {
@@ -515,6 +522,42 @@ macro_rules! extend {
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
                 $name::from_string(form_value.url_decode().map_err(|err| DomainError::UTF8Error(err))?)
+            }
+        }
+
+        #[cfg(feature = "serdely")]
+        impl<'de> ::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+                struct StringVisitor;
+
+                impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
+                    type Value = $name;
+
+                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                        formatter.write_fmt(format_args!("a domain({:?}) string", $name::create_validator()))
+                    }
+
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
+                        $name::from_str(v).map_err(|err| {
+                            E::custom(err.to_string())
+                        })
+                    }
+
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
+                        $name::from_string(v).map_err(|err| {
+                            E::custom(err.to_string())
+                        })
+                    }
+                }
+
+                deserializer.deserialize_string(StringVisitor)
+            }
+        }
+
+        #[cfg(feature = "serdely")]
+        impl ::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+                serializer.serialize_str(self.get_full_domain())
             }
         }
     };

@@ -3,6 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{ValidatorOption, Validated, ValidatedWrapper};
 
+use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "nightly")]
@@ -36,8 +37,17 @@ pub enum IPv6Error {
     UTF8Error(Utf8Error),
 }
 
+impl Display for IPv6Error {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for IPv6Error {}
+
 pub type IPv6Result = Result<IPv6, IPv6Error>;
 
+#[derive(Debug, PartialEq)]
 pub struct IPv6Validator {
     pub port: ValidatorOption,
     pub local: ValidatorOption,
@@ -200,7 +210,7 @@ impl IPv6Validator {
                         Ok(p) => {
                             port_index = m.start();
                             p
-                        },
+                        }
                         Err(_) => return Err(IPv6Error::IncorrectPort)
                     };
 
@@ -268,7 +278,7 @@ impl IPv6Validator {
                                         Ok(p) => {
                                             port_index = m.start();
                                             p
-                                        },
+                                        }
                                         Err(_) => return Err(IPv6Error::IncorrectPort)
                                     };
                                 }
@@ -516,23 +526,11 @@ macro_rules! extend {
 
         impl $name {
             pub fn from_string(ipv6: String) -> Result<$name, IPv6Error> {
-                let ic = IPv6Validator {
-                    port: $port,
-                    local: $local,
-                    ipv4: $ipv4,
-                };
-
-                Ok($name(ic.parse_string(ipv6)?))
+                Ok($name($name::create_validator().parse_string(ipv6)?))
             }
 
             pub fn from_str(ipv6: &str) -> Result<$name, IPv6Error> {
-                let ic = IPv6Validator {
-                    port: $port,
-                    local: $local,
-                    ipv4: $ipv4,
-                };
-
-                Ok($name(ic.parse_str(ipv6)?))
+                Ok($name($name::create_validator().parse_str(ipv6)?))
             }
 
             pub fn from_ipv6(ipv6: IPv6) -> Result<$name, IPv6Error> {
@@ -573,6 +571,14 @@ macro_rules! extend {
             pub fn as_ipv6(&self) -> &IPv6 {
                 &self.0
             }
+
+            fn create_validator() -> IPv6Validator {
+                IPv6Validator {
+                    port: $port,
+                    local: $local,
+                    ipv4: $ipv4,
+                }
+            }
         }
 
         impl $name {
@@ -593,12 +599,48 @@ macro_rules! extend {
             }
         }
 
-         #[cfg(feature = "rocketly")]
+        #[cfg(feature = "rocketly")]
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = IPv6Error;
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
                 $name::from_string(form_value.url_decode().map_err(|err| IPv6Error::UTF8Error(err))?)
+            }
+        }
+
+        #[cfg(feature = "serdely")]
+        impl<'de> ::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+                struct StringVisitor;
+
+                impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
+                    type Value = $name;
+
+                    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                        formatter.write_fmt(format_args!("a IPv6({:?}) string", $name::create_validator()))
+                    }
+
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
+                        $name::from_str(v).map_err(|err| {
+                            E::custom(err.to_string())
+                        })
+                    }
+
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
+                        $name::from_string(v).map_err(|err| {
+                            E::custom(err.to_string())
+                        })
+                    }
+                }
+
+                deserializer.deserialize_string(StringVisitor)
+            }
+        }
+
+        #[cfg(feature = "serdely")]
+        impl ::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+                serializer.serialize_str(self.get_full_ipv6())
             }
         }
     };

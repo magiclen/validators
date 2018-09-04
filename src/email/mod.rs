@@ -3,6 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{Validated, ValidatedWrapper};
 
+use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 
@@ -15,8 +16,17 @@ pub enum EmailError {
     UTF8Error(Utf8Error),
 }
 
+impl Display for EmailError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for EmailError {}
+
 pub type EmailResult = Result<Email, EmailError>;
 
+#[derive(Debug, PartialEq)]
 pub struct EmailValidator {}
 
 #[derive(Clone)]
@@ -171,15 +181,15 @@ impl ValidatedWrapper for Email {
 
 impl Email {
     pub fn from_string(full_email: String) -> Result<Self, EmailError> {
-        let ev = EmailValidator {};
-
-        ev.parse_string(full_email)
+        Email::create_validator().parse_string(full_email)
     }
 
     pub fn from_str(full_email: &str) -> Result<Self, EmailError> {
-        let ev = EmailValidator {};
+        Email::create_validator().parse_str(full_email)
+    }
 
-        ev.parse_str(full_email)
+    fn create_validator() -> EmailValidator {
+        EmailValidator {}
     }
 }
 
@@ -190,5 +200,43 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Email {
 
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
         Email::from_string(form_value.url_decode().map_err(|err| EmailError::UTF8Error(err))?)
+    }
+}
+
+#[cfg(feature = "serdely")]
+struct StringVisitor;
+
+#[cfg(feature = "serdely")]
+impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
+    type Value = Email;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("an email string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
+        Email::from_str(v).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
+        Email::from_string(v).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+}
+
+#[cfg(feature = "serdely")]
+impl<'de> ::serde::Deserialize<'de> for Email {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+        deserializer.deserialize_string(StringVisitor)
+    }
+}
+
+#[cfg(feature = "serdely")]
+impl ::serde::Serialize for Email {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+        serializer.serialize_str(&self.full_email)
     }
 }

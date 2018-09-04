@@ -3,6 +3,7 @@ extern crate regex;
 use self::regex::Regex;
 use super::{Validated, ValidatedWrapper};
 
+use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 
@@ -12,8 +13,17 @@ pub enum Base64Error {
     UTF8Error(Utf8Error),
 }
 
+impl Display for Base64Error {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for Base64Error {}
+
 pub type Base64Result = Result<Base64, Base64Error>;
 
+#[derive(Debug, PartialEq)]
 pub struct Base64Validator {}
 
 #[derive(Clone)]
@@ -127,15 +137,15 @@ impl ValidatedWrapper for Base64 {
 
 impl Base64 {
     pub fn from_string(base64: String) -> Result<Self, Base64Error> {
-        let bv = Base64Validator {};
-
-        bv.parse_string(base64)
+        Base64::create_validator().parse_string(base64)
     }
 
     pub fn from_str(base64: &str) -> Result<Self, Base64Error> {
-        let bv = Base64Validator {};
+        Base64::create_validator().parse_str(base64)
+    }
 
-        bv.parse_str(base64)
+    fn create_validator() -> Base64Validator {
+        Base64Validator {}
     }
 }
 
@@ -145,5 +155,43 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Base64 {
 
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
         Base64::from_string(form_value.url_decode().map_err(|err| Base64Error::UTF8Error(err))?)
+    }
+}
+
+#[cfg(feature = "serdely")]
+struct StringVisitor;
+
+#[cfg(feature = "serdely")]
+impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
+    type Value = Base64;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a Base32 string")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
+        Base64::from_str(v).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
+        Base64::from_string(v).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+}
+
+#[cfg(feature = "serdely")]
+impl<'de> ::serde::Deserialize<'de> for Base64 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+        deserializer.deserialize_string(StringVisitor)
+    }
+}
+
+#[cfg(feature = "serdely")]
+impl ::serde::Serialize for Base64 {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+        serializer.serialize_str(&self.base64)
     }
 }

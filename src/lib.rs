@@ -163,13 +163,31 @@ pub extern crate regex;
 #[doc(hidden)]
 pub extern crate rocket;
 
-use std::fmt::{Display, Debug};
+#[cfg(feature = "serdely")]
+#[doc(hidden)]
+#[macro_use]
+pub extern crate serde;
+
+#[cfg(feature = "serdely")]
+#[macro_use]
+extern crate serde_derive;
+
+pub extern crate number_as;
+
+use number_as::Number;
+
+#[cfg(feature = "serdely")]
+use number_as::NumberAs;
+
+use std::error::Error;
+use std::fmt::{self, Display, Debug, Formatter};
 use std::cmp::PartialEq;
 use std::str::Utf8Error;
 
 #[doc(hidden)]
 pub const REGEX_SIZE_LIMIT: usize = 26214400;
 
+#[derive(Debug, PartialEq)]
 pub enum ValidatorOption {
     Must,
     Allow,
@@ -205,7 +223,7 @@ impl ValidatorOption {
 pub trait Validated: Display + PartialEq + Clone + Debug {}
 
 pub trait ValidatedWrapper: Validated {
-    type Error;
+    type Error: Display + PartialEq + Clone + Debug;
 
     fn from_string(from_string_input: String) -> Result<Self, Self::Error>;
 
@@ -231,6 +249,66 @@ pub enum ValidatedCustomizedStringError {
     RegexError(regex::Error),
     NotMatch,
     UTF8Error(Utf8Error),
+}
+
+impl Display for ValidatedCustomizedStringError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for ValidatedCustomizedStringError {}
+
+#[cfg(feature = "serdely")]
+pub struct StringVisitor<V>(pub Vec<V>);
+
+#[cfg(feature = "serdely")]
+impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for StringVisitor<V> {
+    type Value = V;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_fmt(format_args!("a string({})", stringify!($name)))
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_str(v).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_string(v).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+}
+
+#[cfg(feature = "serdely")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_string_struct_implement_se_de {
+     ( $name:ident ) => {
+        impl<'de> ::validators::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
+                deserializer.deserialize_string(::validators::StringVisitor(Vec::<$name>::new()))
+            }
+        }
+
+        impl ::validators::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+                serializer.serialize_str(self.as_str())
+            }
+        }
+     }
+}
+
+#[cfg(not(feature = "serdely"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_string_struct_implement_se_de {
+    ( $name:ident ) => {
+
+    }
 }
 
 #[cfg(feature = "rocketly")]
@@ -343,6 +421,8 @@ macro_rules! validated_customized_string_struct {
         }
 
         validated_customized_string_struct_implement_from_form_value!($name);
+
+        validated_customized_string_struct_implement_se_de!($name);
     };
     ( $name:ident, $field:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_string_struct!($name, $field, $from_string_input $from_string, $from_str_input $from_str);
@@ -438,6 +518,177 @@ pub enum ValidatedCustomizedNumberError {
     UTF8Error(Utf8Error),
 }
 
+impl Display for ValidatedCustomizedNumberError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for ValidatedCustomizedNumberError {}
+
+pub trait ValidatedNumberWrapper<T: Number>: ValidatedWrapper {
+    fn from_number(n: T) -> Result<Self, ValidatedCustomizedNumberError>;
+}
+
+#[cfg(feature = "serdely")]
+pub struct NumberVisitor<V, T>(pub Vec<V>, pub Vec<T>);
+
+#[cfg(feature = "serdely")]
+impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: ValidatedWrapper + ValidatedNumberWrapper<T>,
+                                                                      T: Number,
+                                                                      u8: number_as::NumberAs<T>,
+                                                                      u16: number_as::NumberAs<T>,
+                                                                      u32: number_as::NumberAs<T>,
+                                                                      u64: number_as::NumberAs<T>,
+                                                                      u128: number_as::NumberAs<T>,
+                                                                      i8: number_as::NumberAs<T>,
+                                                                      i16: number_as::NumberAs<T>,
+                                                                      i32: number_as::NumberAs<T>,
+                                                                      i64: number_as::NumberAs<T>,
+                                                                      i128: number_as::NumberAs<T>,
+                                                                      f32: number_as::NumberAs<T>,
+                                                                      f64: number_as::NumberAs<T> {
+    type Value = V;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_fmt(format_args!("a string({})", stringify!($name)))
+    }
+
+    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    serde_if_integer128! {
+        fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E> where E: serde::de::Error {
+            V::from_number(v.number_as()).map_err(|err| {
+                E::custom(err.to_string())
+            })
+        }
+    }
+
+    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    serde_if_integer128! {
+        fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E> where E: serde::de::Error {
+            V::from_number(v.number_as()).map_err(|err| {
+                E::custom(err.to_string())
+            })
+        }
+    }
+
+    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+
+    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E> where E: serde::de::Error {
+        V::from_number(v.number_as()).map_err(|err| {
+            E::custom(err.to_string())
+        })
+    }
+}
+
+#[cfg(feature = "serdely")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_number_struct_implement_se_de {
+    ( $name:ident, $t:ident ) => {
+        impl<'de> ::validators::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
+                let v = ::validators::NumberVisitor(Vec::<$name>::new(), Vec::<$t>::new());
+
+                match stringify!($t) {
+                    "u8" => deserializer.deserialize_u8(v),
+                    "u16" => deserializer.deserialize_u16(v),
+                    "u32" => deserializer.deserialize_u32(v),
+                    "u64" => deserializer.deserialize_u64(v),
+                    "u128" => deserializer.deserialize_u128(v),
+                    "i8" => deserializer.deserialize_i8(v),
+                    "i16" => deserializer.deserialize_i16(v),
+                    "i32" => deserializer.deserialize_i32(v),
+                    "i64" => deserializer.deserialize_i64(v),
+                    "i128" => deserializer.deserialize_i128(v),
+                    "f32" => deserializer.deserialize_f32(v),
+                    "f64" => deserializer.deserialize_f64(v),
+                    _ => panic!("impossible")
+                }
+            }
+        }
+
+        impl ::validators::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+                match stringify!($t) {
+                    "u8" => serializer.serialize_u8(self.get_number() as u8),
+                    "u16" => serializer.serialize_u16(self.get_number() as u16),
+                    "u32" => serializer.serialize_u32(self.get_number() as u32),
+                    "u64" => serializer.serialize_u64(self.get_number() as u64),
+                    "u128" => serializer.serialize_u128(self.get_number() as u128),
+                    "i8" => serializer.serialize_i8(self.get_number() as i8),
+                    "i16" => serializer.serialize_i16(self.get_number() as i16),
+                    "i32" => serializer.serialize_i32(self.get_number() as i32),
+                    "i64" => serializer.serialize_i64(self.get_number() as i64),
+                    "i128" => serializer.serialize_i128(self.get_number() as i128),
+                    "f32" => serializer.serialize_f32(self.get_number() as f32),
+                    "f64" => serializer.serialize_f64(self.get_number() as f64),
+                    _ => panic!("impossible")
+                }
+            }
+        }
+    }
+}
+
+#[cfg(not(feature = "serdely"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_number_struct_implement_se_de {
+    ( $name:ident, $t:expr ) => {
+
+    }
+}
+
 #[cfg(feature = "rocketly")]
 #[doc(hidden)]
 #[macro_export]
@@ -464,7 +715,7 @@ macro_rules! validated_customized_number_struct_implement_from_form_value {
 
 #[macro_export]
 macro_rules! validated_customized_number_struct {
-    ( $name:ident, $field:ident, $t:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
+    ( $name:ident, $field:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
         impl Clone for $name {
             fn clone(&self) -> Self{
                 let $field = self.$field;
@@ -511,6 +762,12 @@ macro_rules! validated_customized_number_struct {
             }
         }
 
+        impl<T: ::validators::number_as::Number> ::validators::ValidatedNumberWrapper<T> for $name {
+            fn from_number($from_number_input: T) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                $name::from_number($from_number_input.number_as())
+            }
+        }
+
         impl $name {
             pub fn get_number(&self) -> $t {
                 self.$field
@@ -533,87 +790,98 @@ macro_rules! validated_customized_number_struct {
 
                 Ok($name{$field})
             }
+
+            pub fn from_number($from_number_input: $t) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let $field = match $from_number {
+                    Ok(s)=> s,
+                    Err(e)=> return Err(e)
+                };
+
+                Ok($name{$field})
+            }
         }
 
         validated_customized_number_struct_implement_from_form_value!($name);
+
+        validated_customized_number_struct_implement_se_de!($name, $t);
     };
-    ( $name:ident, $field:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
+    ( $name:ident, $field:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
         validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $field:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
+    ( $name:ident, $field:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
         validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $field:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+    ( $name:ident, $field:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $field:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+    ( $name:ident, $field:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $field:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
+    ( $name:ident, $field:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $field:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
+    ( $name:ident, $field:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
 }
 
 #[macro_export]
 macro_rules! validated_customized_number {
-    ( $name:ident, $t:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
+    ( $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
         struct $name{
             n: $t
         }
 
         validated_customized_number_struct!($name, n, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
+    ( $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
+    ( $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+    ( $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+    ( $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
+    ( $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( $name:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
+    ( $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
+    ( pub $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
         pub struct $name{
             n: $t
         }
 
         validated_customized_number_struct!($name, n, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
+    ( pub $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
         validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
+    ( pub $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
         validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+    ( pub $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+    ( pub $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
+    ( pub $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
         validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ty, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
+    ( pub $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
 }
 
 #[macro_export]
 macro_rules! validated_customized_regex_number_struct {
-    ( $name:ident, $field:ident, $t:ty, $re:expr ) => {
+    ( $name:ident, $field:ident, $t:ident, $re:expr ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
             let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
@@ -649,14 +917,14 @@ macro_rules! validated_customized_regex_number_struct {
 
 #[macro_export]
 macro_rules! validated_customized_regex_number {
-    ( $name:ident, $t:ty, $re:expr ) => {
+    ( $name:ident, $t:ident, $re:expr ) => {
         struct $name{
             n: $t
         }
 
         validated_customized_regex_number_struct!($name, n, $t, $re);
     };
-    ( pub $name:ident, $t:ty, $re:expr ) => {
+    ( pub $name:ident, $t:ident, $re:expr ) => {
         pub struct $name{
             n: $t
         }
@@ -667,7 +935,7 @@ macro_rules! validated_customized_regex_number {
 
 #[macro_export]
 macro_rules! validated_customized_ranged_number_struct {
-    ( $name:ident, $field:ident, $t:ty, $min:expr, $max:expr ) => {
+    ( $name:ident, $field:ident, $t:ident, $min:expr, $max:expr ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
             let input = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
@@ -699,14 +967,14 @@ macro_rules! validated_customized_ranged_number_struct {
 
 #[macro_export]
 macro_rules! validated_customized_ranged_number {
-    ( $name:ident, $t:ty, $min:expr, $max:expr ) => {
+    ( $name:ident, $t:ident, $min:expr, $max:expr ) => {
         struct $name{
             n: $t
         }
 
         validated_customized_ranged_number_struct!($name, n, $t, $min, $max);
     };
-    ( pub $name:ident, $t:ty, $min:expr, $max:expr ) => {
+    ( pub $name:ident, $t:ident, $min:expr, $max:expr ) => {
         pub struct $name{
             n: $t
         }
@@ -717,7 +985,7 @@ macro_rules! validated_customized_ranged_number {
 
 #[macro_export]
 macro_rules! validated_customized_primitive_number_struct {
-    ( $name:ident, $field:ident, $t:ty ) => {
+    ( $name:ident, $field:ident, $t:ident ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
             let input = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
@@ -737,14 +1005,14 @@ macro_rules! validated_customized_primitive_number_struct {
 
 #[macro_export]
 macro_rules! validated_customized_primitive_number {
-    ( $name:ident, $t:ty ) => {
+    ( $name:ident, $t:ident ) => {
         struct $name{
             n: $t
         }
 
         validated_customized_primitive_number_struct!($name, n, $t);
     };
-    ( pub $name:ident, $t:ty ) => {
+    ( pub $name:ident, $t:ident ) => {
         pub struct $name{
             n: $t
         }
@@ -763,6 +1031,73 @@ pub enum ValidatedCustomizedVecError {
     Underflow,
     NotSupport,
     UTF8Error(Utf8Error),
+}
+
+impl Display for ValidatedCustomizedVecError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
+    }
+}
+
+impl Error for ValidatedCustomizedVecError {}
+
+pub trait ValidatedVecWrapper<T: ValidatedWrapper>: ValidatedWrapper {
+    fn from_vec(v: Vec<T>) -> Result<Self, ValidatedCustomizedVecError>;
+}
+
+#[cfg(feature = "serdely")]
+pub struct VecVisitor<V, T>(pub Vec<V>, pub Vec<T>);
+
+#[cfg(feature = "serdely")]
+impl<'de, V: ValidatedVecWrapper<T>, T: ValidatedWrapper + serde::Deserialize<'de>> serde::de::Visitor<'de> for VecVisitor<V, T> {
+    type Value = V;
+
+    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
+        formatter.write_fmt(format_args!("a string({})", stringify!($name)))
+    }
+
+    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: serde::de::SeqAccess<'de> {
+        let mut v = Vec::<T>::new();
+
+        loop {
+            match seq.next_element()? {
+                Some(e) => {
+                    v.push(e);
+                }
+                None => { break; }
+            }
+        }
+
+        Ok(V::from_vec(v).unwrap())
+    }
+}
+
+#[cfg(feature = "serdely")]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_vec_struct_implement_se_de {
+     ( $name:ident ) => {
+        impl<'de, T: ::validators::ValidatedWrapper + ::validators::serde::Deserialize<'de>> ::validators::serde::Deserialize<'de> for $name<T> {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
+                deserializer.deserialize_seq(::validators::VecVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
+            }
+        }
+
+        impl<T: ::validators::ValidatedWrapper + ::validators::serde::Serialize> ::validators::serde::Serialize for $name<T> {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+                serializer.collect_seq(self.as_vec().iter())
+            }
+        }
+     }
+}
+
+#[cfg(not(feature = "serdely"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! validated_customized_vec_struct_implement_se_de {
+    ( $name:ident ) => {
+
+    }
 }
 
 #[cfg(feature = "rocketly")]
@@ -870,6 +1205,12 @@ macro_rules! validated_customized_vec_struct {
             }
         }
 
+        impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedVecWrapper<T> for $name<T> {
+            fn from_vec($from_vec_input: Vec<T>) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+                $name::from_vec($from_vec_input)
+            }
+        }
+
         impl<T: ::validators::ValidatedWrapper> $name<T> {
             pub fn as_vec(&self) -> &Vec<T> {
                 &self.$field
@@ -908,6 +1249,7 @@ macro_rules! validated_customized_vec_struct {
         }
 
          validated_customized_vec_struct_implement_from_form_value!($name);
+         validated_customized_vec_struct_implement_se_de!($name);
     };
 }
 
