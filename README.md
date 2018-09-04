@@ -172,7 +172,7 @@ features = ["serdely"]
 
 For example,
 
-```rust,ignore
+```rust
 #[macro_use] extern crate validators;
 #[macro_use] extern crate serde_json;
 
