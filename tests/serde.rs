@@ -1,4 +1,4 @@
-#![cfg(feature = "serde")]
+#![cfg(feature = "serdely-test")]
 
 #[macro_use]
 extern crate validators;
