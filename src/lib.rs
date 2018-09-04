@@ -319,11 +319,11 @@ macro_rules! validated_customized_string_struct {
         }
 
         impl<'a> $name {
-            fn as_str(&'a self) -> &'a str {
+            pub fn as_str(&'a self) -> &'a str {
                 &self.$field
             }
 
-            fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
+            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -332,7 +332,7 @@ macro_rules! validated_customized_string_struct {
                 Ok($name{$field})
             }
 
-            fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
+            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -512,11 +512,11 @@ macro_rules! validated_customized_number_struct {
         }
 
         impl $name {
-            fn get_number(&self) -> $t {
+            pub fn get_number(&self) -> $t {
                 self.$field
             }
 
-            fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -525,7 +525,7 @@ macro_rules! validated_customized_number_struct {
                 Ok($name{$field})
             }
 
-            fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -871,7 +871,7 @@ macro_rules! validated_customized_vec_struct {
         }
 
         impl<T: ::validators::ValidatedWrapper> $name<T> {
-            fn as_vec(&self) -> &Vec<T> {
+            pub fn as_vec(&self) -> &Vec<T> {
                 &self.$field
             }
 
@@ -879,7 +879,7 @@ macro_rules! validated_customized_vec_struct {
                 self.$field
             }
 
-            fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -888,7 +888,7 @@ macro_rules! validated_customized_vec_struct {
                 Ok($name{$field})
             }
 
-            fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -897,7 +897,7 @@ macro_rules! validated_customized_vec_struct {
                 Ok($name{$field})
             }
 
-            fn from_vec($from_vec_input: Vec<T>) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
+            pub fn from_vec($from_vec_input: Vec<T>) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
                 let $field = match $from_vec {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
