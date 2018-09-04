@@ -1,10 +1,10 @@
 [package]
 name = "validators"
-version = "0.6.2"
+version = "0.7.0"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
-keywords = ["validator", "validation", "user", "rocket", "input"]
+keywords = ["validator", "validation", "user", "rocket", "serde"]
 categories = ["value-formatting"]
 description= "A library for validating user input."
 readme = "README.md"
@@ -15,7 +15,7 @@ travis-ci = { repository = "magiclen/validators", branch = "master" }
 appveyor = { repository = "magiclen/validators", branch = "master", service = "github" }
 
 [dependencies]
-regex = "1.0.4"
+regex = "1.0"
 number-as = "1.0"
 rocket = { version = "0.3.16", optional = true }
 rocket_codegen = { version = "0.3.16", optional = true }

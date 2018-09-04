@@ -153,6 +153,37 @@
 //!     "do something..."
 //! }
 //! ```
+//!
+//! ## Serde Support
+//!
+//! Serde is a framework for serializing and deserializing Rust data structures efficiently and generically. And again, this crate supports [Serde](https://crates.io/crates/serde) framework.
+//! All validated wrapper types and validated customized structs implement the `Serialize` and `Deserialize` traits.
+//! To use with Serde support, you have to enable **serdely** feature for this crate.
+//!
+//! ```toml
+//! [dependencies.validators]
+//! version = "*"
+//! features = ["serdely"]
+//! ```
+//!
+//! For example,
+//!
+//! ```rust,ignore
+//! #[macro_use] extern crate validators;
+//! #[macro_use] extern crate serde_json;
+//!
+//! validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+//! validated_customized_ranged_length_vec!(Names, 1, 5);
+//!
+//! let mut names = Vec::new();
+//!
+//! names.push(Name::from_str("Ron").unwrap());
+//! names.push(Name::from_str("Magic Len").unwrap());
+//!
+//! let names = Names::from_vec(names).unwrap();
+//!
+//! assert_eq!("[\"Ron\",\"Magic Len\"]", json!(names).to_string());
+//! ```
 
 #![cfg_attr(feature = "nightly", feature(ip))]
 
