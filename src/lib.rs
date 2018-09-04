@@ -168,10 +168,6 @@ pub extern crate rocket;
 #[macro_use]
 pub extern crate serde;
 
-#[cfg(feature = "serdely")]
-#[macro_use]
-extern crate serde_derive;
-
 pub extern crate number_as;
 
 use number_as::Number;
@@ -536,18 +532,18 @@ pub struct NumberVisitor<V, T>(pub Vec<V>, pub Vec<T>);
 #[cfg(feature = "serdely")]
 impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: ValidatedWrapper + ValidatedNumberWrapper<T>,
                                                                       T: Number,
-                                                                      u8: number_as::NumberAs<T>,
-                                                                      u16: number_as::NumberAs<T>,
-                                                                      u32: number_as::NumberAs<T>,
-                                                                      u64: number_as::NumberAs<T>,
-                                                                      u128: number_as::NumberAs<T>,
-                                                                      i8: number_as::NumberAs<T>,
-                                                                      i16: number_as::NumberAs<T>,
-                                                                      i32: number_as::NumberAs<T>,
-                                                                      i64: number_as::NumberAs<T>,
-                                                                      i128: number_as::NumberAs<T>,
-                                                                      f32: number_as::NumberAs<T>,
-                                                                      f64: number_as::NumberAs<T> {
+                                                                      u8: NumberAs<T>,
+                                                                      u16: NumberAs<T>,
+                                                                      u32: NumberAs<T>,
+                                                                      u64: NumberAs<T>,
+                                                                      u128: NumberAs<T>,
+                                                                      i8: NumberAs<T>,
+                                                                      i16: NumberAs<T>,
+                                                                      i32: NumberAs<T>,
+                                                                      i64: NumberAs<T>,
+                                                                      i128: NumberAs<T>,
+                                                                      f32: NumberAs<T>,
+                                                                      f64: NumberAs<T> {
     type Value = V;
 
     fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
