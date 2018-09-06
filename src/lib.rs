@@ -1095,7 +1095,9 @@ impl<'de, V: ValidatedVecWrapper<T>, T: ValidatedWrapper + serde::Deserialize<'d
             }
         }
 
-        Ok(V::from_vec(v).unwrap())
+        Ok(V::from_vec(v).map_err(|err| {
+            serde::de::Error::custom(err.to_string())
+        })?)
     }
 }
 
