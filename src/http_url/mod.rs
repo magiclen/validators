@@ -9,6 +9,12 @@ use std::str::Utf8Error;
 
 use super::host::{Host, HostLocalable, HostError};
 
+lazy_static! {
+    static ref HTTP_URL_RE: Regex = {
+        Regex::new(r"^((http|https):)?(//)?([\S&&[^/]]+)(/[\S&&[^?#]]*)?([?]([\S&&[^#]]*))?(#([\S]*))?$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum HttpUrlError {
     IncorrectFormat,
@@ -177,9 +183,7 @@ impl HttpUrlValidator {
     }
 
     fn parse_inner(&self, full_http_url: &str) -> HttpUrlResult {
-        let re = Regex::new(r"^((http|https):)?(//)?([\S&&[^/]]+)(/[\S&&[^?#]]*)?([?]([\S&&[^#]]*))?(#([\S]*))?$").unwrap();
-
-        let c = match re.captures(&full_http_url) {
+        let c = match HTTP_URL_RE.captures(&full_http_url) {
             Some(c) => c,
             None => return Err(HttpUrlError::LocalNotFound)
         };

@@ -6,6 +6,12 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
+lazy_static! {
+    static ref BASE32_RE: Regex = {
+        Regex::new("^([A-Z2-7]{8})*(([A-Z2-7]{8})|([A-Z2-7]{7}=)|([A-Z2-7]{5}===)|([A-Z2-7]{4}====)|([A-Z2-7]{2}======))$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Base32Error {
     IncorrectFormat,
@@ -83,9 +89,7 @@ impl Base32Validator {
     }
 
     fn parse_inner(&self, base32: &str) -> Base32Result {
-        let re = Regex::new("^([A-Z2-7]{8})*(([A-Z2-7]{8})|([A-Z2-7]{7}=)|([A-Z2-7]{5}===)|([A-Z2-7]{4}====)|([A-Z2-7]{2}======))$").unwrap();
-
-        if re.is_match(base32) {
+        if BASE32_RE.is_match(base32) {
             Ok(Base32 {
                 base32: String::new(),
             })

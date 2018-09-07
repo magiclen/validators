@@ -7,6 +7,12 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 
+lazy_static! {
+    static ref BASE64_RE: Regex = {
+        Regex::new("^([A-Za-z0-9+/]{4})*(([A-Za-z0-9+/]{4})|([A-Za-z0-9+/]{3}=)|([A-Za-z0-9+/]{2}==))$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Base64Error {
     IncorrectFormat,
@@ -85,9 +91,7 @@ impl Base64Validator {
     }
 
     fn parse_inner(&self, base64: &str) -> Base64Result {
-        let re = Regex::new("^([A-Za-z0-9+/]{4})*(([A-Za-z0-9+/]{4})|([A-Za-z0-9+/]{3}=)|([A-Za-z0-9+/]{2}==))$").unwrap();
-
-        if re.is_match(base64) {
+        if BASE64_RE.is_match(base64) {
             Ok(Base64 {
                 base64: String::new(),
             })

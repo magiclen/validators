@@ -210,6 +210,9 @@
 #[doc(hidden)]
 pub extern crate regex;
 
+#[macro_use]
+pub extern crate lazy_static;
+
 #[cfg(feature = "rocketly")]
 #[doc(hidden)]
 pub extern crate rocket;

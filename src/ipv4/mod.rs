@@ -8,6 +8,13 @@ use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::{Utf8Error, FromStr};
 
+lazy_static! {
+    #[doc(hidden)]
+    pub static ref IPV4_RE: Regex = {
+        Regex::new(r"^((25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9]))(:(\d{1,5}))?$").unwrap()
+    };
+}
+
 fn is_local_ipv4(addr: &Ipv4Addr) -> bool {
     addr.is_private() || addr.is_loopback() || addr.is_link_local() || addr.is_broadcast() || addr.is_documentation() || addr.is_unspecified()
 }
@@ -174,13 +181,11 @@ impl IPv4Validator {
     }
 
     fn parse_inner(&self, ipv4: &str) -> IPv4Result {
-        let re_ipv4 = Regex::new(r"^((25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9]))(:(\d{1,5}))?$").unwrap();
-
         let mut port = 0u16;
         let mut port_index = 0;
         let mut full_ipv4_len = 0usize;
 
-        let ip = match re_ipv4.captures(&ipv4) {
+        let ip = match IPV4_RE.captures(&ipv4) {
             Some(c) => {
                 if self.ipv6.must() {
                     return Err(IPv4Error::IPv6NotFound);
@@ -220,9 +225,7 @@ impl IPv4Validator {
             }
             None => {
                 if ipv4.starts_with("[") {
-                    let re_ipv6 = Regex::new(r"^\[(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})](:(\d{1,5}))?$").unwrap();
-
-                    let c = match re_ipv6.captures(&ipv4) {
+                    let c = match super::ipv6::IPV6_PORT_RE.captures(&ipv4) {
                         Some(c) => c,
                         None => {
                             return Err(IPv4Error::IncorrectFormat);
@@ -268,9 +271,7 @@ impl IPv4Validator {
                         }
                     }
                 } else {
-                    let re_ipv6 = Regex::new(r"^(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})$").unwrap();
-
-                    let c = match re_ipv6.captures(&ipv4) {
+                    let c = match super::ipv6::IPV6_RE.captures(&ipv4) {
                         Some(c) => c,
                         None => {
                             return Err(IPv4Error::IncorrectFormat);

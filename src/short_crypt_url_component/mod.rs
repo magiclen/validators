@@ -6,6 +6,12 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
+lazy_static! {
+    static ref SHORT_CRYPT_URL_COMPONENT: Regex = {
+        Regex::new(r"^([A-Za-z0-9\-_]{4})*([A-Za-z0-9\-_]|[A-Za-z0-9\-_]{3,4})$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ShortCryptUrlComponentError {
     IncorrectFormat,
@@ -83,9 +89,7 @@ impl ShortCryptUrlComponentValidator {
     }
 
     fn parse_inner(&self, short_crypt_url_component_url: &str) -> ShortCryptUrlComponentResult {
-        let re = Regex::new(r"^([A-Za-z0-9\-_]{4})*([A-Za-z0-9\-_]|[A-Za-z0-9\-_]{3,4})$").unwrap();
-
-        if re.is_match(short_crypt_url_component_url) {
+        if SHORT_CRYPT_URL_COMPONENT.is_match(short_crypt_url_component_url) {
             Ok(ShortCryptUrlComponent {
                 short_crypt_url_component: String::new(),
             })

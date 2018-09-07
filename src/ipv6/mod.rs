@@ -10,6 +10,18 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use std::net::Ipv6MulticastScope;
 use std::str::{Utf8Error, FromStr};
 
+lazy_static! {
+    #[doc(hidden)]
+    pub static ref IPV6_RE: Regex = {
+        Regex::new(r"^(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})$").unwrap()
+    };
+
+    #[doc(hidden)]
+    pub static ref IPV6_PORT_RE: Regex = {
+        Regex::new(r"^\[(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})](:(\d{1,5}))?$").unwrap()
+    };
+}
+
 #[cfg(not(feature = "nightly"))]
 fn is_local_ipv6(addr: &Ipv6Addr) -> bool {
     addr.is_multicast() || addr.is_loopback() || addr.is_unspecified()
@@ -191,9 +203,7 @@ impl IPv6Validator {
         let mut full_ipv6_len = 0usize;
 
         let ip = if ipv6.starts_with("[") {
-            let re_ipv6 = Regex::new(r"^\[(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})](:(\d{1,5}))?$").unwrap();
-
-            let c = match re_ipv6.captures(&ipv6) {
+            let c = match IPV6_PORT_RE.captures(&ipv6) {
                 Some(c) => c,
                 None => {
                     return Err(IPv6Error::IncorrectFormat);
@@ -238,9 +248,7 @@ impl IPv6Validator {
                 }
             }
         } else {
-            let re_ipv6 = Regex::new(r"^(([0-9a-fA-F.]{1,4})(:[0-9a-fA-F.]{1,4}){0,7})$").unwrap();
-
-            match re_ipv6.captures(&ipv6) {
+            match IPV6_RE.captures(&ipv6) {
                 Some(c) => {
                     match c.get(1) {
                         Some(m) => {
@@ -260,9 +268,7 @@ impl IPv6Validator {
                     }
                 }
                 None => {
-                    let re_ipv4 = Regex::new(r"^((25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9]))(:(\d{1,5}))?$").unwrap();
-
-                    match re_ipv4.captures(&ipv6) {
+                    match super::ipv4::IPV4_RE.captures(&ipv6) {
                         Some(c) => {
                             if self.ipv4.not_allow() {
                                 return Err(IPv6Error::IPv4NotAllow);

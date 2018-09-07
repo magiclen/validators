@@ -9,6 +9,12 @@ use std::str::Utf8Error;
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
+lazy_static! {
+    static ref EMAIL_RE: Regex = {
+        Regex::new("^(([0-9A-Za-z!#$%&'*+-/=?^_`{|}~&&[^@]]+)|(\"([0-9A-Za-z!#$%&'*+-/=?^_`{|}~ \"(),:;<>@\\[\\\\\\]]+)\"))@").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum EmailError {
     IncorrectLocalPart,
@@ -104,9 +110,7 @@ impl EmailValidator {
     }
 
     fn parse_inner(&self, full_email: &str) -> EmailResult {
-        let re = Regex::new("^(([0-9A-Za-z!#$%&'*+-/=?^_`{|}~&&[^@]]+)|(\"([0-9A-Za-z!#$%&'*+-/=?^_`{|}~ \"(),:;<>@\\[\\\\\\]]+)\"))@").unwrap();
-
-        let c = match re.captures(&full_email) {
+        let c = match EMAIL_RE.captures(&full_email) {
             Some(c) => c,
             None => return Err(EmailError::IncorrectLocalPart)
         };

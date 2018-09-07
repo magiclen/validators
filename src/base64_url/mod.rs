@@ -6,6 +6,12 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
+lazy_static! {
+    static ref BASE64_URL_RE: Regex = {
+        Regex::new(r"^([A-Za-z0-9\-_]{4})*[A-Za-z0-9\-_]{2,4}$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Base64UrlError {
     IncorrectFormat,
@@ -83,9 +89,7 @@ impl Base64UrlValidator {
     }
 
     fn parse_inner(&self, base64_url: &str) -> Base64UrlResult {
-        let re = Regex::new(r"^([A-Za-z0-9\-_]{4})*[A-Za-z0-9\-_]{2,4}$").unwrap();
-
-        if re.is_match(base64_url) {
+        if BASE64_URL_RE.is_match(base64_url) {
             Ok(Base64Url {
                 base64_url: String::new(),
             })

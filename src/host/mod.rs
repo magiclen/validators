@@ -1,5 +1,3 @@
-extern crate regex;
-
 use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};

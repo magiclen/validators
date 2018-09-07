@@ -6,6 +6,12 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
+lazy_static! {
+    static ref SHORT_CRYPT_QR_CODE_ALPHANUMERIC_RE: Regex = {
+        Regex::new(r"^([A-Z0-9]{8})*([A-Z0-9]|[A-Z0-9]{3}|[A-Z0-9]{5,6}|[A-Z0-9]{8})$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ShortCryptQRCodeAlphanumericError {
     IncorrectFormat,
@@ -83,9 +89,7 @@ impl ShortCryptQRCodeAlphanumericValidator {
     }
 
     fn parse_inner(&self, short_crypt_qr_code_alphanumeric_url: &str) -> ShortCryptQRCodeAlphanumericResult {
-        let re = Regex::new(r"^([A-Z0-9]{8})*([A-Z0-9]|[A-Z0-9]{3}|[A-Z0-9]{5,6}|[A-Z0-9]{8})$").unwrap();
-
-        if re.is_match(short_crypt_qr_code_alphanumeric_url) {
+        if SHORT_CRYPT_QR_CODE_ALPHANUMERIC_RE.is_match(short_crypt_qr_code_alphanumeric_url) {
             Ok(ShortCryptQRCodeAlphanumeric {
                 short_crypt_qr_code_alphanumeric: String::new(),
             })

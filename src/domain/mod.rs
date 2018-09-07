@@ -7,6 +7,12 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 
+lazy_static! {
+    static ref DOMAIN_RE: Regex = {
+        Regex::new(r"^([\S&&[^.:/]]{1,255})(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(:(\d{1,5}))?$").unwrap()
+    };
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum DomainError {
     IncorrectFormat,
@@ -166,9 +172,7 @@ impl DomainValidator {
     }
 
     fn parse_inner(&self, full_domain: &str) -> DomainResult {
-        let re = Regex::new(r"^([\S&&[^.:/]]{1,255})(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(:(\d{1,5}))?$").unwrap();
-
-        let c = match re.captures(&full_domain) {
+        let c = match DOMAIN_RE.captures(&full_domain) {
             Some(c) => c,
             None => return Err(DomainError::IncorrectFormat)
         };
