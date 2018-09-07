@@ -61,7 +61,7 @@ Therefore, it may not be competent in some critical situations. Use it carefully
 
 ## Customization
 
-This crate also provides macros to create customized validated structs for any strings and numbers.
+This crate also provides macros to create customized validated structs for any strings, numbers and Vecs.
 
 For example, to create a struct which only allows **"Hi"** or **"Hello"** restricted by a regular expression,
 
@@ -69,6 +69,26 @@ For example, to create a struct which only allows **"Hi"** or **"Hello"** restri
 #[macro_use] extern crate validators;
 
 validated_customized_regex_string!(Greet, "^(Hi|Hello)$");
+
+let s = Greet::from_str("Hi").unwrap();
+```
+
+While a regex needs to be compiled before it operates, if you want to reuse a compiled regex, you can add a **ref** keyword, and pass a static Regex instance to the macro,
+
+```rust
+#[macro_use] extern crate validators;
+#[macro_use] extern crate lazy_static;
+extern crate regex;
+
+use regex::Regex;
+
+lazy_static! {
+    static ref RE_GREET: Regex = {
+        Regex::new("^(Hi|Hello)$").unwrap()
+    };
+}
+
+validated_customized_regex_string!(Greet, ref RE_GREET);
 
 let s = Greet::from_str("Hi").unwrap();
 ```

@@ -57,7 +57,7 @@
 //!
 //! ## Customization
 //!
-//! This crate also provides macros to create customized validated structs for any strings and numbers.
+//! This crate also provides macros to create customized validated structs for any strings, numbers and Vecs.
 //!
 //! For example, to create a struct which only allows **"Hi"** or **"Hello"** restricted by a regular expression,
 //!
@@ -65,6 +65,26 @@
 //! #[macro_use] extern crate validators;
 //!
 //! validated_customized_regex_string!(Greet, "^(Hi|Hello)$");
+//!
+//! let s = Greet::from_str("Hi").unwrap();
+//! ```
+//!
+//! While a regex needs to be compiled before it operates, if you want to reuse a compiled regex, you can add a **ref** keyword, and pass a static Regex instance to the macro,
+//!
+//! ```
+//! #[macro_use] extern crate validators;
+//! #[macro_use] extern crate lazy_static;
+//! extern crate regex;
+//!
+//! use regex::Regex;
+//!
+//! lazy_static! {
+//!     static ref RE_GREET: Regex = {
+//!         Regex::new("^(Hi|Hello)$").unwrap()
+//!     };
+//! }
+//!
+//! validated_customized_regex_string!(Greet, ref RE_GREET);
 //!
 //! let s = Greet::from_str("Hi").unwrap();
 //! ```
@@ -512,6 +532,27 @@ macro_rules! validated_customized_regex_string_struct {
             }
         });
     };
+    ( $name:ident, $field:ident, ref $re:expr ) => {
+        validated_customized_string_struct!($name, $field,
+        input {
+            let re: &::validators::regex::Regex = &$re;
+
+            if re.is_match(&input) {
+                Ok(input)
+            } else{
+                Err(::validators::ValidatedCustomizedStringError::NotMatch)
+            }
+        },
+        input {
+            let re: &::validators::regex::Regex = &$re;
+
+            if re.is_match(&input) {
+                Ok(input.to_string())
+            } else{
+                Err(::validators::ValidatedCustomizedStringError::NotMatch)
+            }
+        });
+    };
 }
 
 #[macro_export]
@@ -529,6 +570,20 @@ macro_rules! validated_customized_regex_string {
         }
 
         validated_customized_regex_string_struct!($name, s, $re);
+    };
+    ( $name:ident, ref $re:expr ) => {
+        struct $name{
+            s: String
+        }
+
+        validated_customized_regex_string_struct!($name, s, ref $re);
+    };
+    ( pub $name:ident, ref $re:expr ) => {
+        pub struct $name{
+            s: String
+        }
+
+        validated_customized_regex_string_struct!($name, s, ref $re);
     };
 }
 
@@ -940,6 +995,38 @@ macro_rules! validated_customized_regex_number_struct {
             }
         });
     };
+    ( $name:ident, $field:ident, $t:ident, ref $re:expr ) => {
+        validated_customized_number_struct!($name, $field, $t,
+        input {
+            let re: &::validators::regex::Regex = &$re;
+
+            if re.is_match(&input) {
+                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+            } else{
+                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
+            }
+        },
+        input {
+            let re: &::validators::regex::Regex = &$re;
+
+            if re.is_match(&input) {
+                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+            } else{
+                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
+            }
+        },
+        input {
+            let input = input.to_string();
+
+            let re: &::validators::regex::Regex = &$re;
+
+            if re.is_match(&input) {
+                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+            } else{
+                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
+            }
+        });
+    };
 }
 
 #[macro_export]
@@ -957,6 +1044,20 @@ macro_rules! validated_customized_regex_number {
         }
 
         validated_customized_regex_number_struct!($name, n, $t, $re);
+    };
+    ( $name:ident, $t:ident, ref $re:expr ) => {
+        struct $name{
+            n: $t
+        }
+
+        validated_customized_regex_number_struct!($name, n, $t, ref $re);
+    };
+    ( pub $name:ident, $t:ident, ref $re:expr ) => {
+        pub struct $name{
+            n: $t
+        }
+
+        validated_customized_regex_number_struct!($name, n, $t, ref $re);
     };
 }
 

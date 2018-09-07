@@ -1,7 +1,13 @@
 #[macro_use]
 extern crate validators;
+#[macro_use]
+extern crate lazy_static;
 #[cfg(feature = "rocketly")]
 extern crate rocket;
+
+extern crate regex;
+
+use regex::Regex;
 
 #[test]
 fn test_validated_customized_string() {
@@ -28,6 +34,24 @@ fn test_validated_customized_string() {
 fn test_validated_customized_regex_string() {
     validated_customized_regex_string!(S1, "^(Hi|Hello)$");
     validated_customized_regex_string!(pub S2, r"^[\S\s]+$");
+}
+
+#[test]
+fn test_validated_customized_regex_string_static() {
+    lazy_static! {
+        static ref RE_S1: Regex = {
+            Regex::new("^(Hi|Hello)$").unwrap()
+        };
+    }
+
+    lazy_static! {
+        static ref RE_S2: Regex = {
+            Regex::new(r"^[\S\s]+$").unwrap()
+        };
+    }
+
+    validated_customized_regex_string!(S1, ref RE_S1);
+    validated_customized_regex_string!(pub S2, ref RE_S2);
 }
 
 #[test]
@@ -62,6 +86,31 @@ fn test_validated_customized_regex_number() {
     validated_customized_regex_number!(N1, u8, r"^[1-8][0-9]$");
     validated_customized_regex_number!(pub N2, u16, r"^[0-1]?[1-8][0-9]$");
     validated_customized_regex_number!(N3, f32, r"^[0-1]?[1-8][0-9]\.[0-9]$");
+}
+
+#[test]
+fn test_validated_customized_regex_number_static() {
+    lazy_static! {
+        static ref RE_N1: Regex = {
+            Regex::new(r"^[1-8][0-9]$").unwrap()
+        };
+    }
+
+    lazy_static! {
+        static ref RE_N2: Regex = {
+            Regex::new(r"^[0-1]?[1-8][0-9]$").unwrap()
+        };
+    }
+
+    lazy_static! {
+        static ref RE_N3: Regex = {
+            Regex::new(r"^[0-1]?[1-8][0-9]\.[0-9]$").unwrap()
+        };
+    }
+
+    validated_customized_regex_number!(N1, u8, ref RE_N1);
+    validated_customized_regex_number!(pub N2, u16, ref RE_N2);
+    validated_customized_regex_number!(N3, f32, ref RE_N3);
 }
 
 #[test]
