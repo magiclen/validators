@@ -146,7 +146,7 @@ features = ["rocketly"]
 
 For example,
 
-```rust,ignore
+```rust
 #![feature(plugin)]
 #![feature(custom_derive)]
 #![plugin(rocket_codegen)]
