@@ -160,6 +160,15 @@ impl<'a> ::rocket::request::FromFormValue<'a> for ShortCryptUrlComponent {
     }
 }
 
+#[cfg(feature = "rocketly")]
+impl<'a> ::rocket::request::FromParam<'a> for ShortCryptUrlComponent {
+    type Error = ShortCryptUrlComponentError;
+
+    fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+        ShortCryptUrlComponent::from_str(param)
+    }
+}
+
 #[cfg(feature = "serdely")]
 struct StringVisitor;
 
@@ -186,7 +195,8 @@ impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
 
 #[cfg(feature = "serdely")]
 impl<'de> ::serde::Deserialize<'de> for ShortCryptUrlComponent {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {deserializer.deserialize_string(StringVisitor)
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+        deserializer.deserialize_string(StringVisitor)
     }
 }
 

@@ -614,6 +614,15 @@ macro_rules! extend {
             }
         }
 
+        #[cfg(feature = "rocketly")]
+        impl<'a> ::rocket::request::FromParam<'a> for $name {
+            type Error = IPv6Error;
+
+            fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| IPv6Error::UTF8Error(err))?)
+            }
+        }
+
         #[cfg(feature = "serdely")]
         impl<'de> ::serde::Deserialize<'de> for $name {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {

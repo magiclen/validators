@@ -207,6 +207,15 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Email {
     }
 }
 
+#[cfg(feature = "rocketly")]
+impl<'a> ::rocket::request::FromParam<'a> for Email {
+    type Error = EmailError;
+
+    fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+        Email::from_string(param.url_decode().map_err(|err| EmailError::UTF8Error(err))?)
+    }
+}
+
 #[cfg(feature = "serdely")]
 struct StringVisitor;
 

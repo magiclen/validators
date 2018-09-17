@@ -160,6 +160,15 @@ impl<'a> ::rocket::request::FromFormValue<'a> for ShortCryptQRCodeAlphanumeric {
     }
 }
 
+#[cfg(feature = "rocketly")]
+impl<'a> ::rocket::request::FromParam<'a> for ShortCryptQRCodeAlphanumeric {
+    type Error = ShortCryptQRCodeAlphanumericError;
+
+    fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+        ShortCryptQRCodeAlphanumeric::from_str(param)
+    }
+}
+
 #[cfg(feature = "serdely")]
 struct StringVisitor;
 

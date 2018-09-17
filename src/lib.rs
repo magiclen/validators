@@ -131,7 +131,7 @@
 //!
 //! ## Rocket Support
 //!
-//! This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` trait.
+//! This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` and `FromParam` traits.
 //! To use with Rocket support, you have to enable **rocketly** feature for this crate.
 //!
 //! ```toml
@@ -156,6 +156,7 @@
 //! use validators::http_url::HttpUrlUnlocalableWithProtocol;
 //! use validators::email::Email;
 //!
+//! validated_customized_ranged_number!(PersonID, u8, 0, 100);
 //! validated_customized_regex_string!(Name, r"^[\S ]{1,80}$");
 //! validated_customized_ranged_number!(PersonAge, u8, 0, 130);
 //!
@@ -167,9 +168,10 @@
 //!     url: Option<HttpUrlUnlocalableWithProtocol>
 //! }
 //!
-//! #[post("/contact", data = "<model>")]
-//! fn contact(model: Form<ContactModel>) -> &'static str {
-//!     println!("{:?}", model);
+//! #[post("/contact/<id>", data = "<model>")]
+//! fn contact(id: PersonID, model: Form<ContactModel>) -> &'static str {
+//!     println!("{}", id);
+//!     println!("{:?}", model.get());
 //!     "do something..."
 //! }
 //! ```
@@ -371,6 +373,14 @@ macro_rules! validated_customized_string_struct_implement_from_form_value {
 
             fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
+            }
+        }
+
+        impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
+            type Error = ::validators::ValidatedCustomizedStringError;
+
+            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
             }
         }
     }
@@ -784,6 +794,14 @@ macro_rules! validated_customized_number_struct_implement_from_form_value {
 
             fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedNumberError::UTF8Error(err))?)
+            }
+        }
+
+        impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
+            type Error = ::validators::ValidatedCustomizedNumberError;
+
+            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedNumberError::UTF8Error(err))?)
             }
         }
     }
@@ -1245,6 +1263,15 @@ macro_rules! validated_customized_vec_struct_implement_from_form_value {
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
             }
         }
+
+        impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromParam<'a> for $name<T> {
+            type Error = ::validators::ValidatedCustomizedVecError;
+
+            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
+            }
+        }
+
     }
 }
 

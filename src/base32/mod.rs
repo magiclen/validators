@@ -152,6 +152,15 @@ impl Base32 {
 }
 
 #[cfg(feature = "rocketly")]
+impl<'a> ::rocket::request::FromParam<'a> for Base32 {
+    type Error = Base32Error;
+
+    fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+        Base32::from_str(param)
+    }
+}
+
+#[cfg(feature = "rocketly")]
 impl<'a> ::rocket::request::FromFormValue<'a> for Base32 {
     type Error = Base32Error;
 

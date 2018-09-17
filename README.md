@@ -135,7 +135,7 @@ Read the documentation to know more helpful customized macros.
 
 ## Rocket Support
 
-This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` trait.
+This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` and `FromParam` traits.
 To use with Rocket support, you have to enable **rocketly** feature for this crate.
 
 ```toml
@@ -146,7 +146,7 @@ features = ["rocketly"]
 
 For example,
 
-```rust
+```rust,ignore
 #![feature(plugin)]
 #![feature(custom_derive)]
 #![plugin(rocket_codegen)]
@@ -160,6 +160,7 @@ use rocket::request::Form;
 use validators::http_url::HttpUrlUnlocalableWithProtocol;
 use validators::email::Email;
 
+validated_customized_ranged_number!(PersonID, u8, 0, 100);
 validated_customized_regex_string!(Name, r"^[\S ]{1,80}$");
 validated_customized_ranged_number!(PersonAge, u8, 0, 130);
 
@@ -171,9 +172,10 @@ struct ContactModel {
     url: Option<HttpUrlUnlocalableWithProtocol>
 }
 
-#[post("/contact", data = "<model>")]
-fn contact(model: Form<ContactModel>) -> &'static str {
-    println!("{:?}", model);
+#[post("/contact/<id>", data = "<model>")]
+fn contact(id: PersonID, model: Form<ContactModel>) -> &'static str {
+    println!("{}", id);
+    println!("{:?}", model.get());
     "do something..."
 }
 ```

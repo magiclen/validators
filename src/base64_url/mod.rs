@@ -160,6 +160,15 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Base64Url {
     }
 }
 
+#[cfg(feature = "rocketly")]
+impl<'a> ::rocket::request::FromParam<'a> for Base64Url {
+    type Error = Base64UrlError;
+
+    fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
+        Base64Url::from_str(param)
+    }
+}
+
 #[cfg(feature = "serdely")]
 struct StringVisitor;
 
