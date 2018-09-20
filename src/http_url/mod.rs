@@ -720,3 +720,16 @@ impl HttpUrlUnlocalableWithProtocol {
         }
     }
 }
+
+extend!(HttpUrlLocalableWithoutProtocol, ValidatorOption::NotAllow, ValidatorOption::Allow);
+
+impl HttpUrlLocalableWithoutProtocol {
+    pub fn is_local(&self) -> bool {
+        self.0.is_local
+    }
+}
+
+extend!(HttpUrlUnlocalableWithoutProtocol, ValidatorOption::NotAllow, ValidatorOption::NotAllow);
+
+impl HttpUrlUnlocalableWithoutProtocol {
+}
