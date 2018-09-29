@@ -9,7 +9,7 @@ use std::str::Utf8Error;
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
-        Regex::new(r"^([\S&&[^.:/]]{1,255})(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(:(\d{1,5}))?$").unwrap()
+        Regex::new(r"^([\S&&[^.:/]]{1,255})(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(:(\d{1,5}))?$").unwrap()
     };
 }
 
@@ -206,7 +206,7 @@ impl DomainValidator {
 
         let mut port = 0u16;
 
-        let port_index = match c.get(7) {
+        let port_index = match c.get(9) {
             Some(m) => {
                 if self.port.not_allow() {
                     return Err(DomainError::PortNotAllow);
@@ -231,15 +231,32 @@ impl DomainValidator {
 
         let top_level_domain = match c.get(5) {
             Some(m) => {
-                if m.end() > 255 {
-                    return Err(DomainError::IncorrectFormat);
-                }
-
                 if self.localhost.must() {
                     return Err(DomainError::LocalhostNotFound);
                 }
 
-                m.start()
+                match c.get(7) {
+                    Some(mm) => {
+                        if mm.end() > 255 {
+                            return Err(DomainError::IncorrectFormat);
+                        }
+
+                        let sub_domain_m = domain;
+                        domain = m.start();
+
+                        if domain - sub_domain_m > 64 {
+                            return Err(DomainError::IncorrectFormat);
+                        }
+
+                        mm.start()
+                    }
+                    None => {
+                        if m.end() > 255 {
+                            return Err(DomainError::IncorrectFormat);
+                        }
+                        m.start()
+                    }
+                }
             }
             None => {
                 if sub_domain == full_domain_len {
@@ -294,7 +311,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_domain_methods() {
+    fn test_domain_methods_lv1() {
         let domain = "tool.magiclen.org:8080".to_string();
 
         let dv = DomainValidator {
@@ -308,6 +325,26 @@ mod tests {
         assert_eq!("tool.magiclen.org", domain.get_full_domain_without_port());
         assert_eq!("org", domain.get_top_level_domain().unwrap());
         assert_eq!("tool", domain.get_sub_domain().unwrap());
+        assert_eq!("magiclen", domain.get_domain());
+        assert_eq!(8080, domain.get_port().unwrap());
+        assert_eq!(false, domain.is_localhost());
+    }
+
+    #[test]
+    fn test_domain_methods_lv2() {
+        let domain = "www.tool.magiclen.org:8080".to_string();
+
+        let dv = DomainValidator {
+            port: ValidatorOption::Allow,
+            localhost: ValidatorOption::NotAllow,
+        };
+
+        let domain = dv.parse_string(domain).unwrap();
+
+        assert_eq!("www.tool.magiclen.org:8080", domain.get_full_domain());
+        assert_eq!("www.tool.magiclen.org", domain.get_full_domain_without_port());
+        assert_eq!("org", domain.get_top_level_domain().unwrap());
+        assert_eq!("www.tool", domain.get_sub_domain().unwrap());
         assert_eq!("magiclen", domain.get_domain());
         assert_eq!(8080, domain.get_port().unwrap());
         assert_eq!(false, domain.is_localhost());
