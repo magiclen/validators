@@ -3,10 +3,13 @@
 //! This crate provides many validators for validating data from users and modeling them to structs without much extra effort.
 //!
 //! All validators are separated into different modules and unified for two main types: **XXX** and **XXXValidator** where **XXX** is a type that you want to validate.
+//!
 //! The former is a struct or a enum, and the latter is a struct which can be considered as a generator of the former.
+//!
 //! A **XXXValidator** struct usually contains some values of `ValidatorOption` in order to use different rules to check data.
 //!
 //! For example, the mod `domain` has `Domain` and `DomainValidator` structs. If we want to create a `Domain` instance, we need to create a `DomainValidator` instance first.
+//!
 //! When initialing a `DomainValidator`, we can choose to make this `DomainValidator` **allow** or **not allow** the input to have or **must** have a port number.
 //!
 //! ```
@@ -33,6 +36,7 @@
 //! ```
 //!
 //! If you want the **XXX** model to be stricter, you can use its wrapper type which is something like **XXXWithPort** or **XXXWithoutPort**.
+//!
 //! For instance, `Domain` has some wrappers, such as **DomainLocalhostableWithPort**, **DomainLocalhostableAllowPort** and **DomainLocalhostableWithoutPort**.
 //!
 //! ```
@@ -53,6 +57,7 @@
 //! ```
 //!
 //! This crate aims to use the simplest and slackest way (normally only use regular expressions) to validate data, in order to minimize the overhead.
+//!
 //! Therefore, it may not be competent in some critical situations. Use it carefully. Check out the documentation to see more useful validators and wrapper types.
 //!
 //! ## Customization
@@ -132,6 +137,7 @@
 //! ## Rocket Support
 //!
 //! This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` and `FromParam` traits.
+//!
 //! To use with Rocket support, you have to enable **rocketly** feature for this crate.
 //!
 //! ```toml
@@ -179,7 +185,9 @@
 //! ## Serde Support
 //!
 //! Serde is a framework for serializing and deserializing Rust data structures efficiently and generically. And again, this crate supports [Serde](https://crates.io/crates/serde) framework.
+//!
 //! All validated wrapper types and validated customized structs implement the `Serialize` and `Deserialize` traits.
+//!
 //! To use with Serde support, you have to enable **serdely** feature for this crate.
 //!
 //! ```toml
@@ -206,6 +214,8 @@
 //!
 //! assert_eq!("[\"Ron\",\"Magic Len\"]", json!(names).to_string());
 //! ```
+//!
+//! Also, the `json_array` and `json_object` modules are available.
 
 #![cfg_attr(feature = "nightly", feature(ip))]
 
@@ -293,6 +303,10 @@ pub mod base64_url;
 pub mod base32;
 pub mod short_crypt_url_component;
 pub mod short_crypt_qr_code_alphanumeric;
+#[cfg(feature = "serdely")]
+pub mod json_object;
+#[cfg(feature = "serdely")]
+pub mod json_array;
 
 // TODO -----ValidatedCustomizedString START-----
 
