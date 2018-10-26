@@ -596,7 +596,11 @@ macro_rules! extend {
             type Error = MacAddressError;
 
             fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| MacAddressError::UTF8Error(err))?)
+                if $colon.allow() {
+                    $name::from_string(form_value.url_decode().map_err(|err| MacAddressError::UTF8Error(err))?)
+                } else {
+                    $name::from_str(form_value)
+                }
             }
         }
 
@@ -605,7 +609,11 @@ macro_rules! extend {
             type Error = MacAddressError;
 
             fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| MacAddressError::UTF8Error(err))?)
+                if $colon.allow() {
+                    $name::from_string(param.url_decode().map_err(|err| MacAddressError::UTF8Error(err))?)
+                } else {
+                    $name::from_str(param)
+                }
             }
         }
 
