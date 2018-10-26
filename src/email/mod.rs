@@ -52,6 +52,10 @@ impl Email {
     pub fn get_full_email(&self) -> &str {
         &self.full_email
     }
+
+    pub fn into_string(self) -> String {
+        self.full_email
+    }
 }
 
 impl Validated for Email {}

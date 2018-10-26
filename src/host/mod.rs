@@ -65,6 +65,14 @@ impl Host {
             Host::IPv6(d) => d.is_local()
         }
     }
+
+    pub fn into_string(self) -> String {
+        match self {
+            Host::Domain(d) => d.into_string(),
+            Host::IPv4(d) => d.into_string(),
+            Host::IPv6(d) => d.into_string()
+        }
+    }
 }
 
 impl Validated for Host {}

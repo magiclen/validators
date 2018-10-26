@@ -39,6 +39,10 @@ impl Base64Url {
     pub fn get_base64_url(&self) -> &str {
         &self.base64_url
     }
+
+    pub fn into_string(self) -> String {
+        self.base64_url
+    }
 }
 
 impl Validated for Base64Url {}

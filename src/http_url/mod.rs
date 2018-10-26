@@ -133,6 +133,10 @@ impl HttpUrl {
     pub fn is_local(&self) -> bool {
         self.is_local
     }
+
+    pub fn into_string(self) -> String {
+        self.full_http_url
+    }
 }
 
 impl Validated for HttpUrl {}

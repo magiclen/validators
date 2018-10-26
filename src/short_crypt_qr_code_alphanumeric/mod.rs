@@ -39,6 +39,10 @@ impl ShortCryptQRCodeAlphanumeric {
     pub fn get_short_crypt_qr_code_alphanumeric_url(&self) -> &str {
         &self.short_crypt_qr_code_alphanumeric
     }
+
+    pub fn into_string(self) -> String {
+        self.short_crypt_qr_code_alphanumeric
+    }
 }
 
 impl Validated for ShortCryptQRCodeAlphanumeric {}

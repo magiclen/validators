@@ -39,6 +39,10 @@ impl Base32 {
     pub fn get_base32(&self) -> &str {
         &self.base32
     }
+
+    pub fn into_string(self) -> String {
+        self.base32
+    }
 }
 
 impl Validated for Base32 {}

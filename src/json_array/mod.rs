@@ -46,6 +46,10 @@ impl JSONArray {
             _ => panic!()
         }
     }
+
+    pub fn into_value(self) -> Value {
+        self.value
+    }
 }
 
 impl Deref for JSONArray {

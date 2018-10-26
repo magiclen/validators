@@ -89,6 +89,10 @@ impl IPv4 {
     pub fn is_local(&self) -> bool {
         self.is_local
     }
+
+    pub fn into_string(self) -> String {
+        self.full_ipv4
+    }
 }
 
 impl Validated for IPv4 {}

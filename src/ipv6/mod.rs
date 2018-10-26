@@ -106,6 +106,10 @@ impl IPv6 {
     pub fn is_local(&self) -> bool {
         self.is_local
     }
+
+    pub fn into_string(self) -> String {
+        self.full_ipv6
+    }
 }
 
 impl Validated for IPv6 {}

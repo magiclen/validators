@@ -47,6 +47,10 @@ impl JSONObject {
             _ => panic!()
         }
     }
+
+    pub fn into_value(self) -> Value {
+        self.value
+    }
 }
 
 impl Deref for JSONObject {

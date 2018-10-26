@@ -307,6 +307,8 @@ pub mod short_crypt_qr_code_alphanumeric;
 pub mod json_object;
 #[cfg(feature = "serdely")]
 pub mod json_array;
+pub mod uuid;
+pub mod mac_address;
 
 // TODO -----ValidatedCustomizedString START-----
 
@@ -473,6 +475,10 @@ macro_rules! validated_customized_string_struct {
         impl<'a> $name {
             pub fn as_str(&'a self) -> &'a str {
                 &self.$field
+            }
+
+            pub fn into_string(self) -> String {
+                self.$field
             }
 
             pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{

@@ -41,6 +41,10 @@ impl Base64 {
     pub fn get_base64(&self) -> &str {
         &self.base64
     }
+
+    pub fn into_string(self) -> String {
+        self.base64
+    }
 }
 
 impl Validated for Base64 {}
@@ -167,7 +171,7 @@ impl<'a> ::rocket::request::FromParam<'a> for Base64 {
     type Error = Base64Error;
 
     fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Base64::from_str(param)
+        Base64::from_string(param.url_decode().map_err(|err| Base64Error::UTF8Error(err))?)
     }
 }
 
@@ -179,7 +183,7 @@ impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
     type Value = Base64;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a Base32 string")
+        formatter.write_str("a Base64 string")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {

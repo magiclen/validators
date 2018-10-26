@@ -114,6 +114,10 @@ impl Domain {
     pub fn is_localhost(&self) -> bool {
         self.is_localhost
     }
+
+    pub fn into_string(self) -> String {
+        self.full_domain
+    }
 }
 
 impl Validated for Domain {}

@@ -39,6 +39,10 @@ impl ShortCryptUrlComponent {
     pub fn get_short_crypt_url_component_url(&self) -> &str {
         &self.short_crypt_url_component
     }
+
+    pub fn into_string(self) -> String {
+        self.short_crypt_url_component
+    }
 }
 
 impl Validated for ShortCryptUrlComponent {}
