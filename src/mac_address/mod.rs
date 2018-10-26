@@ -65,7 +65,7 @@ pub struct MacAddress {
 }
 
 impl MacAddress {
-    pub fn get_mac_address(&self) -> &str {
+    pub fn get_full_mac_address(&self) -> &str {
         &self.mac_address
     }
 
@@ -407,12 +407,12 @@ mod tests {
 
         let uv = MacAddressValidator {
             lowercase: ValidatorOption::Must,
-            colon: ValidatorOption::Must
+            colon: ValidatorOption::Must,
         };
 
         let mac_address = uv.parse_string(mac_address).unwrap();
 
-        assert_eq!("08:00:27:b2:46:c3", mac_address.get_mac_address());
+        assert_eq!("08:00:27:b2:46:c3", mac_address.get_full_mac_address());
     }
 
     #[test]
@@ -421,7 +421,7 @@ mod tests {
 
         let bv = MacAddressValidator {
             lowercase: ValidatorOption::Allow,
-            colon: ValidatorOption::Allow
+            colon: ValidatorOption::Allow,
         };
 
         bv.parse_string(mac_address).unwrap();
@@ -433,7 +433,7 @@ mod tests {
 
         let bv = MacAddressValidator {
             lowercase: ValidatorOption::NotAllow,
-            colon: ValidatorOption::Allow
+            colon: ValidatorOption::Allow,
         };
 
         bv.parse_string(mac_address).unwrap();
@@ -445,7 +445,7 @@ mod tests {
 
         let bv = MacAddressValidator {
             lowercase: ValidatorOption::NotAllow,
-            colon: ValidatorOption::Allow
+            colon: ValidatorOption::Allow,
         };
 
         bv.parse_string(mac_address).unwrap();
@@ -457,7 +457,7 @@ mod tests {
 
         let bv = MacAddressValidator {
             lowercase: ValidatorOption::NotAllow,
-            colon: ValidatorOption::NotAllow
+            colon: ValidatorOption::NotAllow,
         };
 
         bv.parse_string(mac_address).unwrap();
@@ -582,8 +582,12 @@ macro_rules! extend {
         }
 
         impl $name {
-            pub fn get_mac_address(&self) -> &str {
-                self.0.get_mac_address()
+            pub fn get_mac_address(&self) -> &MacAddress {
+                &self.0
+            }
+
+            pub fn get_full_mac_address(&self) -> &str {
+                self.0.get_full_mac_address()
             }
         }
 
@@ -637,7 +641,7 @@ macro_rules! extend {
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
-                serializer.serialize_str(self.0.get_mac_address())
+                serializer.serialize_str(self.0.get_full_mac_address())
             }
         }
     };
@@ -646,10 +650,6 @@ macro_rules! extend {
 extend!(MacAddressAllowAnyCaseWithColon, ValidatorOption::Allow, ValidatorOption::Must);
 
 impl MacAddressAllowAnyCaseWithColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-
     pub fn has_lowercase(&self) -> bool {
         self.0.has_lowercase()
     }
@@ -666,10 +666,6 @@ impl MacAddressAllowAnyCaseWithColon {
 extend!(MacAddressAllowAnyCaseWithoutColon, ValidatorOption::Allow, ValidatorOption::NotAllow);
 
 impl MacAddressAllowAnyCaseWithoutColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-
     pub fn has_lowercase(&self) -> bool {
         self.0.has_lowercase()
     }
@@ -686,10 +682,6 @@ impl MacAddressAllowAnyCaseWithoutColon {
 extend!(MacAddressAllowAnyCaseAllowColon, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl MacAddressAllowAnyCaseAllowColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-
     pub fn has_lowercase(&self) -> bool {
         self.0.has_lowercase()
     }
@@ -709,27 +701,15 @@ impl MacAddressAllowAnyCaseAllowColon {
 
 extend!(MacAddressUpperCaseWithColon, ValidatorOption::NotAllow, ValidatorOption::Must);
 
-impl MacAddressUpperCaseWithColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-}
+impl MacAddressUpperCaseWithColon {}
 
 extend!(MacAddressUpperCaseWithoutColon, ValidatorOption::NotAllow, ValidatorOption::NotAllow);
 
-impl MacAddressUpperCaseWithoutColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-}
+impl MacAddressUpperCaseWithoutColon {}
 
 extend!(MacAddressUpperCaseAllowColon, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl MacAddressUpperCaseAllowColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-
     pub fn has_colon(&self) -> bool {
         self.0.has_colon()
     }
@@ -737,27 +717,15 @@ impl MacAddressUpperCaseAllowColon {
 
 extend!(MacAddressLowerCaseWithColon, ValidatorOption::Must, ValidatorOption::Must);
 
-impl MacAddressLowerCaseWithColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-}
+impl MacAddressLowerCaseWithColon {}
 
 extend!(MacAddressLowerCaseWithoutColon, ValidatorOption::Must, ValidatorOption::NotAllow);
 
-impl MacAddressLowerCaseWithoutColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-}
+impl MacAddressLowerCaseWithoutColon {}
 
 extend!(MacAddressLowerCaseAllowColon, ValidatorOption::Must, ValidatorOption::Allow);
 
 impl MacAddressLowerCaseAllowColon {
-    pub fn get_mac_address(&self) -> &str {
-        self.0.get_mac_address()
-    }
-
     pub fn has_colon(&self) -> bool {
         self.0.has_colon()
     }

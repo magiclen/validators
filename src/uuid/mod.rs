@@ -54,7 +54,7 @@ pub struct UUID {
 }
 
 impl UUID {
-    pub fn get_uuid(&self) -> &str {
+    pub fn get_full_uuid(&self) -> &str {
         &self.uuid
     }
 
@@ -217,7 +217,7 @@ mod tests {
 
         let uuid = uv.parse_string(uuid).unwrap();
 
-        assert_eq!("80a6572b-ebb8-4bf8-94b8-5c198299d118", uuid.get_uuid());
+        assert_eq!("80a6572b-ebb8-4bf8-94b8-5c198299d118", uuid.get_full_uuid());
     }
 
     #[test]
@@ -346,8 +346,12 @@ macro_rules! extend {
         }
 
         impl $name {
-            pub fn get_uuid(&self) -> &str {
-                self.0.get_uuid()
+            pub fn get_uuid(&self) -> &UUID {
+                &self.0
+            }
+
+            pub fn get_full_uuid(&self) -> &str {
+                self.0.get_full_uuid()
             }
         }
 
@@ -401,7 +405,7 @@ macro_rules! extend {
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
-                serializer.serialize_str(self.0.get_uuid())
+                serializer.serialize_str(self.0.get_full_uuid())
             }
         }
     };
@@ -410,10 +414,6 @@ macro_rules! extend {
 extend!(UUIDAllowAnyCase, ValidatorOption::Allow);
 
 impl UUIDAllowAnyCase {
-    pub fn get_uuid(&self) -> &str {
-        self.0.get_uuid()
-    }
-
     pub fn has_lowercase(&self) -> bool {
         self.0.has_lowercase()
     }
@@ -430,15 +430,11 @@ impl UUIDAllowAnyCase {
 extend!(UUIDUpperCase, ValidatorOption::NotAllow);
 
 impl UUIDUpperCase {
-    pub fn get_uuid(&self) -> &str {
-        self.0.get_uuid()
-    }
+
 }
 
 extend!(UUIDLowerCase, ValidatorOption::Must);
 
 impl UUIDLowerCase {
-    pub fn get_uuid(&self) -> &str {
-        self.0.get_uuid()
-    }
+
 }
