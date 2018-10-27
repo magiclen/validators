@@ -346,10 +346,6 @@ macro_rules! extend {
         }
 
         impl $name {
-            pub fn get_uuid(&self) -> &UUID {
-                &self.0
-            }
-
             pub fn get_full_uuid(&self) -> &str {
                 self.0.get_full_uuid()
             }

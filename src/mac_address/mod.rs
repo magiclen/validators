@@ -582,10 +582,6 @@ macro_rules! extend {
         }
 
         impl $name {
-            pub fn get_mac_address(&self) -> &MacAddress {
-                &self.0
-            }
-
             pub fn get_full_mac_address(&self) -> &str {
                 self.0.get_full_mac_address()
             }
