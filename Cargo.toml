@@ -27,7 +27,7 @@ serde_json = { version = "1.0", optional = true }
 nightly = []
 rocketly = ["nightly", "rocket"]
 rocketly-test = ["rocketly", "rocket_codegen"]
-serdely = ["serde"]
+serdely = ["serde", "serde_json"]
 serdely-test = ["serdely", "serde_json"]
 
 [package.metadata.docs.rs]
