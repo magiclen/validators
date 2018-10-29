@@ -164,14 +164,6 @@ impl HostValidator {
     fn parse_inner(&self, full_host: &str) -> HostResult {
         let mut err = Err(HostError::NoValidator);
 
-        if let Some(ref v) = self.domain {
-            match v.parse_str(full_host) {
-                Ok(r) => return Ok(Host::Domain(r)),
-                Err(e) => {
-                    err = Err(HostError::Domain(e));
-                }
-            }
-        }
         if let Some(ref v) = self.ipv4 {
             match v.parse_str(full_host) {
                 Ok(r) => return Ok(Host::IPv4(r)),
@@ -185,6 +177,14 @@ impl HostValidator {
                 Ok(r) => return Ok(Host::IPv6(r)),
                 Err(e) => {
                     err = Err(HostError::IPv6(e));
+                }
+            }
+        }
+        if let Some(ref v) = self.domain {
+            match v.parse_str(full_host) {
+                Ok(r) => return Ok(Host::Domain(r)),
+                Err(e) => {
+                    err = Err(HostError::Domain(e));
                 }
             }
         }
