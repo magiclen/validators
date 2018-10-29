@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.13.1"
+version = "0.13.2"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
