@@ -28,7 +28,7 @@ nightly = []
 rocketly = ["nightly", "rocket"]
 rocketly-test = ["rocketly", "rocket_codegen"]
 serdely = ["serde", "serde_json"]
-serdely-test = ["serdely", "serde_json"]
+serdely-test = ["serdely"]
 
 [package.metadata.docs.rs]
 all-features = true
