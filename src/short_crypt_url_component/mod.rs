@@ -43,6 +43,12 @@ impl ShortCryptUrlComponent {
     pub fn into_string(self) -> String {
         self.short_crypt_url_component
     }
+
+    pub unsafe fn from_string_unchecked(short_crypt_url_component: String) -> ShortCryptUrlComponent {
+        ShortCryptUrlComponent {
+            short_crypt_url_component
+        }
+    }
 }
 
 impl Validated for ShortCryptUrlComponent {}

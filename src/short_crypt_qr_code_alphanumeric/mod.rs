@@ -43,6 +43,12 @@ impl ShortCryptQRCodeAlphanumeric {
     pub fn into_string(self) -> String {
         self.short_crypt_qr_code_alphanumeric
     }
+
+    pub unsafe fn from_string_unchecked(short_crypt_qr_code_alphanumeric: String) -> ShortCryptQRCodeAlphanumeric {
+        ShortCryptQRCodeAlphanumeric {
+            short_crypt_qr_code_alphanumeric
+        }
+    }
 }
 
 impl Validated for ShortCryptQRCodeAlphanumeric {}

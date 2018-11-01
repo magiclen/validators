@@ -498,6 +498,10 @@ macro_rules! validated_customized_string_struct {
 
                 Ok($name{$field})
             }
+
+            pub unsafe fn from_string_unchecked($from_string_input: String) -> Self{
+                $name{$field:$from_string_input}
+            }
         }
 
         validated_customized_string_struct_implement_from_form_value!($name);
@@ -922,6 +926,10 @@ macro_rules! validated_customized_number_struct {
 
                 Ok($name{$field})
             }
+
+            pub unsafe fn from_number_unchecked($from_number_input: $t) -> Self{
+                $name{$field:$from_number_input}
+            }
         }
 
         validated_customized_number_struct_implement_from_form_value!($name);
@@ -1192,7 +1200,7 @@ macro_rules! validated_customized_primitive_number {
 
 // TODO -----ValidatedCustomizedNumber END-----
 
-// TODO -----ValidatedCustomizedRangedLengthVec START-----
+// TODO -----ValidatedCustomizedVec START-----
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ValidatedCustomizedVecError {
@@ -1426,6 +1434,10 @@ macro_rules! validated_customized_vec_struct {
 
                 Ok($name{$field})
             }
+
+            pub unsafe fn from_vec_unchecked($from_vec_input: Vec<T>) -> Self{
+                $name{$field:$from_vec_input}
+            }
         }
 
          validated_customized_vec_struct_implement_from_form_value!($name);
@@ -1559,4 +1571,4 @@ macro_rules! validated_customized_ranged_length_vec {
     };
 }
 
-// TODO -----ValidatedCustomizedRangedLengthVec End-----
+// TODO -----ValidatedCustomizedVec End-----

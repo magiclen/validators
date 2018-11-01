@@ -45,6 +45,12 @@ impl Base64 {
     pub fn into_string(self) -> String {
         self.base64
     }
+
+    pub unsafe fn from_string_unchecked(base64: String) -> Base64 {
+        Base64 {
+            base64
+        }
+    }
 }
 
 impl Validated for Base64 {}

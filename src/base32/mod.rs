@@ -43,6 +43,12 @@ impl Base32 {
     pub fn into_string(self) -> String {
         self.base32
     }
+
+    pub unsafe fn from_string_unchecked(base32: String) -> Base32 {
+        Base32 {
+            base32
+        }
+    }
 }
 
 impl Validated for Base32 {}

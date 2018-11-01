@@ -43,6 +43,12 @@ impl Base64Url {
     pub fn into_string(self) -> String {
         self.base64_url
     }
+
+    pub unsafe fn from_string_unchecked(base64_url: String) -> Base64Url {
+        Base64Url {
+            base64_url
+        }
+    }
 }
 
 impl Validated for Base64Url {}
