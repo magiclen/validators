@@ -223,7 +223,7 @@ impl IPv4Validator {
                         Ipv4Addr::from_str(&ipv4[m.start()..m.end()]).map_err(|_| IPv4Error::IncorrectFormat)?
                     }
                     None => {
-                        panic!("impossible");
+                        unreachable!();
                     }
                 }
             }
@@ -271,7 +271,7 @@ impl IPv4Validator {
                             }
                         }
                         None => {
-                            panic!("impossible");
+                            unreachable!();
                         }
                     }
                 } else {
@@ -296,7 +296,7 @@ impl IPv4Validator {
                             }
                         }
                         None => {
-                            panic!("impossible");
+                            unreachable!();
                         }
                     }
                 }

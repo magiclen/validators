@@ -246,7 +246,7 @@ impl HttpUrlValidator {
                 m.start()
             }
             None => {
-                panic!("impossible");
+                unreachable!();
             }
         };
 

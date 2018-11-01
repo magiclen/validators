@@ -128,7 +128,7 @@ impl EmailValidator {
                 m.start()
             }
             None => {
-                panic!("impossible");
+                unreachable!();
             }
         };
 

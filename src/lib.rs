@@ -309,6 +309,7 @@ pub mod json_object;
 pub mod json_array;
 pub mod uuid;
 pub mod mac_address;
+pub mod version;
 
 // TODO -----ValidatedCustomizedString START-----
 
@@ -772,7 +773,7 @@ macro_rules! validated_customized_number_struct_implement_se_de {
                     "i128" => deserializer.deserialize_i128(v),
                     "f32" => deserializer.deserialize_f32(v),
                     "f64" => deserializer.deserialize_f64(v),
-                    _ => panic!("impossible")
+                    _ => unreachable!()
                 }
             }
         }
@@ -792,7 +793,7 @@ macro_rules! validated_customized_number_struct_implement_se_de {
                     "i128" => serializer.serialize_i128(self.get_number() as i128),
                     "f32" => serializer.serialize_f32(self.get_number() as f32),
                     "f64" => serializer.serialize_f64(self.get_number() as f64),
-                    _ => panic!("impossible")
+                    _ => unreachable!()
                 }
             }
         }

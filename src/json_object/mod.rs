@@ -44,7 +44,7 @@ impl JSONObject {
     pub fn into_map(self) -> Map<String, Value> {
         match self.value {
             Value::Object(map) => map,
-            _ => panic!()
+            _ => unreachable!()
         }
     }
 

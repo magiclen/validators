@@ -43,7 +43,7 @@ impl JSONArray {
     pub fn into_vec(self) -> Vec<Value> {
         match self.value {
             Value::Array(array) => array,
-            _ => panic!()
+            _ => unreachable!()
         }
     }
 

@@ -192,7 +192,7 @@ impl DomainValidator {
                 m.start()
             }
             None => {
-                panic!("impossible");
+                unreachable!();
             }
         };
 

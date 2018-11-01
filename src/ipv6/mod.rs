@@ -247,7 +247,7 @@ impl IPv6Validator {
                     ipv6
                 }
                 None => {
-                    panic!("impossible");
+                    unreachable!();
                 }
             }
         } else {
@@ -266,7 +266,7 @@ impl IPv6Validator {
                             ipv6
                         }
                         None => {
-                            panic!("impossible");
+                            unreachable!();
                         }
                     }
                 }
@@ -305,7 +305,7 @@ impl IPv6Validator {
                                     ipv4.to_ipv6_mapped()
                                 }
                                 None => {
-                                    panic!("impossible");
+                                    unreachable!();
                                 }
                             }
                         }

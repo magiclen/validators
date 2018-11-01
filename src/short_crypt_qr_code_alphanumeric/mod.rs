@@ -187,7 +187,7 @@ impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
     type Value = ShortCryptQRCodeAlphanumeric;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an ShortCrypt QR code alphanumeric string")
+        formatter.write_str("a ShortCrypt QR code alphanumeric string")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {

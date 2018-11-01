@@ -7,7 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
 lazy_static! {
-    static ref SHORT_CRYPT_URL_COMPONENT: Regex = {
+    static ref SHORT_CRYPT_URL_COMPONENT_RE: Regex = {
         Regex::new(r"^([A-Za-z0-9\-_]{4})*([A-Za-z0-9\-_]|[A-Za-z0-9\-_]{3,4})$").unwrap()
     };
 }
@@ -99,7 +99,7 @@ impl ShortCryptUrlComponentValidator {
     }
 
     fn parse_inner(&self, short_crypt_url_component_url: &str) -> ShortCryptUrlComponentResult {
-        if SHORT_CRYPT_URL_COMPONENT.is_match(short_crypt_url_component_url) {
+        if SHORT_CRYPT_URL_COMPONENT_RE.is_match(short_crypt_url_component_url) {
             Ok(ShortCryptUrlComponent {
                 short_crypt_url_component: String::new(),
             })
@@ -187,7 +187,7 @@ impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
     type Value = ShortCryptUrlComponent;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("an ShortCrypt URL component string")
+        formatter.write_str("a ShortCrypt URL component string")
     }
 
     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
