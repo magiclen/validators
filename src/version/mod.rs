@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::str::Utf8Error;
 
 lazy_static! {
     static ref VERSION_RE: Regex = {
@@ -15,6 +16,7 @@ lazy_static! {
 #[derive(Debug, PartialEq, Clone)]
 pub enum VersionError {
     IncorrectFormat,
+    UTF8Error(Utf8Error),
 }
 
 impl Display for VersionError {
@@ -125,7 +127,7 @@ impl VersionValidator {
     }
 
     fn parse_inner(&self, full_version: &str) -> VersionResult {
-        let c = match VERSION_RE.captures(&full_version) {
+        let c = match VERSION_RE.captures(full_version) {
             Some(c) => c,
             None => return Err(VersionError::IncorrectFormat)
         };
@@ -245,7 +247,7 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Version {
     type Error = VersionError;
 
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Version::from_str(form_value)
+        Version::from_string(form_value.url_decode().map_err(|err| VersionError::UTF8Error(err))?)
     }
 }
 
@@ -254,7 +256,7 @@ impl<'a> ::rocket::request::FromParam<'a> for Version {
     type Error = VersionError;
 
     fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Version::from_str(param)
+        Version::from_string(param.url_decode().map_err(|err| VersionError::UTF8Error(err))?)
     }
 }
 

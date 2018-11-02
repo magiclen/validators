@@ -310,6 +310,7 @@ pub mod json_array;
 pub mod uuid;
 pub mod mac_address;
 pub mod version;
+pub mod uri;
 
 // TODO -----ValidatedCustomizedString START-----
 
