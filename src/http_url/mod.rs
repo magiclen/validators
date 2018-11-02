@@ -11,7 +11,7 @@ use super::host::{Host, HostLocalable, HostError};
 
 lazy_static! {
     static ref HTTP_URL_RE: Regex = {
-        Regex::new(r"^((http|https):)?(//)?([\S&&[^/]]+)(/[\S&&[^?#]]*)?([?]([\S&&[^#]]*))?(#([\S]*))?$").unwrap()
+        Regex::new(r"^(?i)((http|https):)?(//)?([\S&&[^/]]+)(/[\S&&[^?#]]*)?([?]([\S&&[^#]]*))?(#([\S]*))?$").unwrap()
     };
 }
 
@@ -442,7 +442,7 @@ mod tests {
 
     #[test]
     fn test_http_url_lv7() {
-        let url = "https://magiclen.org/path/to/something?a=1".to_string();
+        let url = "HTTPS://magiclen.org/path/to/something?a=1".to_string();
 
         let huv = HttpUrlValidator {
             local: ValidatorOption::NotAllow,
@@ -454,7 +454,7 @@ mod tests {
 
     #[test]
     fn test_http_url_lv8() {
-        let url = "https://magiclen.org/path/to/something?a=1&b=2#12345".to_string();
+        let url = "HttPS://magiclen.org/path/to/something?a=1&b=2#12345".to_string();
 
         let huv = HttpUrlValidator {
             local: ValidatorOption::NotAllow,
@@ -464,6 +464,8 @@ mod tests {
         huv.parse_string(url).unwrap();
     }
 }
+
+// TODO ----------
 
 macro_rules! extend {
     ( $name:ident, $protocol:expr, $local:expr ) => {
