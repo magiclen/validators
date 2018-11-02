@@ -134,6 +134,10 @@ impl HttpUrl {
         self.is_local
     }
 
+    pub fn is_absolute(&self) -> bool {
+        self.is_absolute
+    }
+
     pub fn into_string(self) -> String {
         self.full_http_url
     }
@@ -318,6 +322,7 @@ mod tests {
         assert_eq!("12345", http_url.get_fragment().unwrap());
         assert_eq!(false, http_url.is_local());
         assert_eq!(true, http_url.is_https());
+        assert_eq!(true, http_url.is_absolute());
     }
 
     #[test]
@@ -641,6 +646,10 @@ macro_rules! extend {
             pub fn is_https(&self) -> bool {
                 self.0.is_https
             }
+
+            pub fn is_absolute(&self) -> bool {
+                self.0.is_absolute
+            }
         }
 
         #[cfg(feature = "rocketly")]
@@ -737,5 +746,4 @@ impl HttpUrlLocalableWithoutProtocol {
 
 extend!(HttpUrlUnlocalableWithoutProtocol, ValidatorOption::NotAllow, ValidatorOption::NotAllow);
 
-impl HttpUrlUnlocalableWithoutProtocol {
-}
+impl HttpUrlUnlocalableWithoutProtocol {}
