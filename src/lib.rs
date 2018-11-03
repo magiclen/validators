@@ -1809,17 +1809,17 @@ macro_rules! validated_customized_hash_set_struct {
         }
 
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedHashSetWrapper<T> for $name<T> {
-            fn from_hash_set($from_hash_set_input: HashSet<T>) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
+            fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
                 $name::from_hash_set($from_hash_set_input)
             }
         }
 
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> $name<T> {
-            pub fn as_hash_set(&self) -> &HashSet<T> {
+            pub fn as_hash_set(&self) -> &::std::collections::HashSet<T> {
                 &self.$field
             }
 
-            pub fn into_hash_set(self) -> HashSet<T> {
+            pub fn into_hash_set(self) -> ::std::collections::HashSet<T> {
                 self.$field
             }
 
@@ -1841,7 +1841,7 @@ macro_rules! validated_customized_hash_set_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_hash_set($from_hash_set_input: HashSet<T>) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
+            pub fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
                 let $field = match $from_hash_set {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -1850,7 +1850,7 @@ macro_rules! validated_customized_hash_set_struct {
                 Ok($name{$field})
             }
 
-            pub unsafe fn from_hash_set_unchecked($from_hash_set_input: HashSet<T>) -> Self{
+            pub unsafe fn from_hash_set_unchecked($from_hash_set_input: ::std::collections::HashSet<T>) -> Self{
                 $name{$field:$from_hash_set_input}
             }
         }
@@ -1864,7 +1864,7 @@ macro_rules! validated_customized_hash_set_struct {
 macro_rules! validated_customized_hash_set {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
         struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: HashSet<T>
+            v: ::std::collections::HashSet<T>
         }
 
         validated_customized_hash_set_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
@@ -1889,7 +1889,7 @@ macro_rules! validated_customized_hash_set {
     };
     ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
         pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: HashSet<T>
+            v: ::std::collections::HashSet<T>
         }
 
         validated_customized_hash_set_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
@@ -1938,7 +1938,7 @@ macro_rules! validated_customized_ranged_length_hash_set_struct {
 macro_rules! validated_customized_ranged_length_hash_set {
     ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: HashSet<T>
+            v: ::std::collections::HashSet<T>
         }
 
         validated_customized_ranged_length_hash_set_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
@@ -1962,7 +1962,7 @@ macro_rules! validated_customized_ranged_length_hash_set {
     };
     ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: HashSet<T>
+            v: ::std::collections::HashSet<T>
         }
 
         validated_customized_ranged_length_hash_set_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
