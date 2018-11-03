@@ -6,6 +6,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref MAC_ADDRESS_COLON_UPPERCASE_RE: Regex = {
@@ -140,6 +141,14 @@ impl PartialEq for MacAddress {
 
     fn ne(&self, other: &Self) -> bool {
         self.mac_address.ne(&other.mac_address)
+    }
+}
+
+impl Eq for MacAddress {}
+
+impl Hash for MacAddress{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.mac_address.hash(state)
     }
 }
 
@@ -521,6 +530,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &MacAddress) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 

@@ -6,6 +6,7 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref URI_RE: Regex = {
@@ -136,6 +137,15 @@ impl PartialEq for URI {
         self.full_uri.ne(&other.full_uri)
     }
 }
+
+impl Eq for URI {}
+
+impl Hash for URI {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_uri.hash(state)
+    }
+}
+
 
 impl URIValidator {
     pub fn is_uri(&self, full_uri: &str) -> bool {

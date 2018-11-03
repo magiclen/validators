@@ -8,6 +8,7 @@ use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::hash::{Hash, Hasher};
 
 use self::serde_json::Value;
 
@@ -32,7 +33,7 @@ pub struct JSONArrayValidator {}
 
 #[derive(Clone)]
 pub struct JSONArray {
-    value: Value
+    value: Value,
 }
 
 impl JSONArray {
@@ -87,6 +88,14 @@ impl PartialEq for JSONArray {
 
     fn ne(&self, other: &Self) -> bool {
         self.get_json_value().ne(other.get_json_value())
+    }
+}
+
+impl Eq for JSONArray {}
+
+impl Hash for JSONArray{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.value.to_string().hash(state)
     }
 }
 

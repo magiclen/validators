@@ -7,6 +7,8 @@ extern crate rocket;
 
 extern crate regex;
 
+use std::collections::HashSet;
+
 use regex::Regex;
 
 #[test]
@@ -160,4 +162,39 @@ fn test_validated_customized_ranged_length_vec() {
     validated_customized_ranged_length_vec!(V2, 5);
     validated_customized_ranged_length_vec!(pub V3, 0, 10);
     validated_customized_ranged_length_vec!(pub V4, 5);
+}
+
+#[test]
+fn test_validated_customized_hash_set() {
+    validated_customized_hash_set!(S1,
+        from_string _input {
+            Ok(HashSet::new())
+        },
+        from_str _input {
+            Ok(HashSet::new())
+        },
+        from_hash_set input {
+            Ok(input)
+        }
+    );
+
+    validated_customized_hash_set!(pub S2,
+        from_string _input {
+            Ok(HashSet::new())
+        },
+        from_str _input {
+            Ok(HashSet::new())
+        },
+        from_hash_set input {
+            Ok(input)
+        }
+    );
+}
+
+#[test]
+fn test_validated_customized_ranged_length_hash_set() {
+    validated_customized_ranged_length_hash_set!(S1, 0, 10);
+    validated_customized_ranged_length_hash_set!(S2, 5);
+    validated_customized_ranged_length_hash_set!(pub S3, 0, 10);
+    validated_customized_ranged_length_hash_set!(pub S4, 5);
 }

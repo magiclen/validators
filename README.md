@@ -134,6 +134,24 @@ names.push(Name::from_str("Magic Len").unwrap());
 let names = Names::from_vec(names).unwrap();
 ```
 
+For a HashSet whose length is limited in a range,
+
+```rust
+#[macro_use] extern crate validators;
+
+use std::collections::HashSet;
+
+validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+validated_customized_ranged_length_hash_set!(Names, 1, 5);
+
+let mut names = HashSet::new();
+
+names.insert(Name::from_str("Ron").unwrap());
+names.insert(Name::from_str("Magic Len").unwrap());
+
+let names = Names::from_hash_set(names).unwrap();
+```
+
 All validated wrapper types and validated customized structs implement the `ValidatedWrapper` trait.
 
 Read the documentation to know more helpful customized macros.

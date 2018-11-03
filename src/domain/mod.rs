@@ -5,6 +5,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::hash::{Hash, Hasher};
 use std::str::Utf8Error;
 
 lazy_static! {
@@ -151,6 +152,16 @@ impl PartialEq for Domain {
         }
 
         self.get_full_domain_without_port().to_lowercase().ne(&other.get_full_domain_without_port().to_lowercase())
+    }
+}
+
+impl Eq for Domain {
+
+}
+
+impl Hash for Domain{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.full_domain.hash(state)
     }
 }
 
@@ -484,6 +495,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &Domain) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 

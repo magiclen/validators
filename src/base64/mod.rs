@@ -6,6 +6,7 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref BASE64_RE: Regex = {
@@ -76,6 +77,14 @@ impl PartialEq for Base64 {
 
     fn ne(&self, other: &Self) -> bool {
         self.base64.ne(&other.base64)
+    }
+}
+
+impl Eq for Base64 {}
+
+impl Hash for Base64{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.base64.hash(state)
     }
 }
 

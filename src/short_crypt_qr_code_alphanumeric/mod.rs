@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref SHORT_CRYPT_QR_CODE_ALPHANUMERIC_RE: Regex = {
@@ -76,6 +77,15 @@ impl PartialEq for ShortCryptQRCodeAlphanumeric {
         self.short_crypt_qr_code_alphanumeric.ne(&other.short_crypt_qr_code_alphanumeric)
     }
 }
+
+impl Eq for ShortCryptQRCodeAlphanumeric {}
+
+impl Hash for ShortCryptQRCodeAlphanumeric{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.short_crypt_qr_code_alphanumeric.hash(state)
+    }
+}
+
 
 impl ShortCryptQRCodeAlphanumericValidator {
     pub fn is_short_crypt_qr_code_alphanumeric_url(&self, short_crypt_qr_code_alphanumeric_url: &str) -> bool {

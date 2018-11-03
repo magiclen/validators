@@ -2,6 +2,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 use std::error::Error;
 use super::domain::{DomainValidator, DomainError, Domain};
@@ -143,6 +144,24 @@ impl PartialEq for Host {
                     Host::IPv6(dd) => d.ne(&dd),
                     _ => true,
                 }
+            }
+        }
+    }
+}
+
+impl Eq for Host {}
+
+impl Hash for Host {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            Host::Domain(d) => {
+                d.hash(state)
+            }
+            Host::IPv4(d) => {
+                d.hash(state)
+            }
+            Host::IPv6(d) => {
+                d.hash(state)
             }
         }
     }
@@ -298,6 +317,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &Host) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 

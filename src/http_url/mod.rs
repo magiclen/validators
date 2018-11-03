@@ -6,6 +6,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 use super::host::{Host, HostLocalable, HostError};
 
@@ -166,6 +167,14 @@ impl PartialEq for HttpUrl {
 
     fn ne(&self, other: &Self) -> bool {
         self.full_http_url.ne(&other.full_http_url)
+    }
+}
+
+impl Eq for HttpUrl {}
+
+impl Hash for HttpUrl{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.full_http_url.hash(state)
     }
 }
 
@@ -527,6 +536,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &HttpUrl) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 

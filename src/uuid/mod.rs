@@ -6,6 +6,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref UUID_UPPERCASE_RE: Regex = {
@@ -125,6 +126,14 @@ impl PartialEq for UUID {
 
     fn ne(&self, other: &Self) -> bool {
         self.uuid.ne(&other.uuid)
+    }
+}
+
+impl Eq for UUID {}
+
+impl Hash for UUID{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.uuid.hash(state)
     }
 }
 
@@ -300,6 +309,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &UUID) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 

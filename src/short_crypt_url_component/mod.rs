@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref SHORT_CRYPT_URL_COMPONENT_RE: Regex = {
@@ -74,6 +75,14 @@ impl PartialEq for ShortCryptUrlComponent {
 
     fn ne(&self, other: &Self) -> bool {
         self.short_crypt_url_component.ne(&other.short_crypt_url_component)
+    }
+}
+
+impl Eq for ShortCryptUrlComponent {}
+
+impl Hash for ShortCryptUrlComponent{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.short_crypt_url_component.hash(state)
     }
 }
 

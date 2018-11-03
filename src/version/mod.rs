@@ -6,6 +6,7 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref VERSION_RE: Regex = {
@@ -102,6 +103,14 @@ impl PartialEq for Version {
 
     fn ne(&self, other: &Self) -> bool {
         self.full_version.ne(&other.full_version)
+    }
+}
+
+impl Eq for Version {}
+
+impl Hash for Version{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.full_version.hash(state)
     }
 }
 

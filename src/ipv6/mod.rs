@@ -9,6 +9,7 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(feature = "nightly")]
 use std::net::Ipv6MulticastScope;
 use std::str::{Utf8Error, FromStr};
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     #[doc(hidden)]
@@ -143,6 +144,16 @@ impl PartialEq for IPv6 {
         }
 
         self.ip.ne(&other.ip)
+    }
+}
+
+impl Eq for IPv6 {
+
+}
+
+impl Hash for IPv6{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.full_ipv6.hash(state)
     }
 }
 
@@ -530,6 +541,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &IPv6) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 

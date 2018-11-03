@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref BASE32_RE: Regex = {
@@ -74,6 +75,14 @@ impl PartialEq for Base32 {
 
     fn ne(&self, other: &Self) -> bool {
         self.base32.ne(&other.base32)
+    }
+}
+
+impl Eq for Base32 {}
+
+impl Hash for Base32{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.base32.hash(state)
     }
 }
 

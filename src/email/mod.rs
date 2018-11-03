@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::hash::{Hash, Hasher};
 use std::str::Utf8Error;
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
@@ -89,6 +90,16 @@ impl PartialEq for Email {
         }
 
         self.get_domain().ne(other.get_domain())
+    }
+}
+
+impl Eq for Email {
+
+}
+
+impl Hash for Email{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.full_email.hash(state)
     }
 }
 

@@ -8,6 +8,7 @@ use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::hash::{Hash, Hasher};
 
 use self::serde_json::Value;
 use self::serde_json::Map;
@@ -88,6 +89,14 @@ impl PartialEq for JSONObject {
 
     fn ne(&self, other: &Self) -> bool {
         self.get_json_value().ne(other.get_json_value())
+    }
+}
+
+impl Eq for JSONObject {}
+
+impl Hash for JSONObject{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.value.to_string().hash(state)
     }
 }
 

@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref BASE64_URL_RE: Regex = {
@@ -74,6 +75,14 @@ impl PartialEq for Base64Url {
 
     fn ne(&self, other: &Self) -> bool {
         self.base64_url.ne(&other.base64_url)
+    }
+}
+
+impl Eq for Base64Url {}
+
+impl Hash for Base64Url{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.base64_url.hash(state)
     }
 }
 

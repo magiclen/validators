@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::str::{Utf8Error, FromStr};
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     #[doc(hidden)]
@@ -126,6 +127,16 @@ impl PartialEq for IPv4 {
         }
 
         self.ip.ne(&other.ip)
+    }
+}
+
+impl Eq for IPv4 {
+
+}
+
+impl Hash for IPv4{
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.full_ipv4.hash(state)
     }
 }
 
@@ -488,6 +499,14 @@ macro_rules! extend {
 
             fn ne(&self, other: &IPv4) -> bool {
                 self.0.ne(&other)
+            }
+        }
+
+        impl Eq for $name {}
+
+        impl Hash for $name{
+            fn hash<H: Hasher>(&self, state: &mut H){
+                self.0.hash(state)
             }
         }
 
