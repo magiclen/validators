@@ -172,8 +172,8 @@ impl PartialEq for HttpUrl {
 
 impl Eq for HttpUrl {}
 
-impl Hash for HttpUrl{
-    fn hash<H: Hasher>(&self, state: &mut H){
+impl Hash for HttpUrl {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_http_url.hash(state)
     }
 }
@@ -736,6 +736,10 @@ impl HttpUrlLocalableWithProtocol {
         }
     }
 
+    pub fn is_https(&self) -> bool {
+        self.0.is_https
+    }
+
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
@@ -750,6 +754,10 @@ impl HttpUrlUnlocalableWithProtocol {
         } else {
             &self.0.full_http_url[..(self.0.host_index - 1)]
         }
+    }
+
+    pub fn is_https(&self) -> bool {
+        self.0.is_https
     }
 }
 
