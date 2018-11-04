@@ -153,7 +153,7 @@ impl UUIDValidator {
     pub fn parse_str(&self, uuid: &str) -> UUIDResult {
         let mut uuid_inner = self.parse_inner(uuid)?;
 
-        uuid_inner.uuid = uuid.to_string();
+        uuid_inner.uuid.push_str(uuid);
 
         Ok(uuid_inner)
     }
@@ -256,7 +256,7 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $lowercase:expr ) => {
-        #[derive(Clone)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(UUID);
 
         impl From<$name> for UUID {
@@ -289,34 +289,6 @@ macro_rules! extend {
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.eq(&other.0)
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.0.ne(&other.0)
-            }
-        }
-
-        impl PartialEq<UUID> for $name {
-            fn eq(&self, other: &UUID) -> bool {
-                self.0.eq(&other)
-            }
-
-            fn ne(&self, other: &UUID) -> bool {
-                self.0.ne(&other)
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Hash for $name{
-            fn hash<H: Hasher>(&self, state: &mut H){
-                self.0.hash(state)
             }
         }
 

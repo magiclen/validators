@@ -131,29 +131,19 @@ impl Display for IPv6 {
 
 impl PartialEq for IPv6 {
     fn eq(&self, other: &Self) -> bool {
-        if self.port != other.port {
-            return false;
-        }
-
-        self.ip.eq(&other.ip)
+        self.full_ipv6.eq(&other.full_ipv6)
     }
 
     fn ne(&self, other: &Self) -> bool {
-        if self.port != other.port {
-            return true;
-        }
-
-        self.ip.ne(&other.ip)
+        self.full_ipv6.ne(&other.full_ipv6)
     }
 }
 
-impl Eq for IPv6 {
+impl Eq for IPv6 {}
 
-}
-
-impl Hash for IPv6{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.full_ipv6.hash(state)
+impl Hash for IPv6 {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_ipv6.hash(state);
     }
 }
 
@@ -176,10 +166,11 @@ impl IPv6Validator {
                 ipv6_inner.full_ipv6_len = len;
                 ipv6_inner.port_index = len;
             } else {
-                let full_ipv6 = format!("[{}]:{}", ipv6, ipv6_inner.port);
-                let full_ipv6_len = ipv6.len();
-                ipv6_inner.full_ipv6 = full_ipv6;
-                ipv6_inner.full_ipv6_len = full_ipv6_len;
+                ipv6_inner.full_ipv6.push_str("[");
+                ipv6_inner.full_ipv6.push_str(&ipv6);
+                ipv6_inner.full_ipv6.push_str("]:");
+                ipv6_inner.full_ipv6.push_str(&ipv6_inner.port.to_string());
+                ipv6_inner.full_ipv6_len = ipv6_inner.full_ipv6.len();
                 ipv6_inner.port_index = len + 2;
             }
         }
@@ -191,7 +182,7 @@ impl IPv6Validator {
         let mut ipv6_inner = self.parse_inner(&full_ipv6)?;
 
         if ipv6_inner.full_ipv6_len != 0 {
-            ipv6_inner.full_ipv6 = full_ipv6.to_string();
+            ipv6_inner.full_ipv6.push_str(full_ipv6);
         } else {
             let ipv6 = ipv6_inner.ip.to_string();
             let len = ipv6.len();
@@ -201,10 +192,11 @@ impl IPv6Validator {
                 ipv6_inner.full_ipv6_len = len;
                 ipv6_inner.port_index = len;
             } else {
-                let full_ipv6 = format!("[{}]:{}", ipv6, ipv6_inner.port);
-                let full_ipv6_len = ipv6.len();
-                ipv6_inner.full_ipv6 = full_ipv6;
-                ipv6_inner.full_ipv6_len = full_ipv6_len;
+                ipv6_inner.full_ipv6.push_str("[");
+                ipv6_inner.full_ipv6.push_str(&ipv6);
+                ipv6_inner.full_ipv6.push_str("]:");
+                ipv6_inner.full_ipv6.push_str(&ipv6_inner.port.to_string());
+                ipv6_inner.full_ipv6_len = ipv6_inner.full_ipv6.len();
                 ipv6_inner.port_index = len + 2;
             }
         }
@@ -488,7 +480,7 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $port:expr, $local:expr, $ipv4:expr ) => {
-        #[derive(Clone)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(IPv6);
 
         impl From<$name> for IPv6 {
@@ -521,34 +513,6 @@ macro_rules! extend {
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.eq(&other.0)
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.0.ne(&other.0)
-            }
-        }
-
-        impl PartialEq<IPv6> for $name {
-            fn eq(&self, other: &IPv6) -> bool {
-                self.0.eq(&other)
-            }
-
-            fn ne(&self, other: &IPv6) -> bool {
-                self.0.ne(&other)
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Hash for $name{
-            fn hash<H: Hasher>(&self, state: &mut H){
-                self.0.hash(state)
             }
         }
 

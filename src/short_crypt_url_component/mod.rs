@@ -5,7 +5,6 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
-use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref SHORT_CRYPT_URL_COMPONENT_RE: Regex = {
@@ -31,13 +30,13 @@ pub type ShortCryptUrlComponentResult = Result<ShortCryptUrlComponent, ShortCryp
 #[derive(Debug, PartialEq)]
 pub struct ShortCryptUrlComponentValidator {}
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ShortCryptUrlComponent {
     short_crypt_url_component: String,
 }
 
 impl ShortCryptUrlComponent {
-    pub fn get_short_crypt_url_component_url(&self) -> &str {
+    pub fn get_short_crypt_url_component(&self) -> &str {
         &self.short_crypt_url_component
     }
 
@@ -68,47 +67,29 @@ impl Display for ShortCryptUrlComponent {
     }
 }
 
-impl PartialEq for ShortCryptUrlComponent {
-    fn eq(&self, other: &Self) -> bool {
-        self.short_crypt_url_component.eq(&other.short_crypt_url_component)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.short_crypt_url_component.ne(&other.short_crypt_url_component)
-    }
-}
-
-impl Eq for ShortCryptUrlComponent {}
-
-impl Hash for ShortCryptUrlComponent{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.short_crypt_url_component.hash(state)
-    }
-}
-
 impl ShortCryptUrlComponentValidator {
-    pub fn is_short_crypt_url_component_url(&self, short_crypt_url_component_url: &str) -> bool {
-        self.parse_inner(short_crypt_url_component_url).is_ok()
+    pub fn is_short_crypt_url_component(&self, short_crypt_url_component: &str) -> bool {
+        self.parse_inner(short_crypt_url_component).is_ok()
     }
 
-    pub fn parse_string(&self, short_crypt_url_component_url: String) -> ShortCryptUrlComponentResult {
-        let mut short_crypt_url_component_url_inner = self.parse_inner(&short_crypt_url_component_url)?;
+    pub fn parse_string(&self, short_crypt_url_component: String) -> ShortCryptUrlComponentResult {
+        let mut short_crypt_url_component_inner = self.parse_inner(&short_crypt_url_component)?;
 
-        short_crypt_url_component_url_inner.short_crypt_url_component = short_crypt_url_component_url;
+        short_crypt_url_component_inner.short_crypt_url_component = short_crypt_url_component;
 
-        Ok(short_crypt_url_component_url_inner)
+        Ok(short_crypt_url_component_inner)
     }
 
-    pub fn parse_str(&self, short_crypt_url_component_url: &str) -> ShortCryptUrlComponentResult {
-        let mut short_crypt_url_component_url_inner = self.parse_inner(short_crypt_url_component_url)?;
+    pub fn parse_str(&self, short_crypt_url_component: &str) -> ShortCryptUrlComponentResult {
+        let mut short_crypt_url_component_inner = self.parse_inner(short_crypt_url_component)?;
 
-        short_crypt_url_component_url_inner.short_crypt_url_component = short_crypt_url_component_url.to_string();
+        short_crypt_url_component_inner.short_crypt_url_component.push_str(short_crypt_url_component);
 
-        Ok(short_crypt_url_component_url_inner)
+        Ok(short_crypt_url_component_inner)
     }
 
-    fn parse_inner(&self, short_crypt_url_component_url: &str) -> ShortCryptUrlComponentResult {
-        if SHORT_CRYPT_URL_COMPONENT_RE.is_match(short_crypt_url_component_url) {
+    fn parse_inner(&self, short_crypt_url_component: &str) -> ShortCryptUrlComponentResult {
+        if SHORT_CRYPT_URL_COMPONENT_RE.is_match(short_crypt_url_component) {
             Ok(ShortCryptUrlComponent {
                 short_crypt_url_component: String::new(),
             })
@@ -123,23 +104,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_short_crypt_url_component_url_methods() {
-        let short_crypt_url_component_url = "2E87Wx52-Tvo".to_string();
+    fn test_short_crypt_url_component_methods() {
+        let short_crypt_url_component = "2E87Wx52-Tvo".to_string();
 
         let scuv = ShortCryptUrlComponentValidator {};
 
-        let short_crypt_url_component_url = scuv.parse_string(short_crypt_url_component_url).unwrap();
+        let short_crypt_url_component = scuv.parse_string(short_crypt_url_component).unwrap();
 
-        assert_eq!("2E87Wx52-Tvo", short_crypt_url_component_url.get_short_crypt_url_component_url());
+        assert_eq!("2E87Wx52-Tvo", short_crypt_url_component.get_short_crypt_url_component());
     }
 
     #[test]
-    fn test_short_crypt_url_component_url_lv1() {
-        let short_crypt_url_component_url = "2E87Wx52-Tvo".to_string();
+    fn test_short_crypt_url_component_lv1() {
+        let short_crypt_url_component = "2E87Wx52-Tvo".to_string();
 
         let scuv = ShortCryptUrlComponentValidator {};
 
-        scuv.parse_string(short_crypt_url_component_url).unwrap();
+        scuv.parse_string(short_crypt_url_component).unwrap();
     }
 }
 
@@ -147,22 +128,22 @@ mod tests {
 impl ValidatedWrapper for ShortCryptUrlComponent {
     type Error = ShortCryptUrlComponentError;
 
-    fn from_string(short_crypt_url_component_url: String) -> Result<Self, Self::Error> {
-        ShortCryptUrlComponent::from_string(short_crypt_url_component_url)
+    fn from_string(short_crypt_url_component: String) -> Result<Self, Self::Error> {
+        ShortCryptUrlComponent::from_string(short_crypt_url_component)
     }
 
-    fn from_str(short_crypt_url_component_url: &str) -> Result<Self, Self::Error> {
-        ShortCryptUrlComponent::from_str(short_crypt_url_component_url)
+    fn from_str(short_crypt_url_component: &str) -> Result<Self, Self::Error> {
+        ShortCryptUrlComponent::from_str(short_crypt_url_component)
     }
 }
 
 impl ShortCryptUrlComponent {
-    pub fn from_string(short_crypt_url_component_url: String) -> Result<Self, ShortCryptUrlComponentError> {
-        ShortCryptUrlComponent::create_validator().parse_string(short_crypt_url_component_url)
+    pub fn from_string(short_crypt_url_component: String) -> Result<Self, ShortCryptUrlComponentError> {
+        ShortCryptUrlComponent::create_validator().parse_string(short_crypt_url_component)
     }
 
-    pub fn from_str(short_crypt_url_component_url: &str) -> Result<Self, ShortCryptUrlComponentError> {
-        ShortCryptUrlComponent::create_validator().parse_str(short_crypt_url_component_url)
+    pub fn from_str(short_crypt_url_component: &str) -> Result<Self, ShortCryptUrlComponentError> {
+        ShortCryptUrlComponent::create_validator().parse_str(short_crypt_url_component)
     }
 
     fn create_validator() -> ShortCryptUrlComponentValidator {

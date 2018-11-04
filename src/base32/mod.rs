@@ -5,7 +5,6 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
-use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref BASE32_RE: Regex = {
@@ -31,7 +30,7 @@ pub type Base32Result = Result<Base32, Base32Error>;
 #[derive(Debug, PartialEq)]
 pub struct Base32Validator {}
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Base32 {
     base32: String,
 }
@@ -68,24 +67,6 @@ impl Display for Base32 {
     }
 }
 
-impl PartialEq for Base32 {
-    fn eq(&self, other: &Self) -> bool {
-        self.base32.eq(&other.base32)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.base32.ne(&other.base32)
-    }
-}
-
-impl Eq for Base32 {}
-
-impl Hash for Base32{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.base32.hash(state)
-    }
-}
-
 impl Base32Validator {
     pub fn is_base32(&self, base32: &str) -> bool {
         self.parse_inner(base32).is_ok()
@@ -102,7 +83,7 @@ impl Base32Validator {
     pub fn parse_str(&self, base32: &str) -> Base32Result {
         let mut base32_inner = self.parse_inner(base32)?;
 
-        base32_inner.base32 = base32.to_string();
+        base32_inner.base32.push_str(base32);
 
         Ok(base32_inner)
     }

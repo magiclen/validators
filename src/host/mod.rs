@@ -2,7 +2,6 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
-use std::hash::{Hash, Hasher};
 
 use std::error::Error;
 use super::domain::{DomainValidator, DomainError, Domain};
@@ -35,7 +34,7 @@ pub struct HostValidator {
     pub ipv6: Option<IPv6Validator>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Host {
     Domain(Domain),
     IPv4(IPv4),
@@ -97,72 +96,6 @@ impl Display for Host {
             Host::Domain(d) => Display::fmt(d, f),
             Host::IPv4(d) => Display::fmt(d, f),
             Host::IPv6(d) => Display::fmt(d, f),
-        }
-    }
-}
-
-impl PartialEq for Host {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            Host::Domain(d) => {
-                match other {
-                    Host::Domain(dd) => d.eq(&dd),
-                    _ => false,
-                }
-            }
-            Host::IPv4(d) => {
-                match other {
-                    Host::IPv4(dd) => d.eq(&dd),
-                    _ => false,
-                }
-            }
-            Host::IPv6(d) => {
-                match other {
-                    Host::IPv6(dd) => d.eq(&dd),
-                    _ => false,
-                }
-            }
-        }
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        match self {
-            Host::Domain(d) => {
-                match other {
-                    Host::Domain(dd) => d.ne(&dd),
-                    _ => true,
-                }
-            }
-            Host::IPv4(d) => {
-                match other {
-                    Host::IPv4(dd) => d.ne(&dd),
-                    _ => true,
-                }
-            }
-            Host::IPv6(d) => {
-                match other {
-                    Host::IPv6(dd) => d.ne(&dd),
-                    _ => true,
-                }
-            }
-        }
-    }
-}
-
-impl Eq for Host {}
-
-impl Hash for Host {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        match self {
-            Host::Domain(d) => {
-                d.hash(state)
-            }
-            Host::IPv4(d) => {
-                d.hash(state)
-            }
-            Host::IPv6(d) => {
-                d.hash(state)
-            }
         }
     }
 }
@@ -264,7 +197,7 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $local:expr ) => {
-        #[derive(Clone)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(Host);
 
         impl From<$name> for Host {
@@ -297,34 +230,6 @@ macro_rules! extend {
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.eq(&other.0)
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.0.ne(&other.0)
-            }
-        }
-
-        impl PartialEq<Host> for $name {
-            fn eq(&self, other: &Host) -> bool {
-                self.0.eq(&other)
-            }
-
-            fn ne(&self, other: &Host) -> bool {
-                self.0.ne(&other)
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Hash for $name{
-            fn hash<H: Hasher>(&self, state: &mut H){
-                self.0.hash(state)
             }
         }
 

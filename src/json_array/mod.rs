@@ -34,11 +34,16 @@ pub struct JSONArrayValidator {}
 #[derive(Clone)]
 pub struct JSONArray {
     value: Value,
+    full_json_array: String,
 }
 
 impl JSONArray {
     pub fn get_json_value(&self) -> &Value {
         &self.value
+    }
+
+    pub fn get_full_json_array(&self) -> &str {
+        &self.full_json_array
     }
 
     pub fn into_vec(self) -> Vec<Value> {
@@ -50,6 +55,10 @@ impl JSONArray {
 
     pub fn into_value(self) -> Value {
         self.value
+    }
+
+    pub fn into_string(self) -> String {
+        self.full_json_array
     }
 }
 
@@ -83,19 +92,19 @@ impl Display for JSONArray {
 
 impl PartialEq for JSONArray {
     fn eq(&self, other: &Self) -> bool {
-        self.get_json_value().eq(other.get_json_value())
+        self.full_json_array.eq(&other.full_json_array)
     }
 
     fn ne(&self, other: &Self) -> bool {
-        self.get_json_value().ne(other.get_json_value())
+        self.full_json_array.ne(&other.full_json_array)
     }
 }
 
 impl Eq for JSONArray {}
 
-impl Hash for JSONArray{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.value.to_string().hash(state)
+impl Hash for JSONArray {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_json_array.hash(state)
     }
 }
 
@@ -105,13 +114,17 @@ impl JSONArrayValidator {
     }
 
     pub fn parse_string(&self, full_json_array: String) -> JSONArrayResult {
-        let json_array_inner = self.parse_inner(&full_json_array)?;
+        let mut json_array_inner = self.parse_inner(&full_json_array)?;
+
+        json_array_inner.full_json_array = full_json_array;
 
         Ok(json_array_inner)
     }
 
     pub fn parse_str(&self, full_json_array: &str) -> JSONArrayResult {
-        let json_array_inner = self.parse_inner(full_json_array)?;
+        let mut json_array_inner = self.parse_inner(full_json_array)?;
+
+        json_array_inner.full_json_array.push_str(full_json_array);
 
         Ok(json_array_inner)
     }
@@ -125,7 +138,8 @@ impl JSONArrayValidator {
         let value = Value::Array(json_array);
 
         Ok(JSONArray {
-            value
+            value,
+            full_json_array: String::new(),
         })
     }
 }

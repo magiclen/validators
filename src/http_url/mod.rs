@@ -194,7 +194,7 @@ impl HttpUrlValidator {
     pub fn parse_str(&self, full_http_url: &str) -> HttpUrlResult {
         let mut http_url_inner = self.parse_inner(full_http_url)?;
 
-        http_url_inner.full_http_url = full_http_url.to_string();
+        http_url_inner.full_http_url.push_str(full_http_url);
 
         Ok(http_url_inner)
     }
@@ -483,7 +483,7 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $protocol:expr, $local:expr ) => {
-        #[derive(Clone)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(HttpUrl);
 
         impl From<$name> for HttpUrl {
@@ -516,34 +516,6 @@ macro_rules! extend {
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.eq(&other.0)
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.0.ne(&other.0)
-            }
-        }
-
-        impl PartialEq<HttpUrl> for $name {
-            fn eq(&self, other: &HttpUrl) -> bool {
-                self.0.eq(&other)
-            }
-
-            fn ne(&self, other: &HttpUrl) -> bool {
-                self.0.ne(&other)
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Hash for $name{
-            fn hash<H: Hasher>(&self, state: &mut H){
-                self.0.hash(state)
             }
         }
 
@@ -736,10 +708,6 @@ impl HttpUrlLocalableWithProtocol {
         }
     }
 
-    pub fn is_https(&self) -> bool {
-        self.0.is_https
-    }
-
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
@@ -754,10 +722,6 @@ impl HttpUrlUnlocalableWithProtocol {
         } else {
             &self.0.full_http_url[..(self.0.host_index - 1)]
         }
-    }
-
-    pub fn is_https(&self) -> bool {
-        self.0.is_https
     }
 }
 

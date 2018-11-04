@@ -5,8 +5,8 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
-use std::hash::{Hash, Hasher};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
@@ -139,29 +139,19 @@ impl Display for Domain {
 
 impl PartialEq for Domain {
     fn eq(&self, other: &Self) -> bool {
-        if self.port != other.port || self.port_index != other.port_index {
-            return false;
-        }
-
-        self.get_full_domain_without_port().to_lowercase().eq(&other.get_full_domain_without_port().to_lowercase())
+        self.full_domain.eq(&other.full_domain)
     }
 
     fn ne(&self, other: &Self) -> bool {
-        if self.port != other.port || self.port_index != other.port_index {
-            return true;
-        }
-
-        self.get_full_domain_without_port().to_lowercase().ne(&other.get_full_domain_without_port().to_lowercase())
+        self.full_domain.ne(&other.full_domain)
     }
 }
 
-impl Eq for Domain {
+impl Eq for Domain {}
 
-}
-
-impl Hash for Domain{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.full_domain.hash(state)
+impl Hash for Domain {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_domain.hash(state);
     }
 }
 
@@ -181,7 +171,7 @@ impl DomainValidator {
     pub fn parse_str(&self, full_domain: &str) -> DomainResult {
         let mut domain_inner = self.parse_inner(full_domain)?;
 
-        domain_inner.full_domain = full_domain.to_string();
+        domain_inner.full_domain.push_str(full_domain);
 
         Ok(domain_inner)
     }
@@ -442,7 +432,7 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $port:expr, $localhost:expr ) => {
-        #[derive(Clone)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(Domain);
 
         impl From<$name> for Domain {
@@ -475,34 +465,6 @@ macro_rules! extend {
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.eq(&other.0)
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.0.ne(&other.0)
-            }
-        }
-
-        impl PartialEq<Domain> for $name {
-            fn eq(&self, other: &Domain) -> bool {
-                self.0.eq(&other)
-            }
-
-            fn ne(&self, other: &Domain) -> bool {
-                self.0.ne(&other)
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Hash for $name{
-            fn hash<H: Hasher>(&self, state: &mut H){
-                self.0.hash(state)
             }
         }
 

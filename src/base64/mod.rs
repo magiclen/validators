@@ -6,7 +6,6 @@ use super::{Validated, ValidatedWrapper};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
-use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref BASE64_RE: Regex = {
@@ -33,7 +32,7 @@ pub type Base64Result = Result<Base64, Base64Error>;
 #[derive(Debug, PartialEq)]
 pub struct Base64Validator {}
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Base64 {
     base64: String,
 }
@@ -70,24 +69,6 @@ impl Display for Base64 {
     }
 }
 
-impl PartialEq for Base64 {
-    fn eq(&self, other: &Self) -> bool {
-        self.base64.eq(&other.base64)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.base64.ne(&other.base64)
-    }
-}
-
-impl Eq for Base64 {}
-
-impl Hash for Base64{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.base64.hash(state)
-    }
-}
-
 impl Base64Validator {
     pub fn is_base64(&self, base64: &str) -> bool {
         self.parse_inner(base64).is_ok()
@@ -104,7 +85,7 @@ impl Base64Validator {
     pub fn parse_str(&self, base64: &str) -> Base64Result {
         let mut base64_inner = self.parse_inner(base64)?;
 
-        base64_inner.base64 = base64.to_string();
+        base64_inner.base64.push_str(base64);
 
         Ok(base64_inner)
     }

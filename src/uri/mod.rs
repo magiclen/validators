@@ -163,7 +163,7 @@ impl URIValidator {
     pub fn parse_str(&self, full_uri: &str) -> URIResult {
         let mut uri_inner = self.parse_inner(full_uri)?;
 
-        uri_inner.full_uri = full_uri.to_string();
+        uri_inner.full_uri.push_str(full_uri);
 
         Ok(uri_inner)
     }

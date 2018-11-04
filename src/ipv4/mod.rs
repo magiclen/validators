@@ -114,29 +114,19 @@ impl Display for IPv4 {
 
 impl PartialEq for IPv4 {
     fn eq(&self, other: &Self) -> bool {
-        if self.port != other.port {
-            return false;
-        }
-
-        self.ip.eq(&other.ip)
+        self.full_ipv4.eq(&other.full_ipv4)
     }
 
     fn ne(&self, other: &Self) -> bool {
-        if self.port != other.port {
-            return true;
-        }
-
-        self.ip.ne(&other.ip)
+        self.full_ipv4.ne(&other.full_ipv4)
     }
 }
 
-impl Eq for IPv4 {
+impl Eq for IPv4 {}
 
-}
-
-impl Hash for IPv4{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.full_ipv4.hash(state)
+impl Hash for IPv4 {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_ipv4.hash(state);
     }
 }
 
@@ -159,10 +149,10 @@ impl IPv4Validator {
                 ipv4_inner.full_ipv4_len = len;
                 ipv4_inner.port_index = len;
             } else {
-                let full_ipv4 = format!("{}:{}", ipv4, ipv4_inner.port);
-                let full_ipv4_len = ipv4.len();
-                ipv4_inner.full_ipv4 = full_ipv4;
-                ipv4_inner.full_ipv4_len = full_ipv4_len;
+                ipv4_inner.full_ipv4.push_str(&ipv4);
+                ipv4_inner.full_ipv4.push_str(":");
+                ipv4_inner.full_ipv4.push_str(&ipv4_inner.port.to_string());
+                ipv4_inner.full_ipv4_len = ipv4_inner.full_ipv4.len();
                 ipv4_inner.port_index = len + 1;
             }
         }
@@ -174,7 +164,7 @@ impl IPv4Validator {
         let mut ipv4_inner = self.parse_inner(&full_ipv4)?;
 
         if ipv4_inner.full_ipv4_len != 0 {
-            ipv4_inner.full_ipv4 = full_ipv4.to_string();
+            ipv4_inner.full_ipv4.push_str(full_ipv4);
         } else {
             let ipv4 = ipv4_inner.ip.to_string();
             let len = ipv4.len();
@@ -184,10 +174,10 @@ impl IPv4Validator {
                 ipv4_inner.full_ipv4_len = len;
                 ipv4_inner.port_index = len;
             } else {
-                let full_ipv4 = format!("{}:{}", ipv4, ipv4_inner.port);
-                let full_ipv4_len = ipv4.len();
-                ipv4_inner.full_ipv4 = full_ipv4;
-                ipv4_inner.full_ipv4_len = full_ipv4_len;
+                ipv4_inner.full_ipv4.push_str(&ipv4);
+                ipv4_inner.full_ipv4.push_str(":");
+                ipv4_inner.full_ipv4.push_str(&ipv4_inner.port.to_string());
+                ipv4_inner.full_ipv4_len = ipv4_inner.full_ipv4.len();
                 ipv4_inner.port_index = len + 1;
             }
         }
@@ -446,7 +436,7 @@ mod tests {
 
 macro_rules! extend {
     ( $name:ident, $port:expr, $local:expr, $ipv6:expr ) => {
-        #[derive(Clone)]
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(IPv4);
 
         impl From<$name> for IPv4 {
@@ -479,34 +469,6 @@ macro_rules! extend {
         impl Display for $name {
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.0.eq(&other.0)
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.0.ne(&other.0)
-            }
-        }
-
-        impl PartialEq<IPv4> for $name {
-            fn eq(&self, other: &IPv4) -> bool {
-                self.0.eq(&other)
-            }
-
-            fn ne(&self, other: &IPv4) -> bool {
-                self.0.ne(&other)
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Hash for $name{
-            fn hash<H: Hasher>(&self, state: &mut H){
-                self.0.hash(state)
             }
         }
 

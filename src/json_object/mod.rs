@@ -34,12 +34,17 @@ pub struct JSONObjectValidator {}
 
 #[derive(Clone)]
 pub struct JSONObject {
-    value: Value
+    value: Value,
+    full_json_object: String,
 }
 
 impl JSONObject {
     pub fn get_json_value(&self) -> &Value {
         &self.value
+    }
+
+    pub fn get_full_json_object(&self) -> &str {
+        &self.full_json_object
     }
 
     pub fn into_map(self) -> Map<String, Value> {
@@ -51,6 +56,10 @@ impl JSONObject {
 
     pub fn into_value(self) -> Value {
         self.value
+    }
+
+    pub fn into_string(self) -> String {
+        self.full_json_object
     }
 }
 
@@ -84,19 +93,19 @@ impl Display for JSONObject {
 
 impl PartialEq for JSONObject {
     fn eq(&self, other: &Self) -> bool {
-        self.get_json_value().eq(other.get_json_value())
+        self.full_json_object.eq(&other.full_json_object)
     }
 
     fn ne(&self, other: &Self) -> bool {
-        self.get_json_value().ne(other.get_json_value())
+        self.full_json_object.ne(&other.full_json_object)
     }
 }
 
 impl Eq for JSONObject {}
 
-impl Hash for JSONObject{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.value.to_string().hash(state)
+impl Hash for JSONObject {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_json_object.hash(state);
     }
 }
 
@@ -106,13 +115,17 @@ impl JSONObjectValidator {
     }
 
     pub fn parse_string(&self, full_json_object: String) -> JSONObjectResult {
-        let json_object_inner = self.parse_inner(&full_json_object)?;
+        let mut json_object_inner = self.parse_inner(&full_json_object)?;
+
+        json_object_inner.full_json_object = full_json_object;
 
         Ok(json_object_inner)
     }
 
     pub fn parse_str(&self, full_json_object: &str) -> JSONObjectResult {
-        let json_object_inner = self.parse_inner(full_json_object)?;
+        let mut json_object_inner = self.parse_inner(full_json_object)?;
+
+        json_object_inner.full_json_object.push_str(full_json_object);
 
         Ok(json_object_inner)
     }
@@ -126,7 +139,8 @@ impl JSONObjectValidator {
         let value = Value::Object(json_object);
 
         Ok(JSONObject {
-            value
+            value,
+            full_json_object: String::new(),
         })
     }
 }

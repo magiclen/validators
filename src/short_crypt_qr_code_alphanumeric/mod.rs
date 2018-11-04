@@ -5,7 +5,6 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
-use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref SHORT_CRYPT_QR_CODE_ALPHANUMERIC_RE: Regex = {
@@ -31,7 +30,7 @@ pub type ShortCryptQRCodeAlphanumericResult = Result<ShortCryptQRCodeAlphanumeri
 #[derive(Debug, PartialEq)]
 pub struct ShortCryptQRCodeAlphanumericValidator {}
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ShortCryptQRCodeAlphanumeric {
     short_crypt_qr_code_alphanumeric: String,
 }
@@ -68,25 +67,6 @@ impl Display for ShortCryptQRCodeAlphanumeric {
     }
 }
 
-impl PartialEq for ShortCryptQRCodeAlphanumeric {
-    fn eq(&self, other: &Self) -> bool {
-        self.short_crypt_qr_code_alphanumeric.eq(&other.short_crypt_qr_code_alphanumeric)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.short_crypt_qr_code_alphanumeric.ne(&other.short_crypt_qr_code_alphanumeric)
-    }
-}
-
-impl Eq for ShortCryptQRCodeAlphanumeric {}
-
-impl Hash for ShortCryptQRCodeAlphanumeric{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.short_crypt_qr_code_alphanumeric.hash(state)
-    }
-}
-
-
 impl ShortCryptQRCodeAlphanumericValidator {
     pub fn is_short_crypt_qr_code_alphanumeric_url(&self, short_crypt_qr_code_alphanumeric_url: &str) -> bool {
         self.parse_inner(short_crypt_qr_code_alphanumeric_url).is_ok()
@@ -103,7 +83,7 @@ impl ShortCryptQRCodeAlphanumericValidator {
     pub fn parse_str(&self, short_crypt_qr_code_alphanumeric_url: &str) -> ShortCryptQRCodeAlphanumericResult {
         let mut short_crypt_qr_code_alphanumeric_url_inner = self.parse_inner(short_crypt_qr_code_alphanumeric_url)?;
 
-        short_crypt_qr_code_alphanumeric_url_inner.short_crypt_qr_code_alphanumeric = short_crypt_qr_code_alphanumeric_url.to_string();
+        short_crypt_qr_code_alphanumeric_url_inner.short_crypt_qr_code_alphanumeric.push_str(short_crypt_qr_code_alphanumeric_url);
 
         Ok(short_crypt_qr_code_alphanumeric_url_inner)
     }

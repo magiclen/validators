@@ -436,14 +436,6 @@ macro_rules! validated_customized_string_struct_implement_from_form_value {
 #[macro_export]
 macro_rules! validated_customized_string_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
-        impl Clone for $name {
-            fn clone(&self) -> Self{
-                let $field = self.$field.clone();
-
-                $name{$field}
-            }
-        }
-
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
@@ -458,33 +450,11 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        impl ::std::cmp::PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.$field.eq(&other.$field)
-            }
+        impl ::std::ops::Deref for $name {
+            type Target = String;
 
-            fn ne(&self, other: &Self) -> bool {
-                self.$field.ne(&other.$field)
-            }
-        }
-
-        impl ::std::cmp::Eq for $name {}
-
-        impl ::std::hash::Hash for $name{
-            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
-                self.$field.hash(state)
-            }
-        }
-
-        impl AsRef<[u8]> for $name {
-            fn as_ref(&self) -> &[u8] {
-                self.$field.as_bytes()
-            }
-        }
-
-        impl AsRef<str> for $name {
-            fn as_ref(&self) -> &str {
-                self.$field.as_ref()
+            fn deref(&self) -> &Self::Target {
+                &self.$field
             }
         }
 
@@ -549,6 +519,7 @@ macro_rules! validated_customized_string_struct {
 #[macro_export]
 macro_rules! validated_customized_string {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+        #[derive(Clone, PartialEq, Eq, Hash)]
         struct $name{
             s: String
         }
@@ -562,6 +533,7 @@ macro_rules! validated_customized_string {
         validated_customized_string!($name, $from_string_input $from_string, $from_str_input $from_str);
     };
     ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name{
             s: String
         }
@@ -625,6 +597,7 @@ macro_rules! validated_customized_regex_string_struct {
 #[macro_export]
 macro_rules! validated_customized_regex_string {
     ( $name:ident, $re:expr ) => {
+        #[derive(Clone, PartialEq, Eq, Hash)]
         struct $name{
             s: String
         }
@@ -632,6 +605,7 @@ macro_rules! validated_customized_regex_string {
         validated_customized_regex_string_struct!($name, s, $re);
     };
     ( pub $name:ident, $re:expr ) => {
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name{
             s: String
         }
@@ -639,6 +613,7 @@ macro_rules! validated_customized_regex_string {
         validated_customized_regex_string_struct!($name, s, $re);
     };
     ( $name:ident, ref $re:expr ) => {
+        #[derive(Clone, PartialEq, Eq, Hash)]
         struct $name{
             s: String
         }
@@ -646,6 +621,7 @@ macro_rules! validated_customized_regex_string {
         validated_customized_regex_string_struct!($name, s, ref $re);
     };
     ( pub $name:ident, ref $re:expr ) => {
+        #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name{
             s: String
         }
@@ -873,14 +849,6 @@ macro_rules! validated_customized_number_struct_implement_from_form_value {
 #[macro_export]
 macro_rules! validated_customized_number_struct {
     ( $name:ident, $field:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
-        impl Clone for $name {
-            fn clone(&self) -> Self{
-                let $field = self.$field;
-
-                $name{$field}
-            }
-        }
-
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
@@ -895,16 +863,6 @@ macro_rules! validated_customized_number_struct {
             }
         }
 
-        impl ::std::cmp::PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                self.$field == other.$field
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.$field != other.$field
-            }
-        }
-
         impl ::std::cmp::Eq for $name {}
 
         impl ::std::hash::Hash for $name{
@@ -914,6 +872,14 @@ macro_rules! validated_customized_number_struct {
         }
 
         impl ::validators::Validated for $name {}
+
+        impl ::std::ops::Deref for $name {
+            type Target = $t;
+
+            fn deref(&self) -> &Self::Target {
+                &self.$field
+            }
+        }
 
         impl ::validators::ValidatedWrapper for $name {
             type Error = ::validators::ValidatedCustomizedNumberError;
@@ -997,6 +963,7 @@ macro_rules! validated_customized_number_struct {
 #[macro_export]
 macro_rules! validated_customized_number {
     ( $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
+        #[derive(Clone, PartialEq)]
         struct $name{
             n: $t
         }
@@ -1022,6 +989,7 @@ macro_rules! validated_customized_number {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( pub $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name{
             n: $t
         }
@@ -1119,6 +1087,7 @@ macro_rules! validated_customized_regex_number_struct {
 #[macro_export]
 macro_rules! validated_customized_regex_number {
     ( $name:ident, $t:ident, $re:expr ) => {
+        #[derive(Clone, PartialEq)]
         struct $name{
             n: $t
         }
@@ -1126,6 +1095,7 @@ macro_rules! validated_customized_regex_number {
         validated_customized_regex_number_struct!($name, n, $t, $re);
     };
     ( pub $name:ident, $t:ident, $re:expr ) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name{
             n: $t
         }
@@ -1133,6 +1103,7 @@ macro_rules! validated_customized_regex_number {
         validated_customized_regex_number_struct!($name, n, $t, $re);
     };
     ( $name:ident, $t:ident, ref $re:expr ) => {
+        #[derive(Clone, PartialEq)]
         struct $name{
             n: $t
         }
@@ -1140,6 +1111,7 @@ macro_rules! validated_customized_regex_number {
         validated_customized_regex_number_struct!($name, n, $t, ref $re);
     };
     ( pub $name:ident, $t:ident, ref $re:expr ) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name{
             n: $t
         }
@@ -1183,6 +1155,7 @@ macro_rules! validated_customized_ranged_number_struct {
 #[macro_export]
 macro_rules! validated_customized_ranged_number {
     ( $name:ident, $t:ident, $min:expr, $max:expr ) => {
+        #[derive(Clone, PartialEq)]
         struct $name{
             n: $t
         }
@@ -1190,6 +1163,7 @@ macro_rules! validated_customized_ranged_number {
         validated_customized_ranged_number_struct!($name, n, $t, $min, $max);
     };
     ( pub $name:ident, $t:ident, $min:expr, $max:expr ) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name{
             n: $t
         }
@@ -1221,6 +1195,7 @@ macro_rules! validated_customized_primitive_number_struct {
 #[macro_export]
 macro_rules! validated_customized_primitive_number {
     ( $name:ident, $t:ident ) => {
+        #[derive(Clone, PartialEq)]
         struct $name{
             n: $t
         }
@@ -1228,6 +1203,7 @@ macro_rules! validated_customized_primitive_number {
         validated_customized_primitive_number_struct!($name, n, $t);
     };
     ( pub $name:ident, $t:ident ) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name{
             n: $t
         }
@@ -1353,14 +1329,6 @@ macro_rules! validated_customized_vec_struct_implement_from_form_value {
 #[macro_export]
 macro_rules! validated_customized_vec_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
-        impl<T: ::validators::ValidatedWrapper> Clone for $name<T> {
-            fn clone(&self) -> Self{
-                let $field = self.$field.clone();
-
-                $name{$field}
-            }
-        }
-
         impl<T: ::validators::ValidatedWrapper> ::std::fmt::Debug for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}[", stringify!($name)))?;
@@ -1407,17 +1375,15 @@ macro_rules! validated_customized_vec_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper> ::std::cmp::PartialEq for $name<T> {
-            fn eq(&self, other: &Self) -> bool {
-                self.$field == other.$field
-            }
+        impl<T: ::validators::ValidatedWrapper> ::std::cmp::Eq for $name<T> {}
 
-            fn ne(&self, other: &Self) -> bool {
-                self.$field != other.$field
+        impl<T: ::validators::ValidatedWrapper> ::std::ops::Deref for $name<T> {
+            type Target = Vec<T>;
+
+            fn deref(&self) -> &Self::Target {
+                &self.$field
             }
         }
-
-        impl<T: ::validators::ValidatedWrapper> ::std::cmp::Eq for $name<T> {}
 
         impl<T: ::validators::ValidatedWrapper> ::validators::Validated for $name<T> {}
 
@@ -1488,6 +1454,7 @@ macro_rules! validated_customized_vec_struct {
 #[macro_export]
 macro_rules! validated_customized_vec {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
+        #[derive(Clone, PartialEq)]
         struct $name<T: ::validators::ValidatedWrapper> {
             v: Vec<T>
         }
@@ -1513,6 +1480,7 @@ macro_rules! validated_customized_vec {
         validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
     };
     ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name<T: ::validators::ValidatedWrapper> {
             v: Vec<T>
         }
@@ -1562,6 +1530,7 @@ macro_rules! validated_customized_ranged_length_vec_struct {
 #[macro_export]
 macro_rules! validated_customized_ranged_length_vec {
     ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        #[derive(Clone, PartialEq)]
         struct $name<T: ::validators::ValidatedWrapper> {
             v: Vec<T>
         }
@@ -1586,6 +1555,7 @@ macro_rules! validated_customized_ranged_length_vec {
         validated_customized_ranged_length_vec!($name, $equal, $equal);
     };
     ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        #[derive(Clone, PartialEq)]
         pub struct $name<T: ::validators::ValidatedWrapper> {
             v: Vec<T>
         }
@@ -1728,14 +1698,6 @@ macro_rules! validated_customized_hash_set_struct_implement_from_form_value {
 #[macro_export]
 macro_rules! validated_customized_hash_set_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> Clone for $name<T> {
-            fn clone(&self) -> Self{
-                let $field = self.$field.clone();
-
-                $name{$field}
-            }
-        }
-
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Debug for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}[", stringify!($name)))?;
@@ -1782,17 +1744,21 @@ macro_rules! validated_customized_hash_set_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::cmp::PartialEq for $name<T> {
-            fn eq(&self, other: &Self) -> bool {
-                self.$field == other.$field
-            }
-
-            fn ne(&self, other: &Self) -> bool {
-                self.$field != other.$field
+        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::hash::Hash for $name<T>{
+            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
+                for e in &self.$field {
+                    e.hash(state)
+                }
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::cmp::Eq for $name<T> {}
+        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::ops::Deref for $name<T> {
+            type Target = ::std::collections::HashSet<T>;
+
+            fn deref(&self) -> &Self::Target {
+                &self.$field
+            }
+        }
 
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::Validated for $name<T> {}
 
@@ -1863,6 +1829,7 @@ macro_rules! validated_customized_hash_set_struct {
 #[macro_export]
 macro_rules! validated_customized_hash_set {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
+        #[derive(Clone, PartialEq, Eq)]
         struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
@@ -1888,6 +1855,7 @@ macro_rules! validated_customized_hash_set {
         validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
     ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
+        #[derive(Clone, PartialEq, Eq)]
         pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
@@ -1937,6 +1905,7 @@ macro_rules! validated_customized_ranged_length_hash_set_struct {
 #[macro_export]
 macro_rules! validated_customized_ranged_length_hash_set {
     ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        #[derive(Clone, PartialEq, Eq)]
         struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
@@ -1961,6 +1930,7 @@ macro_rules! validated_customized_ranged_length_hash_set {
         validated_customized_ranged_length_hash_set!($name, $equal, $equal);
     };
     ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        #[derive(Clone, PartialEq, Eq)]
         pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }

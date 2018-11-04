@@ -5,7 +5,6 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
-use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref BASE64_URL_RE: Regex = {
@@ -31,7 +30,7 @@ pub type Base64UrlResult = Result<Base64Url, Base64UrlError>;
 #[derive(Debug, PartialEq)]
 pub struct Base64UrlValidator {}
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Base64Url {
     base64_url: String,
 }
@@ -68,24 +67,6 @@ impl Display for Base64Url {
     }
 }
 
-impl PartialEq for Base64Url {
-    fn eq(&self, other: &Self) -> bool {
-        self.base64_url.eq(&other.base64_url)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.base64_url.ne(&other.base64_url)
-    }
-}
-
-impl Eq for Base64Url {}
-
-impl Hash for Base64Url{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.base64_url.hash(state)
-    }
-}
-
 impl Base64UrlValidator {
     pub fn is_base64_url(&self, base64_url: &str) -> bool {
         self.parse_inner(base64_url).is_ok()
@@ -102,7 +83,7 @@ impl Base64UrlValidator {
     pub fn parse_str(&self, base64_url: &str) -> Base64UrlResult {
         let mut base64_url_inner = self.parse_inner(base64_url)?;
 
-        base64_url_inner.base64_url = base64_url.to_string();
+        base64_url_inner.base64_url.push_str(base64_url);
 
         Ok(base64_url_inner)
     }

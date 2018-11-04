@@ -5,8 +5,8 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
-use std::hash::{Hash, Hasher};
 use std::str::Utf8Error;
+use std::hash::{Hash, Hasher};
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
@@ -77,29 +77,19 @@ impl Display for Email {
 
 impl PartialEq for Email {
     fn eq(&self, other: &Self) -> bool {
-        if self.get_local().ne(other.get_local()) {
-            return false;
-        }
-
-        self.get_domain().eq(other.get_domain())
+        self.full_email.eq(&other.full_email)
     }
 
     fn ne(&self, other: &Self) -> bool {
-        if self.get_local().ne(other.get_local()) {
-            return true;
-        }
-
-        self.get_domain().ne(other.get_domain())
+        self.full_email.ne(&other.full_email)
     }
 }
 
-impl Eq for Email {
+impl Eq for Email {}
 
-}
-
-impl Hash for Email{
-    fn hash<H: Hasher>(&self, state: &mut H){
-        self.full_email.hash(state)
+impl Hash for Email {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.full_email.hash(state);
     }
 }
 
@@ -119,7 +109,7 @@ impl EmailValidator {
     pub fn parse_str(&self, full_email: &str) -> EmailResult {
         let mut email_inner = self.parse_inner(full_email)?;
 
-        email_inner.full_email = full_email.to_string();
+        email_inner.full_email.push_str(full_email);
 
         Ok(email_inner)
     }

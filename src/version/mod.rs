@@ -130,7 +130,7 @@ impl VersionValidator {
     pub fn parse_str(&self, full_version: &str) -> VersionResult {
         let mut full_version_inner = self.parse_inner(full_version)?;
 
-        full_version_inner.full_version = full_version.to_string();
+        full_version_inner.full_version.push_str(full_version);
 
         Ok(full_version_inner)
     }
