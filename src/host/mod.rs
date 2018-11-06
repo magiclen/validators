@@ -58,6 +58,14 @@ impl Host {
         }
     }
 
+    pub fn get_port(&self) -> Option<u16> {
+        match self {
+            Host::Domain(d) => d.get_port(),
+            Host::IPv4(d) => d.get_port(),
+            Host::IPv6(d) => d.get_port()
+        }
+    }
+
     pub fn is_local(&self) -> bool {
         match self {
             Host::Domain(d) => d.is_localhost(),
@@ -412,6 +420,14 @@ impl HostLocalable {
             Host::Domain(d) => d.is_localhost(),
             Host::IPv4(d) => d.is_local(),
             Host::IPv6(d) => d.is_local()
+        }
+    }
+
+    pub fn get_port(&self) -> Option<u16> {
+        match &self.0 {
+            Host::Domain(d) => d.get_port(),
+            Host::IPv4(d) => d.get_port(),
+            Host::IPv6(d) => d.get_port()
         }
     }
 }

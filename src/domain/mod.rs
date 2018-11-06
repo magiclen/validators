@@ -41,13 +41,11 @@ pub struct DomainValidator {
     pub localhost: ValidatorOption,
 }
 
-pub type DomainPort = u16;
-
 #[derive(Clone)]
 pub struct Domain {
     top_level_domain: usize,
     domain: usize,
-    port: DomainPort,
+    port: u16,
     port_index: usize,
     full_domain: String,
     full_domain_len: usize,
@@ -99,7 +97,7 @@ impl Domain {
         }
     }
 
-    pub fn get_port(&self) -> Option<DomainPort> {
+    pub fn get_port(&self) -> Option<u16> {
         if self.port_index != self.full_domain_len {
             Some(self.port)
         } else {
@@ -588,7 +586,7 @@ impl DomainLocalhostableWithPort {
         self.0.get_full_domain_without_port()
     }
 
-    pub fn get_port(&self) -> DomainPort {
+    pub fn get_port(&self) -> u16 {
         self.0.get_port().unwrap()
     }
 
@@ -604,7 +602,7 @@ impl DomainLocalhostableAllowPort {
         self.0.get_full_domain_without_port()
     }
 
-    pub fn get_port(&self) -> Option<DomainPort> {
+    pub fn get_port(&self) -> Option<u16> {
         self.0.get_port()
     }
 
@@ -628,7 +626,7 @@ impl DomainUnlocalhostableWithPort {
         self.0.get_full_domain_without_port()
     }
 
-    pub fn get_port(&self) -> DomainPort {
+    pub fn get_port(&self) -> u16 {
         self.0.get_port().unwrap()
     }
 }
@@ -640,7 +638,7 @@ impl DomainUnlocalhostableAllowPort {
         self.0.get_full_domain_without_port()
     }
 
-    pub fn get_port(&self) -> Option<DomainPort> {
+    pub fn get_port(&self) -> Option<u16> {
         self.0.get_port()
     }
 }
