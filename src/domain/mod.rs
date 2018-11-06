@@ -10,7 +10,7 @@ use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
-        Regex::new(r"^([\S&&[^.:/]]{1,255})(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(\.([\S&&[^.:/]]{1,255}))?(:(\d{1,5}))?$").unwrap()
+        Regex::new(r"^(([\S&&[^.:/]]{1,63}\.)*?)*?([\S&&[^.:/]]{1,63})(\.[\S&&[^.:/]]{1,63})?(:\d{1,5})?$").unwrap()
     };
 }
 
@@ -47,7 +47,6 @@ pub type DomainPort = u16;
 pub struct Domain {
     top_level_domain: usize,
     domain: usize,
-    sub_domain: usize,
     port: DomainPort,
     port_index: usize,
     full_domain: String,
@@ -81,12 +80,8 @@ impl Domain {
     }
 
     pub fn get_sub_domain(&self) -> Option<&str> {
-        if self.sub_domain != self.full_domain_len {
-            if self.domain != self.full_domain_len {
-                Some(&self.full_domain[self.sub_domain..(self.domain - 1)])
-            } else {
-                Some(&self.full_domain[self.sub_domain..])
-            }
+        if self.domain > 0 {
+            Some(&self.full_domain[..(self.domain - 1)])
         } else {
             None
         }
@@ -184,12 +179,22 @@ impl DomainValidator {
 
         let full_domain_len = full_domain.len();
 
-        let mut is_localhost = false;
+        let mut is_localhost;
 
-        let mut sub_domain = full_domain_len;
-
-        let mut domain = match c.get(1) {
+        let domain = match c.get(3) {
             Some(m) => {
+                let lowered_domain = m.as_str().to_lowercase();
+
+                is_localhost = "localhost".eq(&lowered_domain);
+
+                if self.localhost.must() && !is_localhost {
+                    return Err(DomainError::LocalhostNotFound);
+                }
+
+                if m.end() > 255 {
+                    return Err(DomainError::IncorrectFormat);
+                }
+
                 m.start()
             }
             None => {
@@ -197,27 +202,50 @@ impl DomainValidator {
             }
         };
 
-        match c.get(3) {
+        let top_level_domain = match c.get(4) {
             Some(m) => {
-                sub_domain = domain;
-                domain = m.start();
+                if is_localhost {
+                    if self.localhost.must() {
+                        return Err(DomainError::LocalhostNotFound);
+                    } else {
+                        is_localhost = false;
+                    }
+                }
 
-                if domain - sub_domain > 64 {
+                if m.end() > 255 {
                     return Err(DomainError::IncorrectFormat);
                 }
+
+                m.start() + 1
             }
-            None => ()
+            None => {
+                if is_localhost {
+                    if self.localhost.not_allow() {
+                        return Err(DomainError::LocalhostNotAllow);
+                    }
+                } else {
+                    return Err(DomainError::IncorrectFormat);
+                }
+
+                full_domain_len
+            }
         };
+
+        if c.get(1).is_some() {
+            if is_localhost {
+                return Err(DomainError::LocalhostNotFound);
+            }
+        }
 
         let mut port = 0u16;
 
-        let port_index = match c.get(9) {
+        let port_index = match c.get(5) {
             Some(m) => {
                 if self.port.not_allow() {
                     return Err(DomainError::PortNotAllow);
                 }
 
-                let index = m.start();
+                let index = m.start() + 1;
 
                 port = match full_domain[index..m.end()].parse::<u16>() {
                     Ok(p) => p,
@@ -234,74 +262,9 @@ impl DomainValidator {
             }
         };
 
-        let top_level_domain = match c.get(5) {
-            Some(m) => {
-                if self.localhost.must() {
-                    return Err(DomainError::LocalhostNotFound);
-                }
-
-                match c.get(7) {
-                    Some(mm) => {
-                        if mm.end() > 255 {
-                            return Err(DomainError::IncorrectFormat);
-                        }
-
-                        let sub_domain_m = domain;
-                        domain = m.start();
-
-                        if domain - sub_domain_m > 64 {
-                            return Err(DomainError::IncorrectFormat);
-                        }
-
-                        mm.start()
-                    }
-                    None => {
-                        if m.end() > 255 {
-                            return Err(DomainError::IncorrectFormat);
-                        }
-                        m.start()
-                    }
-                }
-            }
-            None => {
-                if sub_domain == full_domain_len {
-                    if self.localhost.allow() {
-                        let domain_str = if port_index != full_domain_len {
-                            &full_domain[domain..(port_index - 1)]
-                        } else {
-                            &full_domain[domain..]
-                        };
-
-                        let lowered_domain = domain_str.to_lowercase();
-
-                        if "localhost".ne(&lowered_domain) {
-                            return Err(DomainError::IncorrectFormat);
-                        }
-
-                        is_localhost = true;
-
-                        full_domain_len
-                    } else {
-                        return Err(DomainError::IncorrectFormat);
-                    }
-                } else {
-                    if self.localhost.must() {
-                        return Err(DomainError::LocalhostNotFound);
-                    }
-
-                    let top_level_domain = domain;
-                    domain = sub_domain;
-                    sub_domain = full_domain_len;
-
-                    top_level_domain
-                }
-            }
-        };
-
         Ok(Domain {
             top_level_domain,
             domain,
-            sub_domain,
             port,
             port_index,
             full_domain: String::new(),
@@ -350,6 +313,26 @@ mod tests {
         assert_eq!("www.tool.magiclen.org", domain.get_full_domain_without_port());
         assert_eq!("org", domain.get_top_level_domain().unwrap());
         assert_eq!("www.tool", domain.get_sub_domain().unwrap());
+        assert_eq!("magiclen", domain.get_domain());
+        assert_eq!(8080, domain.get_port().unwrap());
+        assert_eq!(false, domain.is_localhost());
+    }
+
+    #[test]
+    fn test_domain_methods_lv3() {
+        let domain = "c81223-759.www.tool.magiclen.org:8080".to_string();
+
+        let dv = DomainValidator {
+            port: ValidatorOption::Allow,
+            localhost: ValidatorOption::NotAllow,
+        };
+
+        let domain = dv.parse_string(domain).unwrap();
+
+        assert_eq!("c81223-759.www.tool.magiclen.org:8080", domain.get_full_domain());
+        assert_eq!("c81223-759.www.tool.magiclen.org", domain.get_full_domain_without_port());
+        assert_eq!("org", domain.get_top_level_domain().unwrap());
+        assert_eq!("c81223-759.www.tool", domain.get_sub_domain().unwrap());
         assert_eq!("magiclen", domain.get_domain());
         assert_eq!(8080, domain.get_port().unwrap());
         assert_eq!(false, domain.is_localhost());

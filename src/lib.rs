@@ -318,6 +318,7 @@ pub mod ipv4;
 pub mod ipv6;
 pub mod host;
 pub mod http_url;
+pub mod http_ftp_url;
 pub mod base64;
 pub mod base64_url;
 pub mod base32;
