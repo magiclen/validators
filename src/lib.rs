@@ -325,6 +325,8 @@ pub mod base32;
 pub mod short_crypt_url_component;
 pub mod short_crypt_qr_code_alphanumeric;
 #[cfg(feature = "serdely")]
+pub mod json;
+#[cfg(feature = "serdely")]
 pub mod json_object;
 #[cfg(feature = "serdely")]
 pub mod json_array;
