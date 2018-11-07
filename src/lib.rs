@@ -334,6 +334,8 @@ pub mod version;
 pub mod uri;
 pub mod text;
 pub mod line;
+pub mod number;
+pub mod integer;
 
 // TODO -----ValidatedCustomizedString START-----
 
@@ -567,7 +569,7 @@ macro_rules! validated_customized_regex_string_struct {
         input {
             let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
 
-            if re.is_match(&input) {
+            if re.is_match(input) {
                 Ok(input.to_string())
             } else{
                 Err(::validators::ValidatedCustomizedStringError::NotMatch)
@@ -588,7 +590,7 @@ macro_rules! validated_customized_regex_string_struct {
         input {
             let re: &::validators::regex::Regex = &$re;
 
-            if re.is_match(&input) {
+            if re.is_match(input) {
                 Ok(input.to_string())
             } else{
                 Err(::validators::ValidatedCustomizedStringError::NotMatch)
@@ -641,6 +643,7 @@ macro_rules! validated_customized_regex_string {
 pub enum ValidatedCustomizedNumberError {
     RegexError(regex::Error),
     ParseError(String),
+    UnpreciseError,
     OutRange,
     NotMatch,
     UTF8Error(Utf8Error),
@@ -870,7 +873,47 @@ macro_rules! validated_customized_number_struct {
 
         impl ::std::hash::Hash for $name{
             fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
-                self.$field.to_string().hash(state)
+                match stringify!($t) {
+                    "u8" => {
+                        state.write_u8(self.get_number() as u8);
+                    },
+                    "u16" => {
+                        state.write_u16(self.get_number() as u16);
+                    },
+                    "u32" => {
+                        state.write_u32(self.get_number() as u32);
+                    },
+                    "u64" => {
+                        state.write_u64(self.get_number() as u64);
+                    },
+                    "u128" => {
+                        state.write_u128(self.get_number() as u128);
+                    },
+                    "i8" => {
+                        state.write_i8(self.get_number() as i8);
+                    },
+                    "i16" => {
+                        state.write_i16(self.get_number() as i16);
+                    },
+                    "i32" => {
+                        state.write_i32(self.get_number() as i32);
+                    },
+                    "i64" => {
+                        state.write_i64(self.get_number() as i64);
+                    },
+                    "i128" => {
+                        state.write_i128(self.get_number() as i128);
+                    },
+                    "f32" => {
+                        let bytes: [u8; 4] = unsafe{ ::std::mem::transmute(self.get_number() as f32) };
+                        state.write(&bytes);
+                    },
+                    "f64" => {
+                        let bytes: [u8; 8] = unsafe{ ::std::mem::transmute(self.get_number() as f64) };
+                        state.write(&bytes);
+                    },
+                    _ => unreachable!()
+                }
             }
         }
 
@@ -907,6 +950,22 @@ macro_rules! validated_customized_number_struct {
                 self.$field
             }
 
+            pub fn is_zero(&self) -> bool {
+                self.$field == 0 as $t
+            }
+
+            pub fn is_positive(&self) -> bool {
+                self.$field > 0 as $t
+            }
+
+            pub fn is_negative(&self) -> bool {
+                self.$field < 0 as $t
+            }
+
+            pub fn is_integer(&self) -> bool {
+                self.$field as u128 as $t == self.$field
+            }
+
             pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
                 let $field = match $from_string {
                     Ok(s)=> s,
@@ -932,6 +991,126 @@ macro_rules! validated_customized_number_struct {
                 };
 
                 Ok($name{$field})
+            }
+
+            pub fn from_f64($from_number_input: f64) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as f64 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_f32($from_number_input: f32) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as f32 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_i8($from_number_input: i8) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as i8 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_i16($from_number_input: i16) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as i16 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_i32($from_number_input: i32) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as i32 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_i64($from_number_input: i64) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as i64 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_i128($from_number_input: i128) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as i128 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_u8($from_number_input: u8) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as u8 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_u16($from_number_input: u16) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as u16 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_u32($from_number_input: u32) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as u32 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_u64($from_number_input: u64) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as u64 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_u128($from_number_input: u128) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
+                let v = $from_number_input as $t;
+
+                if v as u128 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
             }
 
             pub unsafe fn from_number_unchecked($from_number_input: $t) -> Self{
@@ -1027,7 +1206,14 @@ macro_rules! validated_customized_regex_number_struct {
             let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
-                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+
+                if value.to_string().ne(&input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                } else{
+                    Ok(value)
+                }
+
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1035,8 +1221,14 @@ macro_rules! validated_customized_regex_number_struct {
         input {
             let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
 
-            if re.is_match(&input) {
-                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+            if re.is_match(input) {
+                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+
+                if value.to_string().ne(input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                } else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1047,7 +1239,13 @@ macro_rules! validated_customized_regex_number_struct {
             let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
-                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+
+                if value.to_string().ne(&input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                } else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1059,7 +1257,13 @@ macro_rules! validated_customized_regex_number_struct {
             let re: &::validators::regex::Regex = &$re;
 
             if re.is_match(&input) {
-                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+
+                if value.to_string().ne(&input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                } else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1067,8 +1271,14 @@ macro_rules! validated_customized_regex_number_struct {
         input {
             let re: &::validators::regex::Regex = &$re;
 
-            if re.is_match(&input) {
-                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+            if re.is_match(input) {
+                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+
+                if value.to_string().ne(input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                } else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1079,7 +1289,13 @@ macro_rules! validated_customized_regex_number_struct {
             let re: &::validators::regex::Regex = &$re;
 
             if re.is_match(&input) {
-                Ok(input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?)
+                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+
+                if value.to_string().ne(&input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                } else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1128,19 +1344,27 @@ macro_rules! validated_customized_ranged_number_struct {
     ( $name:ident, $field:ident, $t:ident, $min:expr, $max:expr ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
-            let input = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-            if input >= $min && input <= $max {
-                Ok(input)
+            if value >= $min && value <= $max {
+                if value.to_string().ne(&input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                }else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::OutRange)
             }
         },
         input {
-            let input = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-            if input >= $min && input <= $max {
-                Ok(input)
+            if value >= $min && value <= $max {
+                if value.to_string().ne(input) {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                }else{
+                    Ok(value)
+                }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::OutRange)
             }
@@ -1180,14 +1404,22 @@ macro_rules! validated_customized_primitive_number_struct {
     ( $name:ident, $field:ident, $t:ident ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
-            let input = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-            Ok(input)
+            if value.to_string().ne(&input) {
+                Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+            }else{
+                Ok(value)
+            }
         },
         input {
-            let input = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-            Ok(input)
+            if value.to_string().ne(input) {
+                Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+            }else{
+                Ok(value)
+            }
         },
         input {
             Ok(input)
