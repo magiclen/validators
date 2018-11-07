@@ -8,7 +8,7 @@ use std::fmt::{self, Display, Debug, Formatter};
 
 lazy_static! {
     static ref LINE_RE: Regex = {
-        Regex::new("^[^\x00-\x1F\x7F]*$").unwrap()
+        Regex::new("^[^\x00-\x08\x0A-\x1F\x7F]*$").unwrap()
     };
 }
 
