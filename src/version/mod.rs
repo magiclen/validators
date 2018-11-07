@@ -10,7 +10,7 @@ use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref VERSION_RE: Regex = {
-        Regex::new(r"^(\d)+(\.(\d)+)?(\.(\d)+)?(-([\S]+))?$").unwrap()
+        Regex::new(r"^(\d)+(\.(\d)+)?(\.(\d)+)?(-([^\x00-\x1F\x7F]+))?$").unwrap()
     };
 }
 

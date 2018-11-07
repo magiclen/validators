@@ -332,6 +332,8 @@ pub mod uuid;
 pub mod mac_address;
 pub mod version;
 pub mod uri;
+pub mod text;
+pub mod line;
 
 // TODO -----ValidatedCustomizedString START-----
 

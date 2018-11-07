@@ -13,7 +13,7 @@ use super::http_ftp_url::HttpFtpUrl;
 
 lazy_static! {
     static ref HTTP_URL_RE: Regex = {
-        Regex::new(r"^(?i)((http|https):)?(//)?([\S&&[^/]]+)(/[\S&&[^?#]]*)?([?]([\S&&[^#]]*))?(#([\S]*))?$").unwrap()
+        Regex::new(r"^(?i)((http|https):)?(//)?([^\x00-\x1F\x2F\x7F]+)(/[^\x00-\x1F\x23\x3F\x7F]*)?([?]([^\x00-\x1F\x23\x7F]*))?(#([^\x00-\x1F\x7F]*))?$").unwrap()
     };
 }
 

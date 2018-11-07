@@ -10,7 +10,7 @@ use std::hash::{Hash, Hasher};
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
-        Regex::new(r"^(([\S&&[^.:/]]{1,63}\.)*?)*?([\S&&[^.:/]]{1,63})(\.[\S&&[^.:/]]{1,63})?(:\d{1,5})?$").unwrap()
+        Regex::new(r"^(([^\x00-\x1F\x2E\x2F\x3A\x7F]{1,63}\.)*?)*?([^\x00-\x1F\x2E\x2F\x3A\x7F]{1,63})(\.[^\x00-\x1F\x2E\x2F\x3A\x7F]{1,63})?(:\d{1,5})?$").unwrap()
     };
 }
 

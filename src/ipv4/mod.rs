@@ -10,8 +10,7 @@ use std::str::{Utf8Error, FromStr};
 use std::hash::{Hash, Hasher};
 
 lazy_static! {
-    #[doc(hidden)]
-    pub static ref IPV4_RE: Regex = {
+    pub(crate) static ref IPV4_RE: Regex = {
         Regex::new(r"^((25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1([0-9]){1,2}|[1-9]?[0-9]))(:(\d{1,5}))?$").unwrap()
     };
 }
