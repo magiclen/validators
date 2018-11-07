@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::ops::Deref;
 
 lazy_static! {
     static ref BASE32_RE: Regex = {
@@ -48,6 +49,14 @@ impl Base32 {
         Base32 {
             base32
         }
+    }
+}
+
+impl Deref for Base32 {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base32
     }
 }
 

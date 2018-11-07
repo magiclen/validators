@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 lazy_static! {
     static ref UUID_UPPERCASE_RE: Regex = {
@@ -100,6 +101,14 @@ impl UUID {
 
     pub fn into_string(self) -> String {
         self.uuid
+    }
+}
+
+impl Deref for UUID {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.uuid
     }
 }
 
@@ -262,6 +271,14 @@ macro_rules! extend {
         impl From<$name> for UUID {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = str;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0.uuid
             }
         }
 

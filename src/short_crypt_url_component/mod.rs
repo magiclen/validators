@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::ops::Deref;
 
 lazy_static! {
     static ref SHORT_CRYPT_URL_COMPONENT_RE: Regex = {
@@ -48,6 +49,14 @@ impl ShortCryptUrlComponent {
         ShortCryptUrlComponent {
             short_crypt_url_component
         }
+    }
+}
+
+impl Deref for ShortCryptUrlComponent {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.short_crypt_url_component
     }
 }
 

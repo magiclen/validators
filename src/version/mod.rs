@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 lazy_static! {
     static ref VERSION_RE: Regex = {
@@ -77,6 +78,14 @@ impl Version {
 
     pub fn into_string(self) -> String {
         self.full_version
+    }
+}
+
+impl Deref for Version {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.full_version
     }
 }
 

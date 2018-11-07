@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 lazy_static! {
     static ref URI_RE: Regex = {
@@ -109,6 +110,14 @@ impl URI {
 
     pub fn into_string(self) -> String {
         self.full_uri
+    }
+}
+
+impl Deref for URI {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.full_uri
     }
 }
 

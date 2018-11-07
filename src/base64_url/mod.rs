@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::ops::Deref;
 
 lazy_static! {
     static ref BASE64_URL_RE: Regex = {
@@ -48,6 +49,14 @@ impl Base64Url {
         Base64Url {
             base64_url
         }
+    }
+}
+
+impl Deref for Base64Url {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base64_url
     }
 }
 

@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 lazy_static! {
     static ref MAC_ADDRESS_COLON_UPPERCASE_RE: Regex = {
@@ -115,6 +116,14 @@ impl MacAddress {
 
     pub fn into_string(self) -> String {
         self.mac_address
+    }
+}
+
+impl Deref for MacAddress {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.mac_address
     }
 }
 
@@ -483,6 +492,14 @@ macro_rules! extend {
         impl From<$name> for MacAddress {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = str;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0.mac_address
             }
         }
 

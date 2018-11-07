@@ -458,7 +458,7 @@ macro_rules! validated_customized_string_struct {
         }
 
         impl ::std::ops::Deref for $name {
-            type Target = String;
+            type Target = str;
 
             fn deref(&self) -> &Self::Target {
                 &self.$field

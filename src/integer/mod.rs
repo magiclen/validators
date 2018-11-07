@@ -3,6 +3,7 @@ use super::{Validated, ValidatedWrapper, ValidatorOption};
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum IntegerError {
@@ -66,6 +67,16 @@ impl Hash for Integer {
         state.write_i128(self.value);
     }
 }
+
+impl Deref for Integer {
+    type Target = i128;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+impl Validated for Integer {}
 
 impl Debug for Integer {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -260,6 +271,14 @@ macro_rules! extend {
         impl From<$name> for Integer {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = i128;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
             }
         }
 

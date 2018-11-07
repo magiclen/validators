@@ -4,6 +4,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::hash::{Hash, Hasher};
 use std::mem::transmute;
+use std::ops::Deref;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum NumberError {
@@ -73,6 +74,16 @@ impl Hash for Number {
         state.write(&bytes);
     }
 }
+
+impl Deref for Number {
+    type Target = f64;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+impl Validated for Number {}
 
 impl Debug for Number {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -284,6 +295,14 @@ macro_rules! extend {
         impl From<$name> for Number {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = f64;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0.value
             }
         }
 

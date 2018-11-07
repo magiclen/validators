@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::ops::Deref;
 
 lazy_static! {
     static ref LINE_RE: Regex = {
@@ -48,6 +49,14 @@ impl Line {
         Line {
             line
         }
+    }
+}
+
+impl Deref for Line {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.line
     }
 }
 

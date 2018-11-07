@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 use super::domain::{Domain, DomainUnlocalhostableWithoutPort, DomainError};
 
@@ -56,6 +57,14 @@ impl Email {
 
     pub fn into_string(self) -> String {
         self.full_email
+    }
+}
+
+impl Deref for Email {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.full_email
     }
 }
 

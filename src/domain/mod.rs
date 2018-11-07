@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
@@ -111,6 +112,15 @@ impl Domain {
 
     pub fn into_string(self) -> String {
         self.full_domain
+    }
+}
+
+
+impl Deref for Domain {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.full_domain
     }
 }
 
@@ -419,6 +429,14 @@ macro_rules! extend {
         impl From<$name> for Domain {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = str;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0.full_domain
             }
         }
 

@@ -2,6 +2,7 @@ use super::{ValidatorOption, Validated, ValidatedWrapper};
 
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
+use std::ops::Deref;
 
 use std::error::Error;
 use super::domain::{DomainValidator, DomainError, Domain};
@@ -79,6 +80,18 @@ impl Host {
             Host::Domain(d) => d.into_string(),
             Host::IPv4(d) => d.into_string(),
             Host::IPv6(d) => d.into_string()
+        }
+    }
+}
+
+impl Deref for Host {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Host::Domain(d) => d.get_full_domain(),
+            Host::IPv4(d) => d.get_full_ipv4(),
+            Host::IPv6(d) => d.get_full_ipv6()
         }
     }
 }
@@ -211,6 +224,18 @@ macro_rules! extend {
         impl From<$name> for Host {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = str;
+
+            fn deref(&self) -> &Self::Target {
+                match &self.0 {
+                    Host::Domain(d) => d.get_full_domain(),
+                    Host::IPv4(d) => d.get_full_ipv4(),
+                    Host::IPv6(d) => d.get_full_ipv6()
+                }
             }
         }
 

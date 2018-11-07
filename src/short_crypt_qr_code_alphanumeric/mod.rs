@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::ops::Deref;
 
 lazy_static! {
     static ref SHORT_CRYPT_QR_CODE_ALPHANUMERIC_RE: Regex = {
@@ -48,6 +49,14 @@ impl ShortCryptQRCodeAlphanumeric {
         ShortCryptQRCodeAlphanumeric {
             short_crypt_qr_code_alphanumeric
         }
+    }
+}
+
+impl Deref for ShortCryptQRCodeAlphanumeric {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.short_crypt_qr_code_alphanumeric
     }
 }
 

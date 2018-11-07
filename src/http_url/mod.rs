@@ -7,6 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 use std::str::Utf8Error;
 use std::hash::{Hash, Hasher};
+use std::ops::Deref;
 
 use super::host::{Host, HostLocalable, HostError};
 use super::http_ftp_url::HttpFtpUrl;
@@ -160,6 +161,14 @@ impl HttpUrl {
             is_local: self.is_local,
             is_absolute: self.is_absolute,
         }
+    }
+}
+
+impl Deref for HttpUrl {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.full_http_url
     }
 }
 
@@ -508,6 +517,14 @@ macro_rules! extend {
         impl From<$name> for HttpUrl {
             fn from(d: $name) -> Self {
                 d.0
+            }
+        }
+
+        impl Deref for $name {
+            type Target = str;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0.full_http_url
             }
         }
 

@@ -11,7 +11,6 @@ use std::ops::DerefMut;
 use std::hash::{Hash, Hasher};
 
 use self::serde_json::Value;
-use self::serde_json::Map;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum JSONError {
@@ -57,16 +56,16 @@ impl JSON {
 }
 
 impl Deref for JSON {
-    type Target = Map<String, Value>;
+    type Target = Value;
 
     fn deref(&self) -> &Self::Target {
-        self.value.as_object().unwrap()
+        &self.value
     }
 }
 
 impl DerefMut for JSON {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        self.value.as_object_mut().unwrap()
+        &mut self.value
     }
 }
 
