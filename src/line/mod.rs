@@ -7,7 +7,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
 lazy_static! {
-    static ref TEXT_RE: Regex = {
+    static ref LINE_RE: Regex = {
         Regex::new("^[^\x00-\x1F\x7F]*$").unwrap()
     };
 }
@@ -89,7 +89,7 @@ impl LineValidator {
     }
 
     fn parse_inner(&self, line: &str) -> LineResult {
-        if TEXT_RE.is_match(line) {
+        if LINE_RE.is_match(line) {
             Ok(Line {
                 line: String::new(),
             })
