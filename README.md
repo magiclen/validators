@@ -237,7 +237,7 @@ let names = Names::from_vec(names).unwrap();
 assert_eq!("[\"Ron\",\"Magic Len\"]", json!(names).to_string());
 ```
 
-Also, the `json_array` and `json_object` modules are available.
+Also, the `json`, ```json_array` and `json_object` modules are available.
 
 ## Crates.io
 
