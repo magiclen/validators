@@ -107,7 +107,7 @@ impl NumberValidator {
     pub fn parse_string(&self, full_number: String) -> NumberResult {
         let value = self.parse_inner(&full_number)?;
 
-        if value.to_string().ne(&full_number) {
+        if !precise(&value.to_string(), &full_number) {
             return Err(NumberError::UnpreciseError);
         }
 
@@ -117,7 +117,7 @@ impl NumberValidator {
     pub fn parse_str(&self, full_number: &str) -> NumberResult {
         let value = self.parse_inner(&full_number)?;
 
-        if value.to_string().ne(&full_number) {
+        if !precise(&value.to_string(), &full_number) {
             return Err(NumberError::UnpreciseError);
         }
 
@@ -282,6 +282,228 @@ mod tests {
         };
 
         nv.parse_string(full_number).unwrap();
+    }
+
+    #[test]
+    fn test_number_lv5() {
+        let full_number = "-0".to_string();
+
+        let nv = NumberValidator {
+            negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_number).unwrap();
+    }
+
+    #[test]
+    fn test_number_lv6() {
+        let full_number = "065".to_string();
+
+        let nv = NumberValidator {
+            negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_number).unwrap();
+    }
+
+    #[test]
+    fn test_number_lv7() {
+        let full_number = "65.00".to_string();
+
+        let nv = NumberValidator {
+            negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_number).unwrap();
+    }
+
+    #[test]
+    fn test_number_lv8() {
+        let full_number = "-065.00".to_string();
+
+        let nv = NumberValidator {
+            negative: ValidatorOption::Allow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_number).unwrap();
+    }
+}
+
+#[doc(hidden)]
+pub fn precise(a: &str, b: &str) -> bool {
+    let na = a.starts_with("-");
+    let a = enclose(a);
+    let nb = b.starts_with("-");
+    let b = enclose(b);
+
+    if a.len() > 0 {
+        a.eq(b) && na == nb
+    } else {
+        a.eq(b)
+    }
+}
+
+#[doc(hidden)]
+pub fn enclose(number: &str) -> &str {
+    let len = number.len();
+
+    let mut start = 0;
+
+    let mut point = None;
+
+    while start < len {
+        let s = &number[start..(start + 1)];
+
+        match s {
+            "0" | "-" | "+" => (),
+            "." => {
+                point = Some(start);
+                break;
+            }
+            _ => {
+                let mut p = start + 1;
+                while p < len {
+                    let s = &number[p..(p + 1)];
+                    if s.eq(".") {
+                        point = Some(p);
+                        break;
+                    }
+
+                    p += 1;
+                }
+                break;
+            }
+        }
+
+        start += 1;
+    }
+
+    match point {
+        Some(point) => {
+            let mut end = len - 1;
+
+            while end > point {
+                let s = &number[end..(end + 1)];
+
+                if s.ne("0") {
+                    break;
+                }
+                end -= 1;
+            }
+
+            if end == point {
+                &number[start..end]
+            } else {
+                &number[start..(end + 1)]
+            }
+        }
+        None => {
+            &number[start..]
+        }
+    }
+}
+
+#[cfg(test)]
+mod precise_tests {
+    use super::*;
+
+    #[test]
+    fn test_enclose_lv1() {
+        assert_eq!("1", enclose("1"))
+    }
+
+    #[test]
+    fn test_enclose_lv2() {
+        assert_eq!("1", enclose("1.0"))
+    }
+
+    #[test]
+    fn test_enclose_lv3() {
+        assert_eq!("1", enclose("01.0"))
+    }
+
+    #[test]
+    fn test_enclose_lv4() {
+        assert_eq!("1", enclose("0001.000"))
+    }
+
+    #[test]
+    fn test_enclose_lv5() {
+        assert_eq!(".1", enclose(".100"))
+    }
+
+    #[test]
+    fn test_enclose_lv6() {
+        assert_eq!("1", enclose("001."))
+    }
+
+    #[test]
+    fn test_enclose_lv7() {
+        assert_eq!(".1", enclose("0.1"))
+    }
+
+    #[test]
+    fn test_enclose_lv8() {
+        assert_eq!(".1", enclose("00.1"))
+    }
+
+    #[test]
+    fn test_enclose_lv9() {
+        assert_eq!(".1", enclose("0.10"))
+    }
+
+    #[test]
+    fn test_enclose_lv10() {
+        assert_eq!(".1", enclose("000.100"))
+    }
+
+    #[test]
+    fn test_enclose_lv11() {
+        assert_eq!("", enclose("0.00"))
+    }
+
+    #[test]
+    fn test_enclose_lv12() {
+        assert_eq!("", enclose("0"))
+    }
+
+    #[test]
+    fn test_enclose_lv13() {
+        assert_eq!("1.2", enclose("-001.2"))
+    }
+
+    #[test]
+    fn test_enclose_lv14() {
+        assert_eq!("", enclose(".0"))
+    }
+
+    #[test]
+    fn test_precise_lv1() {
+        assert!(precise("1", "1"))
+    }
+
+    #[test]
+    fn test_precise_lv2() {
+        assert!(precise("1", "1.00"))
+    }
+
+    #[test]
+    fn test_precise_lv3() {
+        assert!(precise("00101.00", "101.00"))
+    }
+
+    #[test]
+    fn test_precise_lv4() {
+        assert!(!precise("-5", "5"))
+    }
+
+    #[test]
+    fn test_precise_lv5() {
+        assert!(precise("-0", "0"))
     }
 }
 

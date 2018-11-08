@@ -1243,12 +1243,11 @@ macro_rules! validated_customized_regex_number_struct {
             if re.is_match(&input) {
                 let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-                if value.to_string().ne(&input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                } else{
+                if ::validators::number::precise(&value.to_string(), &input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
-
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
             }
@@ -1259,10 +1258,10 @@ macro_rules! validated_customized_regex_number_struct {
             if re.is_match(input) {
                 let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-                if value.to_string().ne(input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                } else{
+                if ::validators::number::precise(&value.to_string(), input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
@@ -1276,10 +1275,10 @@ macro_rules! validated_customized_regex_number_struct {
             if re.is_match(&input) {
                 let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-                if value.to_string().ne(&input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                } else{
+                if ::validators::number::precise(&value.to_string(), &input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
@@ -1294,10 +1293,10 @@ macro_rules! validated_customized_regex_number_struct {
             if re.is_match(&input) {
                 let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-                if value.to_string().ne(&input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                } else{
+                if ::validators::number::precise(&value.to_string(), &input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
@@ -1309,10 +1308,10 @@ macro_rules! validated_customized_regex_number_struct {
             if re.is_match(input) {
                 let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-                if value.to_string().ne(input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                } else{
+                if ::validators::number::precise(&value.to_string(), input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
@@ -1326,10 +1325,10 @@ macro_rules! validated_customized_regex_number_struct {
             if re.is_match(&input) {
                 let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-                if value.to_string().ne(&input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                } else{
+                if ::validators::number::precise(&value.to_string(), &input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::NotMatch)
@@ -1382,10 +1381,10 @@ macro_rules! validated_customized_ranged_number_struct {
             let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
             if value >= $min && value <= $max {
-                if value.to_string().ne(&input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }else{
+                if ::validators::number::precise(&value.to_string(), &input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::OutRange)
@@ -1395,10 +1394,10 @@ macro_rules! validated_customized_ranged_number_struct {
             let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
             if value >= $min && value <= $max {
-                if value.to_string().ne(input) {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }else{
+                if ::validators::number::precise(&value.to_string(), input) {
                     Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
                 }
             } else{
                 Err(::validators::ValidatedCustomizedNumberError::OutRange)
@@ -1441,20 +1440,20 @@ macro_rules! validated_customized_primitive_number_struct {
         input {
             let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-            if value.to_string().ne(&input) {
-                Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-            }else{
-                Ok(value)
-            }
+            if ::validators::number::precise(&value.to_string(), &input) {
+                    Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                }
         },
         input {
             let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
-            if value.to_string().ne(input) {
-                Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-            }else{
-                Ok(value)
-            }
+            if ::validators::number::precise(&value.to_string(), input) {
+                    Ok(value)
+                } else {
+                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
+                }
         },
         input {
             Ok(input)

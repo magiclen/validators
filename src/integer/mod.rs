@@ -1,4 +1,5 @@
 use super::{Validated, ValidatedWrapper, ValidatorOption};
+use super::number::precise;
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
@@ -100,7 +101,7 @@ impl IntegerValidator {
     pub fn parse_string(&self, full_integer: String) -> IntegerResult {
         let value = self.parse_inner(&full_integer)?;
 
-        if value.to_string().ne(&full_integer) {
+        if !precise(&value.to_string(), &full_integer) {
             return Err(IntegerError::UnpreciseError);
         }
 
@@ -110,7 +111,7 @@ impl IntegerValidator {
     pub fn parse_str(&self, full_integer: &str) -> IntegerResult {
         let value = self.parse_inner(&full_integer)?;
 
-        if value.to_string().ne(&full_integer) {
+        if !precise(&value.to_string(), &full_integer) {
             return Err(IntegerError::UnpreciseError);
         }
 
@@ -254,6 +255,54 @@ mod tests {
 
         let nv = IntegerValidator {
             negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_integer).unwrap();
+    }
+
+    #[test]
+    fn test_integer_lv4() {
+        let full_integer = "-0".to_string();
+
+        let nv = IntegerValidator {
+            negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_integer).unwrap();
+    }
+
+    #[test]
+    fn test_integer_lv5() {
+        let full_integer = "065".to_string();
+
+        let nv = IntegerValidator {
+            negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_integer).unwrap();
+    }
+
+    #[test]
+    fn test_integer_lv6() {
+        let full_integer = "65.00".to_string();
+
+        let nv = IntegerValidator {
+            negative: ValidatorOption::NotAllow,
+            zero: ValidatorOption::Allow,
+        };
+
+        nv.parse_string(full_integer).unwrap();
+    }
+
+    #[test]
+    fn test_integer_lv7() {
+        let full_integer = "-065.00".to_string();
+
+        let nv = IntegerValidator {
+            negative: ValidatorOption::Allow,
             zero: ValidatorOption::Allow,
         };
 
