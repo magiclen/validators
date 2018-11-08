@@ -166,7 +166,7 @@
 //!
 //! For example,
 //!
-//! ```
+//! ```rust,ignore
 //! extern crate validators;
 //!
 //! use validators::phone_number::PhoneNumberValidator;
