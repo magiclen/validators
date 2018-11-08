@@ -156,6 +156,36 @@ All validated wrapper types and validated customized structs implement the `Vali
 
 Read the documentation to know more helpful customized macros.
 
+## Phone Number Support
+
+This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. The validator for phone numbers is in the `phone_number` module.
+
+To use `phone_number` module, you have to enable the **phone_<COUNTRY_CODE>** features for this crate. Or just use **phone** to enable the module for all countries.
+
+```toml
+[dependencies.validators]
+version = "*"
+features = ["phone_tw", "phone_us"]
+```
+
+For example,
+
+```rust
+extern crate validators;
+
+use validators::phone_number::PhoneNumberValidator;
+use validators::phonenumber::country;
+
+let phone_number = "0912345678".to_string();
+
+let pnv = PhoneNumberValidator {};
+
+let phone_number = pnv.parse_string(phone_number).unwrap();
+
+assert_eq!("0912345678", phone_number.get_full_phone_number());
+assert!(phone_number.get_countries().contains(&country::TW));
+```
+
 ## Rocket Support
 
 This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` and `FromParam` traits.
