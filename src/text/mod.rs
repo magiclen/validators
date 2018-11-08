@@ -5,6 +5,7 @@ use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
 use std::fmt::{self, Display, Debug, Formatter};
+use std::str::Utf8Error;
 use std::ops::Deref;
 
 lazy_static! {
@@ -16,6 +17,7 @@ lazy_static! {
 #[derive(Debug, PartialEq, Clone)]
 pub enum TextError {
     IncorrectFormat,
+    UTF8Error(Utf8Error),
 }
 
 impl Display for TextError {
@@ -165,7 +167,7 @@ impl<'a> ::rocket::request::FromParam<'a> for Text {
     type Error = TextError;
 
     fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Text::from_str(param)
+        Text::from_string(param.url_decode().map_err(|err| TextError::UTF8Error(err))?)
     }
 }
 
@@ -174,7 +176,7 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Text {
     type Error = TextError;
 
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Text::from_str(form_value)
+        Text::from_string(form_value.url_decode().map_err(|err| TextError::UTF8Error(err))?)
     }
 }
 
