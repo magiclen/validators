@@ -154,6 +154,8 @@
 //!
 //! ## Phone Number Support
 //!
+//! This will be totally changed after version 0.19.
+//!
 //! This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. The validator for phone numbers is in the `phone_number` module.
 //!
 //! To use `phone_number` module, you have to enable the **phone_<COUNTRY_CODE>** features for this crate. Or just use **phone** to enable the module for all countries.
