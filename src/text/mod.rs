@@ -10,7 +10,7 @@ use std::ops::Deref;
 
 lazy_static! {
     static ref TEXT_RE: Regex = {
-        Regex::new("^([^\x00-\x08\x0A-\x1F\x7F]|\n|\r\n|\n\r)*$").unwrap()
+        Regex::new("^([^\x00-\x08\x0A-\x1F\x7F]|\r\n|\n\r|\n)*$").unwrap()
     };
 }
 
