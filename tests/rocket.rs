@@ -12,7 +12,7 @@ use validators::domain::DomainLocalhostableWithPort;
 use validators::email::Email;
 
 #[test]
-fn test_from_form_value() {
+fn from_form_value() {
     validated_customized_regex_string!(Lang, r"^(us|cn|tw)$");
     validated_customized_ranged_number!(PersonAge, u8, 0, 130);
 
@@ -48,7 +48,7 @@ fn test_from_form_value() {
 
 #[test]
 #[allow(dead_code)]
-fn test_from_param() {
+fn from_param() {
     validated_customized_ranged_number!(PersonID, u8, 0, 130);
 
     #[get("/person/<_id>")]

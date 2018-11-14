@@ -1,271 +1,273 @@
-//! # Validators
-//!
-//! This crate provides many validators for validating data from users and modeling them to structs without much extra effort.
-//!
-//! All validators are separated into different modules and unified for two main types: **XXX** and **XXXValidator** where **XXX** is a type that you want to validate.
-//!
-//! The former is a struct or a enum, and the latter is a struct which can be considered as a generator of the former.
-//!
-//! A **XXXValidator** struct usually contains some values of `ValidatorOption` in order to use different rules to check data.
-//!
-//! For example, the mod `domain` has `Domain` and `DomainValidator` structs. If we want to create a `Domain` instance, we need to create a `DomainValidator` instance first.
-//!
-//! When initialing a `DomainValidator`, we can choose to make this `DomainValidator` **allow** or **not allow** the input to have or **must** have a port number.
-//!
-//! ```
-//! extern crate validators;
-//!
-//! use validators::ValidatorOption;
-//! use validators::domain::{Domain, DomainValidator};
-//!
-//! let domain = "tool.magiclen.org:8080".to_string();
-//!
-//! let dv = DomainValidator {
-//!     port: ValidatorOption::Allow,
-//!     localhost: ValidatorOption::NotAllow,
-//! };
-//!
-//! let domain = dv.parse_string(domain).unwrap();
-//!
-//! assert_eq!("tool.magiclen.org:8080", domain.get_full_domain());
-//! assert_eq!("tool.magiclen.org", domain.get_full_domain_without_port());
-//! assert_eq!("org", domain.get_top_level_domain().unwrap());
-//! assert_eq!("tool", domain.get_sub_domain().unwrap());
-//! assert_eq!("magiclen", domain.get_domain());
-//! assert_eq!(8080, domain.get_port().unwrap());
-//! ```
-//!
-//! If you want the **XXX** model to be stricter, you can use its wrapper type which is something like **XXXWithPort** or **XXXWithoutPort**.
-//!
-//! For instance, `Domain` has some wrappers, such as **DomainLocalhostableWithPort**, **DomainLocalhostableAllowPort** and **DomainLocalhostableWithoutPort**.
-//!
-//! ```
-//! extern crate validators;
-//!
-//! use validators::domain::{DomainLocalhostableWithPort};
-//!
-//! let domain = "tool.magiclen.org:8080".to_string();
-//!
-//! let domain = DomainLocalhostableWithPort::from_string(domain).unwrap();
-//!
-//! assert_eq!("tool.magiclen.org:8080", domain.get_full_domain());
-//! assert_eq!("tool.magiclen.org", domain.get_full_domain_without_port());
-//! assert_eq!("org", domain.get_top_level_domain().unwrap());
-//! assert_eq!("tool", domain.get_sub_domain().unwrap());
-//! assert_eq!("magiclen", domain.get_domain());
-//! assert_eq!(8080, domain.get_port()); // This function does not use `Option` as its return value, because the struct `DomainLocalhostableWithPort` has already made sure the input must have a port number!
-//! ```
-//!
-//! This crate aims to use the simplest and slackest way (normally only use regular expressions) to validate data, in order to minimize the overhead.
-//!
-//! Therefore, it may not be competent in some critical situations. Use it carefully. Check out the documentation to see more useful validators and wrapper types.
-//!
-//! ## Customization
-//!
-//! This crate also provides macros to create customized validated structs for any strings, numbers and Vecs.
-//!
-//! For example, to create a struct which only allows **"Hi"** or **"Hello"** restricted by a regular expression,
-//!
-//! ```
-//! #[macro_use] extern crate validators;
-//!
-//! validated_customized_regex_string!(Greet, "^(Hi|Hello)$");
-//!
-//! let s = Greet::from_str("Hi").unwrap();
-//! ```
-//!
-//! While a regex needs to be compiled before it operates, if you want to reuse a compiled regex, you can add a **ref** keyword, and pass a static Regex instance to the macro,
-//!
-//! ```
-//! #[macro_use] extern crate validators;
-//! #[macro_use] extern crate lazy_static;
-//! extern crate regex;
-//!
-//! use regex::Regex;
-//!
-//! lazy_static! {
-//!     static ref RE_GREET: Regex = {
-//!         Regex::new("^(Hi|Hello)$").unwrap()
-//!     };
-//! }
-//!
-//! validated_customized_regex_string!(Greet, ref RE_GREET);
-//!
-//! let s = Greet::from_str("Hi").unwrap();
-//! ```
-//!
-//! You can also make your struct public by adding a **pub** keyword,
-//!
-//! ```
-//! #[macro_use] extern crate validators;
-//!
-//! validated_customized_regex_string!(pub Greet, "^(Hi|Hello)$");
-//!
-//! let s = Greet::from_str("Hi").unwrap();
-//! ```
-//!
-//! For numbers limited in a range,
-//!
-//! ```
-//! #[macro_use] extern crate validators;
-//!
-//! validated_customized_ranged_number!(Score, u8, 0, 100);
-//!
-//! let score = Score::from_str("80").unwrap();
-//! ```
-//!
-//! For a Vec whose length is limited in a range,
-//!
-//! ```
-//! #[macro_use] extern crate validators;
-//!
-//! validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
-//! validated_customized_ranged_length_vec!(Names, 1, 5);
-//!
-//! let mut names = Vec::new();
-//!
-//! names.push(Name::from_str("Ron").unwrap());
-//! names.push(Name::from_str("Magic Len").unwrap());
-//!
-//! let names = Names::from_vec(names).unwrap();
-//! ```
-//!
-//! For a HashSet whose length is limited in a range,
-//!
-//! ```
-//! #[macro_use] extern crate validators;
-//!
-//! use std::collections::HashSet;
-//!
-//! validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
-//! validated_customized_ranged_length_hash_set!(Names, 1, 5);
-//!
-//! let mut names = HashSet::new();
-//!
-//! names.insert(Name::from_str("Ron").unwrap());
-//! names.insert(Name::from_str("Magic Len").unwrap());
-//!
-//! let names = Names::from_hash_set(names).unwrap();
-//! ```
-//!
-//! All validated wrapper types and validated customized structs implement the `ValidatedWrapper` trait.
-//!
-//! Read the documentation to know more helpful customized macros.
-//!
-//! ## Phone Number Support
-//!
-//! This will be totally changed after version 0.19.
-//!
-//! This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. The validator for phone numbers is in the `phone_number` module.
-//!
-//! To use `phone_number` module, you have to enable the **phone_<COUNTRY_CODE>** features for this crate. Or just use **phone** to enable the module for all countries.
-//!
-//! ```toml
-//! [dependencies.validators]
-//! version = "*"
-//! features = ["phone_tw", "phone_us"]
-//! ```
-//!
-//! For example,
-//!
-//! ```rust,ignore
-//! extern crate validators;
-//!
-//! use validators::phone_number::PhoneNumberValidator;
-//! use validators::phonenumber::country;
-//!
-//! let phone_number = "0912345678".to_string();
-//!
-//! let pnv = PhoneNumberValidator {};
-//!
-//! let phone_number = pnv.parse_string(phone_number).unwrap();
-//!
-//! assert_eq!("0912345678", phone_number.get_full_phone_number());
-//! assert!(phone_number.get_countries().contains(&country::TW));
-//! ```
-//!
-//! ## Rocket Support
-//!
-//! This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` and `FromParam` traits.
-//!
-//! To use with Rocket support, you have to enable **rocketly** feature for this crate.
-//!
-//! ```toml
-//! [dependencies.validators]
-//! version = "*"
-//! features = ["rocketly"]
-//! ```
-//!
-//! For example,
-//!
-//! ```rust,ignore
-//! #![feature(plugin)]
-//! #![feature(custom_derive)]
-//! #![plugin(rocket_codegen)]
-//!
-//! #[macro_use] extern crate validators;
-//!
-//! extern crate rocket;
-//!
-//! use rocket::request::Form;
-//!
-//! use validators::http_url::HttpUrlUnlocalableWithProtocol;
-//! use validators::email::Email;
-//!
-//! validated_customized_ranged_number!(PersonID, u8, 0, 100);
-//! validated_customized_regex_string!(Name, r"^[\S ]{1,80}$");
-//! validated_customized_ranged_number!(PersonAge, u8, 0, 130);
-//!
-//! #[derive(Debug, FromForm)]
-//! struct ContactModel {
-//!     name: Name,
-//!     age: Option<PersonAge>,
-//!     email: Email,
-//!     url: Option<HttpUrlUnlocalableWithProtocol>
-//! }
-//!
-//! #[post("/contact/<id>", data = "<model>")]
-//! fn contact(id: PersonID, model: Form<ContactModel>) -> &'static str {
-//!     println!("{}", id);
-//!     println!("{:?}", model.get());
-//!     "do something..."
-//! }
-//! ```
-//!
-//! ## Serde Support
-//!
-//! Serde is a framework for serializing and deserializing Rust data structures efficiently and generically. And again, this crate supports [Serde](https://crates.io/crates/serde) framework.
-//!
-//! All validated wrapper types and validated customized structs implement the `Serialize` and `Deserialize` traits.
-//!
-//! To use with Serde support, you have to enable **serdely** feature for this crate.
-//!
-//! ```toml
-//! [dependencies.validators]
-//! version = "*"
-//! features = ["serdely"]
-//! ```
-//!
-//! For example,
-//!
-//! ```rust,ignore
-//! #[macro_use] extern crate validators;
-//! #[macro_use] extern crate serde_json;
-//!
-//! validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
-//! validated_customized_ranged_length_vec!(Names, 1, 5);
-//!
-//! let mut names = Vec::new();
-//!
-//! names.push(Name::from_str("Ron").unwrap());
-//! names.push(Name::from_str("Magic Len").unwrap());
-//!
-//! let names = Names::from_vec(names).unwrap();
-//!
-//! assert_eq!("[\"Ron\",\"Magic Len\"]", json!(names).to_string());
-//! ```
-//!
-//! Also, the `json`, `json_array` and `json_object` modules are available.
+/*!
+# Validators
+
+This crate provides many validators for validating data from users and modeling them to structs without much extra effort.
+
+All validators are separated into different modules and unified for two main types: **XXX** and **XXXValidator** where **XXX** is a type that you want to validate.
+
+The former is a struct or a enum, and the latter is a struct which can be considered as a generator of the former.
+
+A **XXXValidator** struct usually contains some values of `ValidatorOption` in order to use different rules to check data.
+
+For example, the mod `domain` has `Domain` and `DomainValidator` structs. If we want to create a `Domain` instance, we need to create a `DomainValidator` instance first.
+
+When initialing a `DomainValidator`, we can choose to make this `DomainValidator` **allow** or **not allow** the input to have or **must** have a port number.
+
+```rust
+extern crate validators;
+
+use validators::ValidatorOption;
+use validators::domain::{Domain, DomainValidator};
+
+let domain = "tool.magiclen.org:8080".to_string();
+
+let dv = DomainValidator {
+    port: ValidatorOption::Allow,
+    localhost: ValidatorOption::NotAllow,
+};
+
+let domain = dv.parse_string(domain).unwrap();
+
+assert_eq!("tool.magiclen.org:8080", domain.get_full_domain());
+assert_eq!("tool.magiclen.org", domain.get_full_domain_without_port());
+assert_eq!("org", domain.get_top_level_domain().unwrap());
+assert_eq!("tool", domain.get_sub_domain().unwrap());
+assert_eq!("magiclen", domain.get_domain());
+assert_eq!(8080, domain.get_port().unwrap());
+```
+
+If you want the **XXX** model to be stricter, you can use its wrapper type which is something like **XXXWithPort** or **XXXWithoutPort**.
+
+For instance, `Domain` has some wrappers, such as **DomainLocalhostableWithPort**, **DomainLocalhostableAllowPort** and **DomainLocalhostableWithoutPort**.
+
+```rust
+extern crate validators;
+
+use validators::domain::{DomainLocalhostableWithPort};
+
+let domain = "tool.magiclen.org:8080".to_string();
+
+let domain = DomainLocalhostableWithPort::from_string(domain).unwrap();
+
+assert_eq!("tool.magiclen.org:8080", domain.get_full_domain());
+assert_eq!("tool.magiclen.org", domain.get_full_domain_without_port());
+assert_eq!("org", domain.get_top_level_domain().unwrap());
+assert_eq!("tool", domain.get_sub_domain().unwrap());
+assert_eq!("magiclen", domain.get_domain());
+assert_eq!(8080, domain.get_port()); // This function does not use `Option` as its return value, because the struct `DomainLocalhostableWithPort` has already made sure the input must have a port number!
+```
+
+This crate aims to use the simplest and slackest way (normally only use regular expressions) to validate data, in order to minimize the overhead.
+
+Therefore, it may not be competent in some critical situations. Use it carefully. Check out the documentation to see more useful validators and wrapper types.
+
+## Customization
+
+This crate also provides macros to create customized validated structs for any strings, numbers and Vecs.
+
+For example, to create a struct which only allows **"Hi"** or **"Hello"** restricted by a regular expression,
+
+```rust
+#[macro_use] extern crate validators;
+
+validated_customized_regex_string!(Greet, "^(Hi|Hello)$");
+
+let s = Greet::from_str("Hi").unwrap();
+```
+
+While a regex needs to be compiled before it operates, if you want to reuse a compiled regex, you can add a **ref** keyword, and pass a static Regex instance to the macro,
+
+```rust
+#[macro_use] extern crate validators;
+#[macro_use] extern crate lazy_static;
+extern crate regex;
+
+use regex::Regex;
+
+lazy_static! {
+    static ref RE_GREET: Regex = {
+        Regex::new("^(Hi|Hello)$").unwrap()
+    };
+}
+
+validated_customized_regex_string!(Greet, ref RE_GREET);
+
+let s = Greet::from_str("Hi").unwrap();
+```
+
+You can also make your struct public by adding a **pub** keyword,
+
+```rust
+#[macro_use] extern crate validators;
+
+validated_customized_regex_string!(pub Greet, "^(Hi|Hello)$");
+
+let s = Greet::from_str("Hi").unwrap();
+```
+
+For numbers limited in a range,
+
+```rust
+#[macro_use] extern crate validators;
+
+validated_customized_ranged_number!(Score, u8, 0, 100);
+
+let score = Score::from_str("80").unwrap();
+```
+
+For a Vec whose length is limited in a range,
+
+```rust
+#[macro_use] extern crate validators;
+
+validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+validated_customized_ranged_length_vec!(Names, 1, 5);
+
+let mut names = Vec::new();
+
+names.push(Name::from_str("Ron").unwrap());
+names.push(Name::from_str("Magic Len").unwrap());
+
+let names = Names::from_vec(names).unwrap();
+```
+
+For a HashSet whose length is limited in a range,
+
+```rust
+#[macro_use] extern crate validators;
+
+use std::collections::HashSet;
+
+validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+validated_customized_ranged_length_hash_set!(Names, 1, 5);
+
+let mut names = HashSet::new();
+
+names.insert(Name::from_str("Ron").unwrap());
+names.insert(Name::from_str("Magic Len").unwrap());
+
+let names = Names::from_hash_set(names).unwrap();
+```
+
+All validated wrapper types and validated customized structs implement the `ValidatedWrapper` trait.
+
+Read the documentation to know more helpful customized macros.
+
+## Phone Number Support
+
+This will be totally changed after version 0.19.
+
+This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. The validator for phone numbers is in the `phone_number` module.
+
+To use `phone_number` module, you have to enable the **phone_<COUNTRY_CODE>** features for this crate. Or just use **phone** to enable the module for all countries.
+
+```toml
+[dependencies.validators]
+version = "*"
+features = ["phone_tw", "phone_us"]
+```
+
+For example,
+
+```rust,ignore
+extern crate validators;
+
+use validators::phone_number::PhoneNumberValidator;
+use validators::phonenumber::country;
+
+let phone_number = "0912345678".to_string();
+
+let pnv = PhoneNumberValidator {};
+
+let phone_number = pnv.parse_string(phone_number).unwrap();
+
+assert_eq!("0912345678", phone_number.get_full_phone_number());
+assert!(phone_number.get_countries().contains(&country::TW));
+```
+
+## Rocket Support
+
+This crate supports [Rocket](https://rocket.rs/) framework. All validated wrapper types and validated customized structs implement the `FromFormValue` and `FromParam` traits.
+
+To use with Rocket support, you have to enable **rocketly** feature for this crate.
+
+```toml
+[dependencies.validators]
+version = "*"
+features = ["rocketly"]
+```
+
+For example,
+
+```rust,ignore
+#![feature(plugin)]
+#![feature(custom_derive)]
+#![plugin(rocket_codegen)]
+
+#[macro_use] extern crate validators;
+
+extern crate rocket;
+
+use rocket::request::Form;
+
+use validators::http_url::HttpUrlUnlocalableWithProtocol;
+use validators::email::Email;
+
+validated_customized_ranged_number!(PersonID, u8, 0, 100);
+validated_customized_regex_string!(Name, r"^[\S ]{1,80}$");
+validated_customized_ranged_number!(PersonAge, u8, 0, 130);
+
+#[derive(Debug, FromForm)]
+struct ContactModel {
+    name: Name,
+    age: Option<PersonAge>,
+    email: Email,
+    url: Option<HttpUrlUnlocalableWithProtocol>
+}
+
+#[post("/contact/<id>", data = "<model>")]
+fn contact(id: PersonID, model: Form<ContactModel>) -> &'static str {
+    println!("{}", id);
+    println!("{:?}", model.get());
+    "do something..."
+}
+```
+
+## Serde Support
+
+Serde is a framework for serializing and deserializing Rust data structures efficiently and generically. And again, this crate supports [Serde](https://crates.io/crates/serde) framework.
+
+All validated wrapper types and validated customized structs implement the `Serialize` and `Deserialize` traits.
+
+To use with Serde support, you have to enable **serdely** feature for this crate.
+
+```toml
+[dependencies.validators]
+version = "*"
+features = ["serdely"]
+```
+
+For example,
+
+```rust,ignore
+#[macro_use] extern crate validators;
+#[macro_use] extern crate serde_json;
+
+validated_customized_regex_string!(Name, "^[A-Z][a-zA-Z]*( [A-Z][a-zA-Z]*)*$");
+validated_customized_ranged_length_vec!(Names, 1, 5);
+
+let mut names = Vec::new();
+
+names.push(Name::from_str("Ron").unwrap());
+names.push(Name::from_str("Magic Len").unwrap());
+
+let names = Names::from_vec(names).unwrap();
+
+assert_eq!("[\"Ron\",\"Magic Len\"]", json!(names).to_string());
+```
+
+Also, the `json`, `json_array` and `json_object` modules are available.
+*/
 
 #![cfg_attr(feature = "nightly", feature(ip))]
 
@@ -287,53 +289,11 @@ pub extern crate phonenumber;
 
 pub extern crate number_as;
 
-use number_as::Number;
+mod validator_option;
 
-#[cfg(feature = "serdely")]
-use number_as::NumberAs;
+pub use validator_option::*;
 
-use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
-use std::cmp::{PartialEq, Eq};
-use std::str::Utf8Error;
-use std::collections::HashSet;
-use std::hash::Hash;
-
-#[doc(hidden)]
-pub const REGEX_SIZE_LIMIT: usize = 26214400;
-
-#[derive(Debug, PartialEq)]
-pub enum ValidatorOption {
-    Must,
-    Allow,
-    NotAllow,
-}
-
-impl ValidatorOption {
-    pub fn allow(&self) -> bool {
-        match self {
-            ValidatorOption::Must => true,
-            ValidatorOption::Allow => true,
-            ValidatorOption::NotAllow => false
-        }
-    }
-
-    pub fn not_allow(&self) -> bool {
-        match self {
-            ValidatorOption::Must => false,
-            ValidatorOption::Allow => false,
-            ValidatorOption::NotAllow => true
-        }
-    }
-
-    pub fn must(&self) -> bool {
-        match self {
-            ValidatorOption::Must => true,
-            ValidatorOption::Allow => false,
-            ValidatorOption::NotAllow => false
-        }
-    }
-}
+use std::fmt::{Display, Debug};
 
 pub trait Validated: Display + PartialEq + Clone + Debug {}
 
@@ -374,1857 +334,12 @@ pub mod integer;
 #[cfg(feature = "phone_number")]
 pub mod phone_number;
 
-// TODO -----ValidatedCustomizedString START-----
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ValidatedCustomizedStringError {
-    RegexError(regex::Error),
-    NotMatch,
-    UTF8Error(Utf8Error),
-}
-
-impl Display for ValidatedCustomizedStringError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
-}
-
-impl Error for ValidatedCustomizedStringError {}
-
-#[cfg(feature = "serdely")]
-pub struct StringVisitor<V>(pub Vec<V>);
-
-#[cfg(feature = "serdely")]
-impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for StringVisitor<V> {
-    type Value = V;
-
-    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-        formatter.write_fmt(format_args!("a string({})", stringify!($name)))
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_str(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_string(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-}
-
-#[cfg(feature = "serdely")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_string_struct_implement_se_de {
-     ( $name:ident ) => {
-        impl<'de> ::validators::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_string(::validators::StringVisitor(Vec::<$name>::new()))
-            }
-        }
-
-        impl ::validators::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
-                serializer.serialize_str(self.as_str())
-            }
-        }
-     }
-}
-
-#[cfg(not(feature = "serdely"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_string_struct_implement_se_de {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[cfg(feature = "rocketly")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_string_struct_implement_from_form_value {
-    ( $name:ident ) => {
-        impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedStringError;
-
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
-            }
-        }
-
-        impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedStringError;
-
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
-            }
-        }
-    }
-}
-
-#[cfg(not(feature = "rocketly"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_string_struct_implement_from_form_value {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[macro_export]
-macro_rules! validated_customized_string_struct {
-    ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
-        impl ::std::fmt::Debug for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
-                Ok(())
-            }
-        }
-
-        impl ::std::fmt::Display for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_str(&self.$field)?;
-                Ok(())
-            }
-        }
-
-        impl ::std::ops::Deref for $name {
-            type Target = str;
-
-            fn deref(&self) -> &Self::Target {
-                &self.$field
-            }
-        }
-
-        impl ::validators::Validated for $name {}
-
-        impl ::validators::ValidatedWrapper for $name {
-            type Error = ::validators::ValidatedCustomizedStringError;
-
-            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
-                $name::from_string($from_string_input)
-            }
-
-            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
-                $name::from_str($from_str_input)
-            }
-        }
-
-        impl<'a> $name {
-            pub fn as_str(&'a self) -> &'a str {
-                &self.$field
-            }
-
-            pub fn into_string(self) -> String {
-                self.$field
-            }
-
-            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
-                let $field = match $from_string {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
-                let $field = match $from_str {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub unsafe fn from_string_unchecked($from_string_input: String) -> Self{
-                $name{$field:$from_string_input}
-            }
-        }
-
-        validated_customized_string_struct_implement_from_form_value!($name);
-
-        validated_customized_string_struct_implement_se_de!($name);
-    };
-    ( $name:ident, $field:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_string_struct!($name, $field, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $field:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_string_struct!($name, $field, $from_string_input $from_string, $from_str_input $from_str);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_string {
-    ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
-            s: String
-        }
-
-        validated_customized_string_struct!($name, s, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_string!($name, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_string!($name, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
-            s: String
-        }
-
-        validated_customized_string_struct!($name, s, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_string!(pub $name, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_string!(pub $name, $from_string_input $from_string, $from_str_input $from_str);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_regex_string_struct {
-    ( $name:ident, $field:ident, $re:expr ) => {
-        validated_customized_string_struct!($name, $field,
-        input {
-            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
-
-            if re.is_match(&input) {
-                Ok(input)
-            } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
-            }
-        },
-        input {
-            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
-
-            if re.is_match(input) {
-                Ok(input.to_string())
-            } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
-            }
-        });
-    };
-    ( $name:ident, $field:ident, ref $re:expr ) => {
-        validated_customized_string_struct!($name, $field,
-        input {
-            let re: &::validators::regex::Regex = &$re;
-
-            if re.is_match(&input) {
-                Ok(input)
-            } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
-            }
-        },
-        input {
-            let re: &::validators::regex::Regex = &$re;
-
-            if re.is_match(input) {
-                Ok(input.to_string())
-            } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
-            }
-        });
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_regex_string {
-    ( $name:ident, $re:expr ) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
-            s: String
-        }
-
-        validated_customized_regex_string_struct!($name, s, $re);
-    };
-    ( pub $name:ident, $re:expr ) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
-            s: String
-        }
-
-        validated_customized_regex_string_struct!($name, s, $re);
-    };
-    ( $name:ident, ref $re:expr ) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
-            s: String
-        }
-
-        validated_customized_regex_string_struct!($name, s, ref $re);
-    };
-    ( pub $name:ident, ref $re:expr ) => {
-        #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
-            s: String
-        }
-
-        validated_customized_regex_string_struct!($name, s, ref $re);
-    };
-}
-
-// TODO -----ValidatedCustomizedString END-----
-
-// TODO -----ValidatedCustomizedNumber START-----
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ValidatedCustomizedNumberError {
-    RegexError(regex::Error),
-    ParseError(String),
-    UnpreciseError,
-    OutRange,
-    NotMatch,
-    UTF8Error(Utf8Error),
-}
-
-impl Display for ValidatedCustomizedNumberError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
-}
-
-impl Error for ValidatedCustomizedNumberError {}
-
-pub trait ValidatedNumberWrapper<T: Number>: ValidatedWrapper {
-    fn from_number(n: T) -> Result<Self, ValidatedCustomizedNumberError>;
-}
-
-#[cfg(feature = "serdely")]
-pub struct NumberVisitor<V, T>(pub Vec<V>, pub Vec<T>);
-
-#[cfg(feature = "serdely")]
-impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: ValidatedWrapper + ValidatedNumberWrapper<T>,
-                                                                      T: Number,
-                                                                      u8: NumberAs<T>,
-                                                                      u16: NumberAs<T>,
-                                                                      u32: NumberAs<T>,
-                                                                      u64: NumberAs<T>,
-                                                                      u128: NumberAs<T>,
-                                                                      i8: NumberAs<T>,
-                                                                      i16: NumberAs<T>,
-                                                                      i32: NumberAs<T>,
-                                                                      i64: NumberAs<T>,
-                                                                      i128: NumberAs<T>,
-                                                                      f32: NumberAs<T>,
-                                                                      f64: NumberAs<T> {
-    type Value = V;
-
-    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-        formatter.write_fmt(format_args!("a string({})", stringify!($name)))
-    }
-
-    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    serde_if_integer128! {
-        fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E> where E: serde::de::Error {
-            V::from_number(v.number_as()).map_err(|err| {
-                E::custom(err.to_string())
-            })
-        }
-    }
-
-    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    serde_if_integer128! {
-        fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E> where E: serde::de::Error {
-            V::from_number(v.number_as()).map_err(|err| {
-                E::custom(err.to_string())
-            })
-        }
-    }
-
-    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-
-    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
-    }
-}
-
-#[cfg(feature = "serdely")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_number_struct_implement_se_de {
-    ( $name:ident, $t:ident ) => {
-        impl<'de> ::validators::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                let v = ::validators::NumberVisitor(Vec::<$name>::new(), Vec::<$t>::new());
-
-                match stringify!($t) {
-                    "u8" => deserializer.deserialize_u8(v),
-                    "u16" => deserializer.deserialize_u16(v),
-                    "u32" => deserializer.deserialize_u32(v),
-                    "u64" => deserializer.deserialize_u64(v),
-                    "u128" => deserializer.deserialize_u128(v),
-                    "i8" => deserializer.deserialize_i8(v),
-                    "i16" => deserializer.deserialize_i16(v),
-                    "i32" => deserializer.deserialize_i32(v),
-                    "i64" => deserializer.deserialize_i64(v),
-                    "i128" => deserializer.deserialize_i128(v),
-                    "f32" => deserializer.deserialize_f32(v),
-                    "f64" => deserializer.deserialize_f64(v),
-                    _ => unreachable!()
-                }
-            }
-        }
-
-        impl ::validators::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
-                match stringify!($t) {
-                    "u8" => serializer.serialize_u8(self.get_number() as u8),
-                    "u16" => serializer.serialize_u16(self.get_number() as u16),
-                    "u32" => serializer.serialize_u32(self.get_number() as u32),
-                    "u64" => serializer.serialize_u64(self.get_number() as u64),
-                    "u128" => serializer.serialize_u128(self.get_number() as u128),
-                    "i8" => serializer.serialize_i8(self.get_number() as i8),
-                    "i16" => serializer.serialize_i16(self.get_number() as i16),
-                    "i32" => serializer.serialize_i32(self.get_number() as i32),
-                    "i64" => serializer.serialize_i64(self.get_number() as i64),
-                    "i128" => serializer.serialize_i128(self.get_number() as i128),
-                    "f32" => serializer.serialize_f32(self.get_number() as f32),
-                    "f64" => serializer.serialize_f64(self.get_number() as f64),
-                    _ => unreachable!()
-                }
-            }
-        }
-    }
-}
-
-#[cfg(not(feature = "serdely"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_number_struct_implement_se_de {
-    ( $name:ident, $t:expr ) => {
-
-    }
-}
-
-#[cfg(feature = "rocketly")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_number_struct_implement_from_form_value {
-    ( $name:ident ) => {
-        impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedNumberError;
-
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedNumberError::UTF8Error(err))?)
-            }
-        }
-
-        impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedNumberError;
-
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedNumberError::UTF8Error(err))?)
-            }
-        }
-    }
-}
-
-#[cfg(not(feature = "rocketly"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_number_struct_implement_from_form_value {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[macro_export]
-macro_rules! validated_customized_number_struct {
-    ( $name:ident, $field:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
-        impl ::std::fmt::Debug for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
-                Ok(())
-            }
-        }
-
-        impl ::std::fmt::Display for $name {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}", self.$field))?;
-                Ok(())
-            }
-        }
-
-        impl ::std::cmp::Eq for $name {}
-
-        impl ::std::hash::Hash for $name{
-            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
-                match stringify!($t) {
-                    "u8" => {
-                        state.write_u8(self.get_number() as u8);
-                    },
-                    "u16" => {
-                        state.write_u16(self.get_number() as u16);
-                    },
-                    "u32" => {
-                        state.write_u32(self.get_number() as u32);
-                    },
-                    "u64" => {
-                        state.write_u64(self.get_number() as u64);
-                    },
-                    "u128" => {
-                        state.write_u128(self.get_number() as u128);
-                    },
-                    "i8" => {
-                        state.write_i8(self.get_number() as i8);
-                    },
-                    "i16" => {
-                        state.write_i16(self.get_number() as i16);
-                    },
-                    "i32" => {
-                        state.write_i32(self.get_number() as i32);
-                    },
-                    "i64" => {
-                        state.write_i64(self.get_number() as i64);
-                    },
-                    "i128" => {
-                        state.write_i128(self.get_number() as i128);
-                    },
-                    "f32" => {
-                        let bytes: [u8; 4] = unsafe{ ::std::mem::transmute(self.get_number() as f32) };
-                        state.write(&bytes);
-                    },
-                    "f64" => {
-                        let bytes: [u8; 8] = unsafe{ ::std::mem::transmute(self.get_number() as f64) };
-                        state.write(&bytes);
-                    },
-                    _ => unreachable!()
-                }
-            }
-        }
-
-        impl ::validators::Validated for $name {}
-
-        impl ::std::ops::Deref for $name {
-            type Target = $t;
-
-            fn deref(&self) -> &Self::Target {
-                &self.$field
-            }
-        }
-
-        impl ::validators::ValidatedWrapper for $name {
-            type Error = ::validators::ValidatedCustomizedNumberError;
-
-            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
-                $name::from_string($from_string_input)
-            }
-
-            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
-                $name::from_str($from_str_input)
-            }
-        }
-
-        impl<T: ::validators::number_as::Number> ::validators::ValidatedNumberWrapper<T> for $name {
-            fn from_number($from_number_input: T) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                $name::from_number($from_number_input.number_as())
-            }
-        }
-
-        impl $name {
-            pub fn get_number(&self) -> $t {
-                self.$field
-            }
-
-            pub fn is_zero(&self) -> bool {
-                self.$field == 0 as $t
-            }
-
-            pub fn is_positive(&self) -> bool {
-                self.$field > 0 as $t
-            }
-
-            pub fn is_negative(&self) -> bool {
-                self.$field < 0 as $t
-            }
-
-            pub fn is_integer(&self) -> bool {
-                self.$field as u128 as $t == self.$field
-            }
-
-            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let $field = match $from_string {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let $field = match $from_str {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_number($from_number_input: $t) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let $field = match $from_number {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_f64($from_number_input: f64) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as f64 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_f32($from_number_input: f32) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as f32 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_i8($from_number_input: i8) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as i8 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_i16($from_number_input: i16) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as i16 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_i32($from_number_input: i32) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as i32 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_i64($from_number_input: i64) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as i64 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_i128($from_number_input: i128) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as i128 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_u8($from_number_input: u8) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as u8 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_u16($from_number_input: u16) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as u16 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_u32($from_number_input: u32) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as u32 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_u64($from_number_input: u64) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as u64 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub fn from_u128($from_number_input: u128) -> Result<Self, ::validators::ValidatedCustomizedNumberError>{
-                let v = $from_number_input as $t;
-
-                if v as u128 != $from_number_input {
-                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
-                }
-
-                Self::from_number(v)
-            }
-
-            pub unsafe fn from_number_unchecked($from_number_input: $t) -> Self{
-                $name{$field:$from_number_input}
-            }
-        }
-
-        validated_customized_number_struct_implement_from_form_value!($name);
-
-        validated_customized_number_struct_implement_se_de!($name, $t);
-    };
-    ( $name:ident, $field:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $field:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $field:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $field:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $field:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $field:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number_struct!($name, $field, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_number {
-    ( $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
-        #[derive(Clone, PartialEq)]
-        struct $name{
-            n: $t
-        }
-
-        validated_customized_number_struct!($name, n, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name{
-            n: $t
-        }
-
-        validated_customized_number_struct!($name, n, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-    ( pub $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_regex_number_struct {
-    ( $name:ident, $field:ident, $t:ident, $re:expr ) => {
-        validated_customized_number_struct!($name, $field, $t,
-        input {
-            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
-
-            if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-                if ::validators::number::precise(&value.to_string(), &input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
-            }
-        },
-        input {
-            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
-
-            if re.is_match(input) {
-                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-                if ::validators::number::precise(&value.to_string(), input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
-            }
-        },
-        input {
-            let input = input.to_string();
-
-            let re = ::validators::regex::RegexBuilder::new($re).size_limit(::validators::REGEX_SIZE_LIMIT).build().map_err(|err| ::validators::ValidatedCustomizedNumberError::RegexError(err))?;
-
-            if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-                if ::validators::number::precise(&value.to_string(), &input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
-            }
-        });
-    };
-    ( $name:ident, $field:ident, $t:ident, ref $re:expr ) => {
-        validated_customized_number_struct!($name, $field, $t,
-        input {
-            let re: &::validators::regex::Regex = &$re;
-
-            if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-                if ::validators::number::precise(&value.to_string(), &input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
-            }
-        },
-        input {
-            let re: &::validators::regex::Regex = &$re;
-
-            if re.is_match(input) {
-                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-                if ::validators::number::precise(&value.to_string(), input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
-            }
-        },
-        input {
-            let input = input.to_string();
-
-            let re: &::validators::regex::Regex = &$re;
-
-            if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-                if ::validators::number::precise(&value.to_string(), &input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::NotMatch)
-            }
-        });
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_regex_number {
-    ( $name:ident, $t:ident, $re:expr ) => {
-        #[derive(Clone, PartialEq)]
-        struct $name{
-            n: $t
-        }
-
-        validated_customized_regex_number_struct!($name, n, $t, $re);
-    };
-    ( pub $name:ident, $t:ident, $re:expr ) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name{
-            n: $t
-        }
-
-        validated_customized_regex_number_struct!($name, n, $t, $re);
-    };
-    ( $name:ident, $t:ident, ref $re:expr ) => {
-        #[derive(Clone, PartialEq)]
-        struct $name{
-            n: $t
-        }
-
-        validated_customized_regex_number_struct!($name, n, $t, ref $re);
-    };
-    ( pub $name:ident, $t:ident, ref $re:expr ) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name{
-            n: $t
-        }
-
-        validated_customized_regex_number_struct!($name, n, $t, ref $re);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_ranged_number_struct {
-    ( $name:ident, $field:ident, $t:ident, $min:expr, $max:expr ) => {
-        validated_customized_number_struct!($name, $field, $t,
-        input {
-            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-            if value >= $min && value <= $max {
-                if ::validators::number::precise(&value.to_string(), &input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::OutRange)
-            }
-        },
-        input {
-            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-            if value >= $min && value <= $max {
-                if ::validators::number::precise(&value.to_string(), input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::OutRange)
-            }
-        },
-        input {
-            if input >= $min && input <= $max {
-                Ok(input)
-            } else{
-                Err(::validators::ValidatedCustomizedNumberError::OutRange)
-            }
-        });
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_ranged_number {
-    ( $name:ident, $t:ident, $min:expr, $max:expr ) => {
-        #[derive(Clone, PartialEq)]
-        struct $name{
-            n: $t
-        }
-
-        validated_customized_ranged_number_struct!($name, n, $t, $min, $max);
-    };
-    ( pub $name:ident, $t:ident, $min:expr, $max:expr ) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name{
-            n: $t
-        }
-
-        validated_customized_ranged_number_struct!($name, n, $t, $min, $max);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_primitive_number_struct {
-    ( $name:ident, $field:ident, $t:ident ) => {
-        validated_customized_number_struct!($name, $field, $t,
-        input {
-            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-            if ::validators::number::precise(&value.to_string(), &input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-        },
-        input {
-            let value = input.parse::<$t>().map_err(|err|::validators::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
-
-            if ::validators::number::precise(&value.to_string(), input) {
-                    Ok(value)
-                } else {
-                    Err(::validators::ValidatedCustomizedNumberError::UnpreciseError)
-                }
-        },
-        input {
-            Ok(input)
-        });
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_primitive_number {
-    ( $name:ident, $t:ident ) => {
-        #[derive(Clone, PartialEq)]
-        struct $name{
-            n: $t
-        }
-
-        validated_customized_primitive_number_struct!($name, n, $t);
-    };
-    ( pub $name:ident, $t:ident ) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name{
-            n: $t
-        }
-
-        validated_customized_primitive_number_struct!($name, n, $t);
-    };
-}
-
-// TODO -----ValidatedCustomizedNumber END-----
-
-// TODO -----ValidatedCustomizedVec START-----
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ValidatedCustomizedVecError {
-    Overflow,
-    Underflow,
-    NotSupport,
-    UTF8Error(Utf8Error),
-}
-
-impl Display for ValidatedCustomizedVecError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
-}
-
-impl Error for ValidatedCustomizedVecError {}
-
-pub trait ValidatedVecWrapper<T: ValidatedWrapper>: ValidatedWrapper {
-    fn from_vec(v: Vec<T>) -> Result<Self, ValidatedCustomizedVecError>;
-}
-
-#[cfg(feature = "serdely")]
-pub struct VecVisitor<V, T>(pub Vec<V>, pub Vec<T>);
-
-#[cfg(feature = "serdely")]
-impl<'de, V: ValidatedVecWrapper<T>, T: ValidatedWrapper + serde::Deserialize<'de>> serde::de::Visitor<'de> for VecVisitor<V, T> {
-    type Value = V;
-
-    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-        formatter.write_fmt(format_args!("an array({})", stringify!($name)))
-    }
-
-    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: serde::de::SeqAccess<'de> {
-        let mut v = Vec::<T>::new();
-
-        loop {
-            match seq.next_element()? {
-                Some(e) => {
-                    v.push(e);
-                }
-                None => { break; }
-            }
-        }
-
-        Ok(V::from_vec(v).map_err(|err| {
-            serde::de::Error::custom(err.to_string())
-        })?)
-    }
-}
-
-#[cfg(feature = "serdely")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_vec_struct_implement_se_de {
-     ( $name:ident ) => {
-        impl<'de, T: ::validators::ValidatedWrapper + ::validators::serde::Deserialize<'de>> ::validators::serde::Deserialize<'de> for $name<T> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_seq(::validators::VecVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + ::validators::serde::Serialize> ::validators::serde::Serialize for $name<T> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
-                serializer.collect_seq(self.as_vec().iter())
-            }
-        }
-     }
-}
-
-#[cfg(not(feature = "serdely"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_vec_struct_implement_se_de {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[cfg(feature = "rocketly")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_vec_struct_implement_from_form_value {
-    ( $name:ident ) => {
-        impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedVecError;
-
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
-            }
-        }
-
-        impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromParam<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedVecError;
-
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
-            }
-        }
-
-    }
-}
-
-#[cfg(not(feature = "rocketly"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_vec_struct_implement_from_form_value {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[macro_export]
-macro_rules! validated_customized_vec_struct {
-    ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
-        impl<T: ::validators::ValidatedWrapper> ::std::fmt::Debug for $name<T> {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}[", stringify!($name)))?;
-
-                let len = self.$field.len();
-
-                if len > 0 {
-                    for n in self.$field.iter().take(len - 1) {
-                        ::std::fmt::Debug::fmt(n, f)?;
-
-
-                        f.write_str(", ")?;
-                    }
-
-                    ::std::fmt::Debug::fmt(&self.$field[len - 1], f)?;
-                }
-
-                f.write_str("]")?;
-
-                Ok(())
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper> ::std::fmt::Display for $name<T> {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_str("[")?;
-
-                let len = self.$field.len();
-
-                if len > 0 {
-                    for n in self.$field.iter().take(len - 1) {
-                        ::std::fmt::Display::fmt(n, f)?;
-
-
-                        f.write_str(", ")?;
-                    }
-
-                    ::std::fmt::Display::fmt(&self.$field[len - 1], f)?;
-                }
-
-                f.write_str("]")?;
-
-                Ok(())
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper> ::std::cmp::Eq for $name<T> {}
-
-        impl<T: ::validators::ValidatedWrapper> ::std::ops::Deref for $name<T> {
-            type Target = Vec<T>;
-
-            fn deref(&self) -> &Self::Target {
-                &self.$field
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper> ::validators::Validated for $name<T> {}
-
-        impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedWrapper for $name<T> {
-            type Error = ::validators::ValidatedCustomizedVecError;
-
-            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
-                $name::from_string($from_string_input)
-            }
-
-            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
-                $name::from_str($from_str_input)
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedVecWrapper<T> for $name<T> {
-            fn from_vec($from_vec_input: Vec<T>) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
-                $name::from_vec($from_vec_input)
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper> $name<T> {
-            pub fn as_vec(&self) -> &Vec<T> {
-                &self.$field
-            }
-
-            pub fn into_vec(self) -> Vec<T> {
-                self.$field
-            }
-
-            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
-                let $field = match $from_string {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
-                let $field = match $from_str {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_vec($from_vec_input: Vec<T>) -> Result<Self, ::validators::ValidatedCustomizedVecError>{
-                let $field = match $from_vec {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub unsafe fn from_vec_unchecked($from_vec_input: Vec<T>) -> Self{
-                $name{$field:$from_vec_input}
-            }
-        }
-
-         validated_customized_vec_struct_implement_from_form_value!($name);
-         validated_customized_vec_struct_implement_se_de!($name);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_vec {
-    ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
-        #[derive(Clone, PartialEq)]
-        struct $name<T: ::validators::ValidatedWrapper> {
-            v: Vec<T>
-        }
-
-        validated_customized_vec_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block ) => {
-        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block ) => {
-        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_vec!($name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name<T: ::validators::ValidatedWrapper> {
-            v: Vec<T>
-        }
-
-        validated_customized_vec_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block ) => {
-        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block ) => {
-        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_vec $from_vec_input:ident $from_vec:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_vec $from_vec_input:ident $from_vec:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_vec!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_vec_input $from_vec);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_ranged_length_vec_struct {
-    ( $name:ident, $field:expr, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_vec_struct!($name, v,
-        $from_string_input $from_string,
-        $from_str_input $from_str,
-        input {
-            let len = input.len();
-
-            if len > $max {
-                Err(::validators::ValidatedCustomizedVecError::Overflow)
-            } else if len < $min {
-                Err(::validators::ValidatedCustomizedVecError::Underflow)
-            } else {
-                Ok(input)
-            }
-        });
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_ranged_length_vec {
-    ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        #[derive(Clone, PartialEq)]
-        struct $name<T: ::validators::ValidatedWrapper> {
-            v: Vec<T>
-        }
-
-        validated_customized_ranged_length_vec_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_vec!($name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
-        validated_customized_ranged_length_vec!($name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $min:expr, $max:expr) => {
-        validated_customized_ranged_length_vec!($name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)});
-    };
-    ( $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_vec!($name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $equal:expr) => {
-        validated_customized_ranged_length_vec!($name, $equal, $equal);
-    };
-    ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        #[derive(Clone, PartialEq)]
-        pub struct $name<T: ::validators::ValidatedWrapper> {
-            v: Vec<T>
-        }
-
-        validated_customized_ranged_length_vec_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_vec!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
-        validated_customized_ranged_length_vec!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $min:expr, $max:expr) => {
-        validated_customized_ranged_length_vec!(pub $name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)});
-    };
-    ( pub $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_vec!(pub $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $equal:expr) => {
-        validated_customized_ranged_length_vec!(pub $name, $equal, $equal);
-    };
-}
-
-// TODO -----ValidatedCustomizedVec END-----
-
-// TODO -----ValidatedCustomizedHashSet START-----
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum ValidatedCustomizedHashSetError {
-    Overflow,
-    Underflow,
-    NotSupport,
-    UTF8Error(Utf8Error),
-}
-
-impl Display for ValidatedCustomizedHashSetError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
-}
-
-impl Error for ValidatedCustomizedHashSetError {}
-
-pub trait ValidatedHashSetWrapper<T: ValidatedWrapper + Eq + Hash>: ValidatedWrapper {
-    fn from_hash_set(s: HashSet<T>) -> Result<Self, ValidatedCustomizedHashSetError>;
-}
-
-#[cfg(feature = "serdely")]
-pub struct HashSetVisitor<V, T>(pub Vec<V>, pub Vec<T>);
-
-#[cfg(feature = "serdely")]
-impl<'de, V: ValidatedHashSetWrapper<T>, T: ValidatedWrapper + Eq + Hash + serde::Deserialize<'de>> serde::de::Visitor<'de> for HashSetVisitor<V, T> {
-    type Value = V;
-
-    fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
-        formatter.write_fmt(format_args!("an array({})", stringify!($name)))
-    }
-
-    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error> where A: serde::de::SeqAccess<'de> {
-        let mut v = HashSet::<T>::new();
-
-        loop {
-            match seq.next_element()? {
-                Some(e) => {
-                    v.insert(e);
-                }
-                None => { break; }
-            }
-        }
-
-        Ok(V::from_hash_set(v).map_err(|err| {
-            serde::de::Error::custom(err.to_string())
-        })?)
-    }
-}
-
-#[cfg(feature = "serdely")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_hash_set_struct_implement_se_de {
-     ( $name:ident ) => {
-        impl<'de, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash + ::validators::serde::Deserialize<'de>> ::validators::serde::Deserialize<'de> for $name<T> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_seq(::validators::HashSetVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash + ::validators::serde::Serialize> ::validators::serde::Serialize for $name<T> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
-                serializer.collect_seq(self.as_hash_set().iter())
-            }
-        }
-     }
-}
-
-#[cfg(not(feature = "serdely"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_hash_set_struct_implement_se_de {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[cfg(feature = "rocketly")]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_hash_set_struct_implement_from_form_value {
-    ( $name:ident ) => {
-        impl<'a, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedHashSetError;
-
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedHashSetError::UTF8Error(err))?)
-            }
-        }
-
-        impl<'a, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::rocket::request::FromParam<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedHashSetError;
-
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedHashSetError::UTF8Error(err))?)
-            }
-        }
-
-    }
-}
-
-#[cfg(not(feature = "rocketly"))]
-#[doc(hidden)]
-#[macro_export]
-macro_rules! validated_customized_hash_set_struct_implement_from_form_value {
-    ( $name:ident ) => {
-
-    }
-}
-
-#[macro_export]
-macro_rules! validated_customized_hash_set_struct {
-    ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Debug for $name<T> {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}[", stringify!($name)))?;
-
-                let len = self.$field.len();
-
-                if len > 0 {
-                     for n in self.$field.iter().take(1) {
-                        ::std::fmt::Display::fmt(n, f)?;
-                    }
-
-                    for n in self.$field.iter().skip(1) {
-                        f.write_str(", ")?;
-                        ::std::fmt::Display::fmt(n, f)?;
-                    }
-                }
-
-                f.write_str("]")?;
-
-                Ok(())
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Display for $name<T> {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_str("[")?;
-
-                let len = self.$field.len();
-
-                if len > 0 {
-                    for n in self.$field.iter().take(1) {
-                        ::std::fmt::Display::fmt(n, f)?;
-                    }
-
-                    for n in self.$field.iter().skip(1) {
-                        f.write_str(", ")?;
-                        ::std::fmt::Display::fmt(n, f)?;
-                    }
-                }
-
-                f.write_str("]")?;
-
-                Ok(())
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::hash::Hash for $name<T>{
-            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
-                for e in &self.$field {
-                    e.hash(state)
-                }
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::ops::Deref for $name<T> {
-            type Target = ::std::collections::HashSet<T>;
-
-            fn deref(&self) -> &Self::Target {
-                &self.$field
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::Validated for $name<T> {}
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedWrapper for $name<T> {
-            type Error = ::validators::ValidatedCustomizedHashSetError;
-
-            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
-                $name::from_string($from_string_input)
-            }
-
-            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
-                $name::from_str($from_str_input)
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedHashSetWrapper<T> for $name<T> {
-            fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
-                $name::from_hash_set($from_hash_set_input)
-            }
-        }
-
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> $name<T> {
-            pub fn as_hash_set(&self) -> &::std::collections::HashSet<T> {
-                &self.$field
-            }
-
-            pub fn into_hash_set(self) -> ::std::collections::HashSet<T> {
-                self.$field
-            }
-
-            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
-                let $field = match $from_string {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
-                let $field = match $from_str {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> Result<Self, ::validators::ValidatedCustomizedHashSetError>{
-                let $field = match $from_hash_set {
-                    Ok(s)=> s,
-                    Err(e)=> return Err(e)
-                };
-
-                Ok($name{$field})
-            }
-
-            pub unsafe fn from_hash_set_unchecked($from_hash_set_input: ::std::collections::HashSet<T>) -> Self{
-                $name{$field:$from_hash_set_input}
-            }
-        }
-
-         validated_customized_hash_set_struct_implement_from_form_value!($name);
-         validated_customized_hash_set_struct_implement_se_de!($name);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_hash_set {
-    ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
-        #[derive(Clone, PartialEq, Eq)]
-        struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: ::std::collections::HashSet<T>
-        }
-
-        validated_customized_hash_set_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
-        validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
-        validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( $name:ident, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( $name:ident, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
-        #[derive(Clone, PartialEq, Eq)]
-        pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: ::std::collections::HashSet<T>
-        }
-
-        validated_customized_hash_set_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_ranged_length_hash_set_struct {
-    ( $name:ident, $field:expr, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_hash_set_struct!($name, v,
-        $from_string_input $from_string,
-        $from_str_input $from_str,
-        input {
-            let len = input.len();
-
-            if len > $max {
-                Err(::validators::ValidatedCustomizedHashSetError::Overflow)
-            } else if len < $min {
-                Err(::validators::ValidatedCustomizedHashSetError::Underflow)
-            } else {
-                Ok(input)
-            }
-        });
-    };
-}
-
-#[macro_export]
-macro_rules! validated_customized_ranged_length_hash_set {
-    ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        #[derive(Clone, PartialEq, Eq)]
-        struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: ::std::collections::HashSet<T>
-        }
-
-        validated_customized_ranged_length_hash_set_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_hash_set!($name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
-        validated_customized_ranged_length_hash_set!($name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $min:expr, $max:expr) => {
-        validated_customized_ranged_length_hash_set!($name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)});
-    };
-    ( $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_hash_set!($name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( $name:ident, $equal:expr) => {
-        validated_customized_ranged_length_hash_set!($name, $equal, $equal);
-    };
-    ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        #[derive(Clone, PartialEq, Eq)]
-        pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
-            v: ::std::collections::HashSet<T>
-        }
-
-        validated_customized_ranged_length_hash_set_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $min:expr, $max:expr) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)});
-    };
-    ( pub $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
-    };
-    ( pub $name:ident, $equal:expr) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $equal, $equal);
-    };
-}
-
-// TODO -----ValidatedCustomizedHashSet END-----
+mod macro_validated_customized_string;
+mod macro_validated_customized_number;
+mod macro_validated_customized_vec;
+mod macro_validated_customized_hash_set;
+
+pub use macro_validated_customized_string::*;
+pub use macro_validated_customized_number::*;
+pub use macro_validated_customized_vec::*;
+pub use macro_validated_customized_hash_set::*;

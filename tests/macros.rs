@@ -2,8 +2,6 @@
 extern crate validators;
 #[macro_use]
 extern crate lazy_static;
-#[cfg(feature = "rocketly")]
-extern crate rocket;
 
 extern crate regex;
 
@@ -12,7 +10,7 @@ use std::collections::HashSet;
 use regex::Regex;
 
 #[test]
-fn test_validated_customized_string() {
+fn validated_customized_string() {
     validated_customized_string!(S1,
         from_string input {
             Ok(input)
@@ -33,13 +31,13 @@ fn test_validated_customized_string() {
 }
 
 #[test]
-fn test_validated_customized_regex_string() {
+fn validated_customized_regex_string() {
     validated_customized_regex_string!(S1, "^(Hi|Hello)$");
     validated_customized_regex_string!(pub S2, r"^[\S\s]+$");
 }
 
 #[test]
-fn test_validated_customized_regex_string_static() {
+fn validated_customized_regex_string_static() {
     lazy_static! {
         static ref RE_S1: Regex = {
             Regex::new("^(Hi|Hello)$").unwrap()
@@ -57,7 +55,7 @@ fn test_validated_customized_regex_string_static() {
 }
 
 #[test]
-fn test_validated_customized_number() {
+fn validated_customized_number() {
     validated_customized_number!(N1, u8,
         from_string _input {
             Ok(5)
@@ -84,14 +82,14 @@ fn test_validated_customized_number() {
 }
 
 #[test]
-fn test_validated_customized_regex_number() {
+fn validated_customized_regex_number() {
     validated_customized_regex_number!(N1, u8, r"^[1-8][0-9]$");
     validated_customized_regex_number!(pub N2, u16, r"^[0-1]?[1-8][0-9]$");
     validated_customized_regex_number!(N3, f32, r"^[0-1]?[1-8][0-9]\.[0-9]$");
 }
 
 #[test]
-fn test_validated_customized_regex_number_static() {
+fn validated_customized_regex_number_static() {
     lazy_static! {
         static ref RE_N1: Regex = {
             Regex::new(r"^[1-8][0-9]$").unwrap()
@@ -116,21 +114,21 @@ fn test_validated_customized_regex_number_static() {
 }
 
 #[test]
-fn test_validated_customized_ranged_number() {
+fn validated_customized_ranged_number() {
     validated_customized_ranged_number!(N1, u8, 0, 100);
     validated_customized_ranged_number!(pub N2, u16, 3, 46);
     validated_customized_ranged_number!(N3, f32, -45.5, 80.0);
 }
 
 #[test]
-fn test_validated_customized_primitive_number() {
+fn validated_customized_primitive_number() {
     validated_customized_primitive_number!(N1, u8);
     validated_customized_primitive_number!(pub N2, u8);
     validated_customized_primitive_number!(N3, f32);
 }
 
 #[test]
-fn test_validated_customized_vec() {
+fn validated_customized_vec() {
     validated_customized_vec!(V1,
         from_string _input {
             Ok(Vec::new())
@@ -157,7 +155,7 @@ fn test_validated_customized_vec() {
 }
 
 #[test]
-fn test_validated_customized_ranged_length_vec() {
+fn validated_customized_ranged_length_vec() {
     validated_customized_ranged_length_vec!(V1, 0, 10);
     validated_customized_ranged_length_vec!(V2, 5);
     validated_customized_ranged_length_vec!(pub V3, 0, 10);
@@ -165,7 +163,7 @@ fn test_validated_customized_ranged_length_vec() {
 }
 
 #[test]
-fn test_validated_customized_hash_set() {
+fn validated_customized_hash_set() {
     validated_customized_hash_set!(S1,
         from_string _input {
             Ok(HashSet::new())
@@ -192,7 +190,7 @@ fn test_validated_customized_hash_set() {
 }
 
 #[test]
-fn test_validated_customized_ranged_length_hash_set() {
+fn validated_customized_ranged_length_hash_set() {
     validated_customized_ranged_length_hash_set!(S1, 0, 10);
     validated_customized_ranged_length_hash_set!(S2, 5);
     validated_customized_ranged_length_hash_set!(pub S3, 0, 10);
