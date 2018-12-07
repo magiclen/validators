@@ -158,7 +158,7 @@ Read the documentation to know more helpful customized macros.
 
 ## Phone Number Support
 
-This will be totally changed after version 0.19.
+This will be totally changed after version 0.20.
 
 This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. The validator for phone numbers is in the `phone_number` module.
 

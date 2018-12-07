@@ -1,11 +1,10 @@
 #![cfg(feature = "rocketly-test")]
-#![feature(plugin)]
-#![feature(custom_derive)]
-#![plugin(rocket_codegen)]
+#![feature(proc_macro_hygiene, decl_macro)]
 
 #[macro_use]
 extern crate validators;
 
+#[macro_use]
 extern crate rocket;
 
 use validators::domain::DomainLocalhostableWithPort;
