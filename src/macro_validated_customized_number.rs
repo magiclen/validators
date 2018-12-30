@@ -198,7 +198,7 @@ macro_rules! validated_customized_number_struct_implement_from_form_value {
         impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
             type Error = ::validators::ValidatedCustomizedNumberError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedNumberError::UTF8Error(err))?)
             }
         }
@@ -300,17 +300,17 @@ macro_rules! validated_customized_number_struct {
         impl ::validators::ValidatedWrapper for $name {
             type Error = ::validators::ValidatedCustomizedNumberError;
 
-            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error>{
+            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error>{
+            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
         impl<T: ::validators::number_as::Number> ::validators::ValidatedNumberWrapper<T> for $name {
-            fn from_number($from_number_input: T) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            fn from_number($from_number_input: T) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 $name::from_number($from_number_input.number_as())
             }
         }
@@ -336,7 +336,7 @@ macro_rules! validated_customized_number_struct {
                 self.$field as u128 as $t == self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -345,7 +345,7 @@ macro_rules! validated_customized_number_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -354,7 +354,7 @@ macro_rules! validated_customized_number_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_number($from_number_input: $t) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_number($from_number_input: $t) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let $field = match $from_number {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -363,7 +363,7 @@ macro_rules! validated_customized_number_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_f64($from_number_input: f64) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_f64($from_number_input: f64) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as f64 != $from_number_input {
@@ -373,7 +373,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_f32($from_number_input: f32) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_f32($from_number_input: f32) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as f32 != $from_number_input {
@@ -383,7 +383,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_i8($from_number_input: i8) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_i8($from_number_input: i8) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as i8 != $from_number_input {
@@ -393,7 +393,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_i16($from_number_input: i16) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_i16($from_number_input: i16) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as i16 != $from_number_input {
@@ -403,7 +403,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_i32($from_number_input: i32) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_i32($from_number_input: i32) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as i32 != $from_number_input {
@@ -413,7 +413,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_i64($from_number_input: i64) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_i64($from_number_input: i64) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as i64 != $from_number_input {
@@ -423,7 +423,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_i128($from_number_input: i128) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_i128($from_number_input: i128) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as i128 != $from_number_input {
@@ -433,7 +433,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_u8($from_number_input: u8) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_u8($from_number_input: u8) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as u8 != $from_number_input {
@@ -443,7 +443,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_u16($from_number_input: u16) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_u16($from_number_input: u16) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as u16 != $from_number_input {
@@ -453,7 +453,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_u32($from_number_input: u32) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_u32($from_number_input: u32) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as u32 != $from_number_input {
@@ -463,7 +463,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_u64($from_number_input: u64) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_u64($from_number_input: u64) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as u64 != $from_number_input {
@@ -473,7 +473,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub fn from_u128($from_number_input: u128) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError>{
+            pub fn from_u128($from_number_input: u128) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
                 if v as u128 != $from_number_input {
@@ -483,7 +483,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
-            pub unsafe fn from_number_unchecked($from_number_input: $t) -> Self{
+            pub unsafe fn from_number_unchecked($from_number_input: $t) -> Self {
                 $name{$field:$from_number_input}
             }
         }

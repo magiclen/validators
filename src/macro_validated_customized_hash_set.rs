@@ -91,7 +91,7 @@ macro_rules! validated_customized_hash_set_struct_implement_from_form_value {
         impl<'a, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
             type Error = ::validators::ValidatedCustomizedHashSetError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedHashSetError::UTF8Error(err))?)
             }
         }
@@ -165,7 +165,7 @@ macro_rules! validated_customized_hash_set_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::hash::Hash for $name<T>{
+        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::hash::Hash for $name<T> {
             fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
                 for e in &self.$field {
                     e.hash(state)
@@ -186,17 +186,17 @@ macro_rules! validated_customized_hash_set_struct {
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedWrapper for $name<T> {
             type Error = ::validators::ValidatedCustomizedHashSetError;
 
-            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error>{
+            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error>{
+            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedHashSetWrapper<T> for $name<T> {
-            fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError>{
+            fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
                 $name::from_hash_set($from_hash_set_input)
             }
         }
@@ -210,7 +210,7 @@ macro_rules! validated_customized_hash_set_struct {
                 self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError>{
+            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -219,7 +219,7 @@ macro_rules! validated_customized_hash_set_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError>{
+            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -228,7 +228,7 @@ macro_rules! validated_customized_hash_set_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError>{
+            pub fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
                 let $field = match $from_hash_set {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -237,7 +237,7 @@ macro_rules! validated_customized_hash_set_struct {
                 Ok($name{$field})
             }
 
-            pub unsafe fn from_hash_set_unchecked($from_hash_set_input: ::std::collections::HashSet<T>) -> Self{
+            pub unsafe fn from_hash_set_unchecked($from_hash_set_input: ::std::collections::HashSet<T>) -> Self {
                 $name{$field:$from_hash_set_input}
             }
         }

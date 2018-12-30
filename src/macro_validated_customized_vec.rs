@@ -89,7 +89,7 @@ macro_rules! validated_customized_vec_struct_implement_from_form_value {
         impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
             type Error = ::validators::ValidatedCustomizedVecError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
             }
         }
@@ -178,17 +178,17 @@ macro_rules! validated_customized_vec_struct {
         impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedWrapper for $name<T> {
             type Error = ::validators::ValidatedCustomizedVecError;
 
-            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error>{
+            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error>{
+            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
         impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedVecWrapper<T> for $name<T> {
-            fn from_vec($from_vec_input: Vec<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError>{
+            fn from_vec($from_vec_input: Vec<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
                 $name::from_vec($from_vec_input)
             }
         }
@@ -202,7 +202,7 @@ macro_rules! validated_customized_vec_struct {
                 self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError>{
+            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -211,7 +211,7 @@ macro_rules! validated_customized_vec_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError>{
+            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -220,7 +220,7 @@ macro_rules! validated_customized_vec_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_vec($from_vec_input: Vec<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError>{
+            pub fn from_vec($from_vec_input: Vec<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
                 let $field = match $from_vec {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -229,7 +229,7 @@ macro_rules! validated_customized_vec_struct {
                 Ok($name{$field})
             }
 
-            pub unsafe fn from_vec_unchecked($from_vec_input: Vec<T>) -> Self{
+            pub unsafe fn from_vec_unchecked($from_vec_input: Vec<T>) -> Self {
                 $name{$field:$from_vec_input}
             }
         }
