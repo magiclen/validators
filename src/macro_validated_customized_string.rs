@@ -50,13 +50,13 @@ impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for StringVisitor<V> {
 macro_rules! validated_customized_string_struct_implement_se_de {
      ( $name:ident ) => {
         impl<'de> ::validators::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
+            fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
                 deserializer.deserialize_string(::validators::StringVisitor(Vec::<$name>::new()))
             }
         }
 
         impl ::validators::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+            fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
                 serializer.serialize_str(self.as_str())
             }
         }
@@ -80,7 +80,7 @@ macro_rules! validated_customized_string_struct_implement_from_form_value {
         impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
             type Error = ::validators::ValidatedCustomizedStringError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error>{
                 $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
             }
         }
@@ -88,7 +88,7 @@ macro_rules! validated_customized_string_struct_implement_from_form_value {
         impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
             type Error = ::validators::ValidatedCustomizedStringError;
 
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> Result<Self, Self::Error> {
+            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
                 $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
             }
         }
@@ -134,11 +134,11 @@ macro_rules! validated_customized_string_struct {
         impl ::validators::ValidatedWrapper for $name {
             type Error = ::validators::ValidatedCustomizedStringError;
 
-            fn from_string($from_string_input: String) -> Result<Self, Self::Error>{
+            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error>{
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> Result<Self, Self::Error>{
+            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error>{
                 $name::from_str($from_str_input)
             }
         }
@@ -152,7 +152,7 @@ macro_rules! validated_customized_string_struct {
                 self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
+            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedStringError>{
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
@@ -161,7 +161,7 @@ macro_rules! validated_customized_string_struct {
                 Ok($name{$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> Result<Self, ::validators::ValidatedCustomizedStringError>{
+            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedStringError>{
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
