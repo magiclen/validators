@@ -336,11 +336,11 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = IntegerError;
 
-            fn from_string(full_integer: String) -> Result<Self, Self::Error>{
+            fn from_string(full_integer: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_integer)
             }
 
-            fn from_str(full_integer: &str) -> Result<Self, Self::Error>{
+            fn from_str(full_integer: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_integer)
             }
         }
@@ -475,7 +475,7 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = IntegerError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
                 $name::from_str(form_value)
             }
         }

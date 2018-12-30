@@ -508,11 +508,11 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = MacAddressError;
 
-            fn from_string(full_mac_address: String) -> Result<Self, Self::Error>{
+            fn from_string(full_mac_address: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_mac_address)
             }
 
-            fn from_str(full_mac_address: &str) -> Result<Self, Self::Error>{
+            fn from_str(full_mac_address: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_mac_address)
             }
         }

@@ -140,8 +140,8 @@ impl PartialEq for UUID {
 
 impl Eq for UUID {}
 
-impl Hash for UUID{
-    fn hash<H: Hasher>(&self, state: &mut H){
+impl Hash for UUID {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.uuid.hash(state)
     }
 }
@@ -287,11 +287,11 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = UUIDError;
 
-            fn from_string(full_uuid: String) -> Result<Self, Self::Error>{
+            fn from_string(full_uuid: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_uuid)
             }
 
-            fn from_str(full_uuid: &str) -> Result<Self, Self::Error>{
+            fn from_str(full_uuid: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_uuid)
             }
         }
@@ -431,12 +431,8 @@ impl UUIDAllowAnyCase {
 
 extend!(UUIDUpperCase, ValidatorOption::NotAllow);
 
-impl UUIDUpperCase {
-
-}
+impl UUIDUpperCase {}
 
 extend!(UUIDLowerCase, ValidatorOption::Must);
 
-impl UUIDLowerCase {
-
-}
+impl UUIDLowerCase {}

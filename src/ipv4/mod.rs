@@ -466,11 +466,11 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = IPv4Error;
 
-            fn from_string(ipv4: String) -> Result<Self, Self::Error>{
+            fn from_string(ipv4: String) -> Result<Self, Self::Error> {
                 $name::from_string(ipv4)
             }
 
-            fn from_str(ipv4: &str) -> Result<Self, Self::Error>{
+            fn from_str(ipv4: &str) -> Result<Self, Self::Error> {
                 $name::from_str(ipv4)
             }
         }
@@ -567,7 +567,7 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = IPv4Error;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
                 $name::from_string(form_value.url_decode().map_err(|err| IPv4Error::UTF8Error(err))?)
             }
         }

@@ -244,11 +244,11 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = HostError;
 
-            fn from_string(host: String) -> Result<Self, Self::Error>{
+            fn from_string(host: String) -> Result<Self, Self::Error> {
                 $name::from_string(host)
             }
 
-            fn from_str(host: &str) -> Result<Self, Self::Error>{
+            fn from_str(host: &str) -> Result<Self, Self::Error> {
                 $name::from_str(host)
             }
         }
@@ -278,7 +278,7 @@ macro_rules! extend {
             pub fn from_host(host: Host) -> Result<$name, HostError> {
                 {
                     match &host {
-                        Host::Domain(h)=>{
+                        Host::Domain(h)=> {
                             match $local {
                                 ValidatorOption::Must => {
                                     if !h.is_localhost() {
@@ -293,7 +293,7 @@ macro_rules! extend {
                                 _=>()
                             }
                         }
-                        Host::IPv4(h)=>{
+                        Host::IPv4(h)=> {
                             match $local {
                                 ValidatorOption::Must => {
                                     if !h.is_local() {
@@ -308,7 +308,7 @@ macro_rules! extend {
                                 _=>()
                             }
                         }
-                        Host::IPv6(h)=>{
+                        Host::IPv6(h)=> {
                             match $local {
                                 ValidatorOption::Must => {
                                     if !h.is_local() {
@@ -385,7 +385,7 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = HostError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
                 $name::from_string(form_value.url_decode().map_err(|err| HostError::UTF8Error(err))?)
             }
         }

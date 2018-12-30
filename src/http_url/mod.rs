@@ -533,11 +533,11 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = HttpUrlError;
 
-            fn from_string(full_http_url: String) -> Result<Self, Self::Error>{
+            fn from_string(full_http_url: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_http_url)
             }
 
-            fn from_str(full_http_url: &str) -> Result<Self, Self::Error>{
+            fn from_str(full_http_url: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_http_url)
             }
         }
@@ -677,7 +677,7 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = HttpUrlError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
                 $name::from_string(form_value.url_decode().map_err(|err| HttpUrlError::UTF8Error(err))?)
             }
         }
