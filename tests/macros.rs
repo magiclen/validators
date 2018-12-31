@@ -205,12 +205,17 @@ fn validated_customized_ranged_length_hash_set() {
 fn validated_customized_phone_number() {
     validated_customized_phone_number!(P1, PhoneNumberCountry::TW);
     validated_customized_phone_number!(pub P2, PhoneNumberCountry::TW, PhoneNumberCountry::US);
+    validated_customized_phone_number!(P3);
 
     let phone_number = P1::from_str("0912345678").unwrap();
     assert_eq!("0912345678", phone_number.get_full_phone_number());
     assert!(phone_number.get_countries().contains(&PhoneNumberCountry::TW));
 
     let phone_number = P2::from_str("626-555-1212").unwrap();
+    assert_eq!("626-555-1212", phone_number.get_full_phone_number());
+    assert!(phone_number.get_countries().contains(&PhoneNumberCountry::US));
+
+    let phone_number = P3::from_str("626-555-1212").unwrap();
     assert_eq!("626-555-1212", phone_number.get_full_phone_number());
     assert!(phone_number.get_countries().contains(&PhoneNumberCountry::US));
 }
