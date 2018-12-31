@@ -155,34 +155,33 @@ Read the documentation to know more helpful customized macros.
 
 ## Phone Number Support
 
-This will be totally changed after version 0.20.
+This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. You can create validators for phone numbers by using the `validated_customized_phone_number` macro.
 
-This crate supports [phonenumber](https://crates.io/crates/phonenumber) crate. The validator for phone numbers is in the `phone_number` module.
-
-To use `phone_number` module, you have to enable the **phone_<COUNTRY_CODE>** features for this crate. Or just use **phone** to enable the module for all countries.
+To use it, you have to enable **phone-number** feature for this crate.
 
 ```toml
 [dependencies.validators]
 version = "*"
-features = ["phone_tw", "phone_us"]
+features = ["phone-number"]
 ```
 
 For example,
 
 ```rust,ignore
-extern crate validators;
+#[macro_use] extern crate validators;
 
-use validators::phone_number::PhoneNumberValidator;
-use validators::phonenumber::country;
+use validators::PhoneNumberCountry;
 
-let phone_number = "0912345678".to_string();
+validated_customized_phone_number!(P1, PhoneNumberCountry::TW);
+validated_customized_phone_number!(pub P2, PhoneNumberCountry::CN, PhoneNumberCountry::US);
 
-let pnv = PhoneNumberValidator {};
-
-let phone_number = pnv.parse_string(phone_number).unwrap();
-
+let phone_number = P1::from_str("0912345678").unwrap();
 assert_eq!("0912345678", phone_number.get_full_phone_number());
-assert!(phone_number.get_countries().contains(&country::TW));
+assert!(phone_number.get_countries().contains(&PhoneNumberCountry::TW));
+
+let phone_number = P2::from_str("626-555-1212").unwrap();
+assert_eq!("626-555-1212", phone_number.get_full_phone_number());
+assert!(phone_number.get_countries().contains(&PhoneNumberCountry::US));
 ```
 
 ## Rocket Support
@@ -284,7 +283,7 @@ pub extern crate rocket;
 #[macro_use]
 pub extern crate serde;
 
-#[cfg(feature = "phone_number")]
+#[cfg(feature = "phone-number")]
 pub extern crate phonenumber;
 
 pub extern crate number_as;
@@ -331,15 +330,17 @@ pub mod text;
 pub mod line;
 pub mod number;
 pub mod integer;
-#[cfg(feature = "phone_number")]
-pub mod phone_number;
 
 mod macro_validated_customized_string;
 mod macro_validated_customized_number;
 mod macro_validated_customized_vec;
 mod macro_validated_customized_hash_set;
+#[cfg(feature = "phone-number")]
+mod macro_validated_customized_phone_number;
 
-pub use macro_validated_customized_string::*;
-pub use macro_validated_customized_number::*;
-pub use macro_validated_customized_vec::*;
-pub use macro_validated_customized_hash_set::*;
+pub use self::macro_validated_customized_string::*;
+pub use self::macro_validated_customized_number::*;
+pub use self::macro_validated_customized_vec::*;
+pub use self::macro_validated_customized_hash_set::*;
+#[cfg(feature = "phone-number")]
+pub use self::macro_validated_customized_phone_number::*;
