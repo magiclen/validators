@@ -719,7 +719,7 @@ macro_rules! validated_customized_phone_number_struct {
                 }
             }
 
-            pub unsafe fn from_string_countries_unchecked($field_phone_number: String, countries: Vec<PhoneNumberCountry>) -> Self {
+            pub unsafe fn from_string_countries_unchecked($field_phone_number: String, countries: Vec<::validators::PhoneNumberCountry>) -> Self {
                 $name{$field_phone_number: $field_phone_number, $countries: countries}
             }
         }
