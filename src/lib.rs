@@ -330,6 +330,7 @@ pub mod text;
 pub mod line;
 pub mod number;
 pub mod integer;
+pub mod boolean;
 
 mod macro_validated_customized_string;
 mod macro_validated_customized_number;

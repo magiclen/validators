@@ -9,6 +9,7 @@ use std::collections::HashSet;
 
 use regex::Regex;
 
+#[cfg(feature = "phone-number")]
 use validators::PhoneNumberCountry;
 
 #[test]
@@ -199,6 +200,7 @@ fn validated_customized_ranged_length_hash_set() {
     validated_customized_ranged_length_hash_set!(pub S4, 5);
 }
 
+#[cfg(feature = "phone-number")]
 #[test]
 fn validated_customized_phone_number() {
     validated_customized_phone_number!(P1, PhoneNumberCountry::TW);
