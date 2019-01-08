@@ -9,10 +9,10 @@ use std::ops::Deref;
 
 lazy_static! {
     pub(crate) static ref TRUE_RE: Regex = {
-        Regex::new(r"^(?i)true|yes|on|y|t|1?$").unwrap()
+        Regex::new(r"^(?i)true|yes|on|y|t|1$").unwrap()
     };
     pub(crate) static ref FALSE_RE: Regex = {
-        Regex::new(r"^(?i)false|no|off|n|f|0?$").unwrap()
+        Regex::new(r"^(?i)false|no|off|n|f|0$").unwrap()
     };
 }
 
@@ -116,6 +116,10 @@ mod tests {
         let boolean = Boolean::from_str("TRUE").unwrap();
 
         assert_eq!(true, boolean.get_bool());
+
+        let boolean = Boolean::from_str("FALSE").unwrap();
+
+        assert_eq!(false, boolean.get_bool());
     }
 
     #[test]
