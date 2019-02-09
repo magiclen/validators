@@ -28,8 +28,8 @@ pub type IntegerResult = Result<Integer, IntegerError>;
 
 #[derive(Debug, PartialEq)]
 pub struct IntegerValidator {
-    negative: ValidatorOption,
-    zero: ValidatorOption,
+    pub negative: ValidatorOption,
+    pub zero: ValidatorOption,
 }
 
 #[derive(Clone, PartialEq)]

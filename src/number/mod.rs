@@ -28,8 +28,8 @@ pub type NumberResult = Result<Number, NumberError>;
 
 #[derive(Debug, PartialEq)]
 pub struct NumberValidator {
-    negative: ValidatorOption,
-    zero: ValidatorOption,
+    pub negative: ValidatorOption,
+    pub zero: ValidatorOption,
 }
 
 #[derive(Clone, PartialEq)]
