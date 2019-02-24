@@ -11,7 +11,7 @@ use std::ops::Deref;
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
-        Regex::new(r"^(([^\x00-\x1F\x2E\x2F\x3A\x7F]{1,63}\.)*?)*?([^\x00-\x1F\x2E\x2F\x3A\x7F]{1,63})(\.[^\x00-\x1F\x2E\x2F\x3A\x7F]{1,63})?(:\d{1,5})?$").unwrap()
+        Regex::new(r"^(([^\x00-\x1F\x2E\x2F\x3A\x40\x7F]{1,63}\.)*?)*?([^\x00-\x1F\x2E\x2F\x3A\x40\x7F]{1,63})(\.[^\x00-\x1F\x2E\x2F\x3A\x40\x7F]{1,63})?(:\d{1,5})?$").unwrap()
     };
 }
 
