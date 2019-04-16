@@ -4,10 +4,10 @@ use std::error::Error;
 use std::str::Utf8Error;
 use std::fmt::{self, Display, Debug, Formatter};
 
-use number_as::Number;
+use num_traits::ToPrimitive;
 
 #[cfg(feature = "serdely")]
-use number_as::NumberAs;
+use num_traits::NumCast;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ValidatedCustomizedNumberError {
@@ -27,7 +27,7 @@ impl Display for ValidatedCustomizedNumberError {
 
 impl Error for ValidatedCustomizedNumberError {}
 
-pub trait ValidatedNumberWrapper<T: Number>: ValidatedWrapper {
+pub trait ValidatedNumberWrapper<T: ToPrimitive>: ValidatedWrapper {
     fn from_number(n: T) -> Result<Self, ValidatedCustomizedNumberError>;
 }
 
@@ -35,20 +35,8 @@ pub trait ValidatedNumberWrapper<T: Number>: ValidatedWrapper {
 pub struct NumberVisitor<V, T>(pub Vec<V>, pub Vec<T>);
 
 #[cfg(feature = "serdely")]
-impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: ValidatedWrapper + ValidatedNumberWrapper<T>,
-                                                                      T: Number,
-                                                                      u8: NumberAs<T>,
-                                                                      u16: NumberAs<T>,
-                                                                      u32: NumberAs<T>,
-                                                                      u64: NumberAs<T>,
-                                                                      u128: NumberAs<T>,
-                                                                      i8: NumberAs<T>,
-                                                                      i16: NumberAs<T>,
-                                                                      i32: NumberAs<T>,
-                                                                      i64: NumberAs<T>,
-                                                                      i128: NumberAs<T>,
-                                                                      f32: NumberAs<T>,
-                                                                      f64: NumberAs<T> {
+impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: ValidatedWrapper + ValidatedNumberWrapper<T> + NumCast,
+                                                                      T: ToPrimitive {
     type Value = V;
 
     fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
@@ -56,79 +44,55 @@ impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: Validat
     }
 
     fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     serde_if_integer128! {
         fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E> where E: serde::de::Error {
-            V::from_number(v.number_as()).map_err(|err| {
-                E::custom(err.to_string())
-            })
+            NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
         }
     }
 
     fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     serde_if_integer128! {
         fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E> where E: serde::de::Error {
-            V::from_number(v.number_as()).map_err(|err| {
-                E::custom(err.to_string())
-            })
+            NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
         }
     }
 
     fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 
     fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_number(v.number_as()).map_err(|err| {
-            E::custom(err.to_string())
-        })
+        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
     }
 }
 
@@ -289,6 +253,85 @@ macro_rules! validated_customized_number_struct {
 
         impl ::validators::Validated for $name {}
 
+        impl ::validators::num_traits::ToPrimitive for $name {
+            #[inline]
+            fn to_isize(&self) -> Option<isize> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_i8(&self) -> Option<i8> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_i16(&self) -> Option<i16> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_i32(&self) -> Option<i32> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_i64(&self) -> Option<i64> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_i128(&self) -> Option<i128> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_usize(&self) -> Option<usize> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_u8(&self) -> Option<u8> {
+                println!("123");
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_u16(&self) -> Option<u16> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_u32(&self) -> Option<u32> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_u64(&self) -> Option<u64> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_u128(&self) -> Option<u128> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_f32(&self) -> Option<f32> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+
+            #[inline]
+            fn to_f64(&self) -> Option<f64> {
+                ::validators::num_traits::NumCast::from(self.get_number())
+            }
+        }
+
+        impl ::validators::num_traits::NumCast for $name {
+            fn from<T: ::validators::num_traits::ToPrimitive>(n: T) -> Option<$name> {
+                ::validators::ValidatedNumberWrapper::from_number(n).ok()
+            }
+        }
+
         impl ::std::ops::Deref for $name {
             type Target = $t;
 
@@ -309,9 +352,9 @@ macro_rules! validated_customized_number_struct {
             }
         }
 
-        impl<T: ::validators::number_as::Number> ::validators::ValidatedNumberWrapper<T> for $name {
+        impl<T: ::validators::num_traits::ToPrimitive> ::validators::ValidatedNumberWrapper<T> for $name {
             fn from_number($from_number_input: T) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
-                $name::from_number($from_number_input.number_as())
+                $name::from_number(::validators::num_traits::NumCast::from($from_number_input).ok_or(::validators::ValidatedCustomizedNumberError::UnpreciseError)?)
             }
         }
 
@@ -383,6 +426,16 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            pub fn from_isize($from_number_input: isize) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
+                let v = $from_number_input as $t;
+
+                if v as isize != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
             pub fn from_i8($from_number_input: i8) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -427,6 +480,16 @@ macro_rules! validated_customized_number_struct {
                 let v = $from_number_input as $t;
 
                 if v as i128 != $from_number_input {
+                    return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
+                }
+
+                Self::from_number(v)
+            }
+
+            pub fn from_usize($from_number_input: usize) -> std::result::Result<Self, ::validators::ValidatedCustomizedNumberError> {
+                let v = $from_number_input as $t;
+
+                if v as usize != $from_number_input {
                     return Err(::validators::ValidatedCustomizedNumberError::UnpreciseError);
                 }
 

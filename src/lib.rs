@@ -286,7 +286,7 @@ pub extern crate serde;
 #[cfg(feature = "phone-number")]
 pub extern crate phonenumber;
 
-pub extern crate number_as;
+pub extern crate num_traits;
 
 mod validator_option;
 
