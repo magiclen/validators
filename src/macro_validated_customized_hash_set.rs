@@ -275,31 +275,31 @@ macro_rules! validated_customized_hash_set {
     ( $name:ident, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_hash_set!($name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
+    ( $v:vis $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
         #[derive(Clone, PartialEq, Eq)]
-        pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
+        $v struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
 
         validated_customized_hash_set_struct!($name, v, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
+    ( $v:vis $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
+        validated_customized_hash_set!($v $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
+    ( $v:vis $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block ) => {
+        validated_customized_hash_set!($v $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
+    ( $v:vis $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_hash_set!($v $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
+    ( $v:vis $name:ident, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_hash_set!($v $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
+    ( $v:vis $name:ident, from_string $from_string_input:ident $from_string:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_hash_set!($v $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_hash_set!(pub $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
+    ( $v:vis $name:ident, from_str $from_str_input:ident $from_str:block, from_hash_set $from_hash_set_input:ident $from_hash_set:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_hash_set!($v $name, $from_string_input $from_string, $from_str_input $from_str, $from_hash_set_input $from_hash_set);
     };
 }
 
@@ -350,29 +350,29 @@ macro_rules! validated_customized_ranged_length_hash_set {
     ( $name:ident, $equal:expr) => {
         validated_customized_ranged_length_hash_set!($name, $equal, $equal);
     };
-    ( pub $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+    ( $v:vis $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         #[derive(Clone, PartialEq, Eq)]
-        pub struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
+        $v struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
 
         validated_customized_ranged_length_hash_set_struct!($name, v, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    ( $v:vis $name:ident, $min:expr, $max:expr, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block) => {
+        validated_customized_ranged_length_hash_set!($v $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
+    ( $v:vis $name:ident, $min:expr, $max:expr, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block) => {
+        validated_customized_ranged_length_hash_set!($v $name, $min, $max, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, $min:expr, $max:expr) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $min, $max,
+    ( $v:vis $name:ident, $min:expr, $max:expr) => {
+        validated_customized_ranged_length_hash_set!($v $name, $min, $max,
         _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)},
         _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)});
     };
-    ( pub $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
+    ( $v:vis $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
+        validated_customized_ranged_length_hash_set!($v $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, $equal:expr) => {
-        validated_customized_ranged_length_hash_set!(pub $name, $equal, $equal);
+    ( $v:vis $name:ident, $equal:expr) => {
+        validated_customized_ranged_length_hash_set!($v $name, $equal, $equal);
     };
 }

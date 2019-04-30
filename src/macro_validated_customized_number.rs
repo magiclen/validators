@@ -603,31 +603,31 @@ macro_rules! validated_customized_number {
     ( $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
+    ( $v:vis $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
         #[derive(Clone, PartialEq)]
-        pub struct $name{
+        $v struct $name{
             n: $t
         }
 
         validated_customized_number_struct!($name, n, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+    ( $v:vis $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block ) => {
+        validated_customized_number!($v $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+    ( $v:vis $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block ) => {
+        validated_customized_number!($v $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+    ( $v:vis $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_number!($v $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+    ( $v:vis $name:ident, $t:ident, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_number!($v $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+    ( $v:vis $name:ident, $t:ident, from_string $from_string_input:ident $from_string:block, from_number $from_number_input:ident $from_number:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_number!($v $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
-    ( pub $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_number!(pub $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
+    ( $v:vis $name:ident, $t:ident, from_str $from_str_input:ident $from_str:block, from_number $from_number_input:ident $from_number:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_number!($v $name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
 }
 
@@ -745,9 +745,9 @@ macro_rules! validated_customized_regex_number {
 
         validated_customized_regex_number_struct!($name, n, $t, $re);
     };
-    ( pub $name:ident, $t:ident, $re:expr ) => {
+    ( $v:vis $name:ident, $t:ident, $re:expr ) => {
         #[derive(Clone, PartialEq)]
-        pub struct $name{
+        $v struct $name{
             n: $t
         }
 
@@ -761,9 +761,9 @@ macro_rules! validated_customized_regex_number {
 
         validated_customized_regex_number_struct!($name, n, $t, ref $re);
     };
-    ( pub $name:ident, $t:ident, ref $re:expr ) => {
+    ( $v:vis $name:ident, $t:ident, ref $re:expr ) => {
         #[derive(Clone, PartialEq)]
-        pub struct $name{
+        $v struct $name{
             n: $t
         }
 
@@ -821,9 +821,9 @@ macro_rules! validated_customized_ranged_number {
 
         validated_customized_ranged_number_struct!($name, n, $t, $min, $max);
     };
-    ( pub $name:ident, $t:ident, $min:expr, $max:expr ) => {
+    ( $v:vis $name:ident, $t:ident, $min:expr, $max:expr ) => {
         #[derive(Clone, PartialEq)]
-        pub struct $name{
+        $v struct $name{
             n: $t
         }
 
@@ -869,9 +869,9 @@ macro_rules! validated_customized_primitive_number {
 
         validated_customized_primitive_number_struct!($name, n, $t);
     };
-    ( pub $name:ident, $t:ident ) => {
+    ( $v:vis $name:ident, $t:ident ) => {
         #[derive(Clone, PartialEq)]
-        pub struct $name{
+        $v struct $name{
             n: $t
         }
 

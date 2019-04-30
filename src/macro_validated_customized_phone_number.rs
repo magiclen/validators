@@ -741,9 +741,9 @@ macro_rules! validated_customized_phone_number {
 
         validated_customized_phone_number_struct!($name, full_phone_number, countries, $($regions, )*);
     };
-    ( pub $name:ident $(, $regions:expr ) * $(,)* ) => {
+    ( $v:vis $name:ident $(, $regions:expr ) * $(,)* ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
+        $v struct $name{
             full_phone_number: String,
             countries: Vec<::validators::PhoneNumberCountry>,
         }

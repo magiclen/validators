@@ -203,19 +203,19 @@ macro_rules! validated_customized_string {
     ( $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
         validated_customized_string!($name, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
+    ( $v:vis $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
+        $v struct $name{
             s: String
         }
 
         validated_customized_string_struct!($name, s, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
-        validated_customized_string!(pub $name, $from_string_input $from_string, $from_str_input $from_str);
+    ( $v:vis $name:ident, from_string $from_string_input:ident $from_string:block, from_str $from_str_input:ident $from_str:block ) => {
+        validated_customized_string!($v $name, $from_string_input $from_string, $from_str_input $from_str);
     };
-    ( pub $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
-        validated_customized_string!(pub $name, $from_string_input $from_string, $from_str_input $from_str);
+    ( $v:vis $name:ident, from_str $from_str_input:ident $from_str:block, from_string $from_string_input:ident $from_string:block ) => {
+        validated_customized_string!($v $name, $from_string_input $from_string, $from_str_input $from_str);
     };
 }
 
@@ -275,9 +275,9 @@ macro_rules! validated_customized_regex_string {
 
         validated_customized_regex_string_struct!($name, s, $re);
     };
-    ( pub $name:ident, $re:expr ) => {
+    ( $v:vis $name:ident, $re:expr ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
+        $v struct $name{
             s: String
         }
 
@@ -291,9 +291,9 @@ macro_rules! validated_customized_regex_string {
 
         validated_customized_regex_string_struct!($name, s, ref $re);
     };
-    ( pub $name:ident, ref $re:expr ) => {
+    ( $v:vis $name:ident, ref $re:expr ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        pub struct $name{
+        $v struct $name{
             s: String
         }
 
