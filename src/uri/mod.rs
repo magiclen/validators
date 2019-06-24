@@ -125,8 +125,9 @@ impl Validated for URI {}
 
 impl Debug for URI {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("URI({})", self.full_uri))?;
-        Ok(())
+        let debug_text = format!("URI({:?})", self.full_uri);
+
+        f.pad(&debug_text)
     }
 }
 

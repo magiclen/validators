@@ -121,24 +121,24 @@ macro_rules! validated_customized_hash_set_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
         impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Debug for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}[", stringify!($name)))?;
+                let mut debug_text = format!("{}[", stringify!($name));
 
                 let len = self.$field.len();
 
                 if len > 0 {
-                     for n in self.$field.iter().take(1) {
-                        ::std::fmt::Display::fmt(n, f)?;
+                    for n in self.$field.iter().take(1) {
+                        debug_text.push_str(&n.to_string());
                     }
 
                     for n in self.$field.iter().skip(1) {
-                        f.write_str(", ")?;
-                        ::std::fmt::Display::fmt(n, f)?;
+                        debug_text.push_str(", ");
+                        debug_text.push_str(&n.to_string());
                     }
                 }
 
-                f.write_str("]")?;
+                debug_text.push_str("]");
 
-                Ok(())
+                f.pad(&debug_text)
             }
         }
 

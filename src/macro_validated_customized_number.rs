@@ -191,8 +191,9 @@ macro_rules! validated_customized_number_struct {
     ( $name:ident, $field:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}({})", stringify!($name), self.$field))?;
-                Ok(())
+                let debug_text = format!("{}({})", stringify!($name), self.$field);
+
+                f.pad(&debug_text)
             }
         }
 

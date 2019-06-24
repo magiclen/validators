@@ -131,8 +131,9 @@ impl Validated for MacAddress {}
 
 impl Debug for MacAddress {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("MacAddress({})", self.mac_address))?;
-        Ok(())
+        let debug_text = format!("MacAddress({:?})", self.mac_address);
+
+        f.pad(&debug_text)
     }
 }
 

@@ -176,8 +176,9 @@ impl Validated for HttpUrl {}
 
 impl Debug for HttpUrl {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("HttpUrl({})", self.full_http_url))?;
-        Ok(())
+        let debug_text = format!("HttpUrl({:?})", self.full_http_url);
+
+        f.pad(&debug_text)
     }
 }
 

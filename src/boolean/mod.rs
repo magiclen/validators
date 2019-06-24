@@ -63,8 +63,9 @@ impl Validated for Boolean {}
 
 impl Debug for Boolean {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Boolean({})", self.boolean))?;
-        Ok(())
+        let debug_text = format!("Boolean({:?})", self.boolean);
+
+        f.pad(&debug_text)
     }
 }
 

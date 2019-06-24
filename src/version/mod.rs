@@ -93,8 +93,9 @@ impl Validated for Version {}
 
 impl Debug for Version {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Version({})", self.full_version))?;
-        Ok(())
+        let debug_text = format!("Version({:?})", self.full_version);
+
+        f.pad(&debug_text)
     }
 }
 

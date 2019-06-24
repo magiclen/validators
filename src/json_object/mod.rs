@@ -81,7 +81,15 @@ impl Validated for JSONObject {}
 
 impl Debug for JSONObject {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(&self.value, f)
+        if f.alternate() {
+            let debug_text = format!("JSONObject({:#?})", self.value);
+
+            f.pad(&debug_text)
+        } else {
+            let debug_text = format!("JSONObject({:?})", self.value);
+
+            f.pad(&debug_text)
+        }
     }
 }
 

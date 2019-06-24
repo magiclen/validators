@@ -72,8 +72,9 @@ impl Validated for Email {}
 
 impl Debug for Email {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Email({})", self.full_email))?;
-        Ok(())
+        let debug_text = format!("Email({:?})", self.full_email);
+
+        f.pad(&debug_text)
     }
 }
 

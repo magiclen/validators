@@ -641,8 +641,9 @@ macro_rules! validated_customized_phone_number_struct {
     ( $name:ident, $field_phone_number:ident, $countries:ident $(, $regions:expr) * $(,)* ) => {
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}({}, {:?})", stringify!($name), self.$field_phone_number, self.$countries))?;
-                Ok(())
+                let debug_text = format!("{}({:?}, {:?})", stringify!($name), self.$field_phone_number, self.$countries);
+
+                f.pad(&debug_text)
             }
         }
 

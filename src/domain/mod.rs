@@ -128,8 +128,9 @@ impl Validated for Domain {}
 
 impl Debug for Domain {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Domain({})", self.full_domain))?;
-        Ok(())
+        let debug_text = format!("Domain({:?})", self.full_domain);
+
+        f.pad(&debug_text)
     }
 }
 

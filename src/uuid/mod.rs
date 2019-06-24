@@ -116,8 +116,9 @@ impl Validated for UUID {}
 
 impl Debug for UUID {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("UUID({})", self.uuid))?;
-        Ok(())
+        let debug_text = format!("UUID({:?})", self.uuid);
+
+        f.pad(&debug_text)
     }
 }
 

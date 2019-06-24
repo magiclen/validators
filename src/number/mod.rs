@@ -87,8 +87,9 @@ impl Validated for Number {}
 
 impl Debug for Number {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Number({})", self.value))?;
-        Ok(())
+        let debug_text = format!("Number({})", self.value);
+
+        f.pad(&debug_text)
     }
 }
 

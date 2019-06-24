@@ -119,19 +119,18 @@ macro_rules! validated_customized_vec_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
         impl<T: ::validators::ValidatedWrapper> ::std::fmt::Debug for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                f.write_fmt(format_args!("{}[", stringify!($name)))?;
+                let mut debug_text = format!("{}[", stringify!($name));
 
                 let len = self.$field.len();
 
                 if len > 0 {
                     for n in self.$field.iter().take(len - 1) {
-                        ::std::fmt::Debug::fmt(n, f)?;
+                        debug_text.push_str(&n.to_string());
 
-
-                        f.write_str(", ")?;
+                        debug_text.push_str(", ");
                     }
 
-                    ::std::fmt::Debug::fmt(&self.$field[len - 1], f)?;
+                    debug_text.push_str(&self.$field[len - 1].to_string());
                 }
 
                 f.write_str("]")?;

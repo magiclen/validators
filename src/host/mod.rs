@@ -100,23 +100,22 @@ impl Validated for Host {}
 
 impl Debug for Host {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_str("Host(")?;
-        match self {
-            Host::Domain(d) => Debug::fmt(d, f),
-            Host::IPv4(d) => Debug::fmt(d, f),
-            Host::IPv6(d) => Debug::fmt(d, f),
-        }?;
-        f.write_str(")")?;
-        Ok(())
+        let debug_text = match self {
+            Host::Domain(d) => format!("Host({})", d),
+            Host::IPv4(d) => format!("Host({})", d),
+            Host::IPv6(d) => format!("Host({})", d),
+        };
+
+        f.pad(&debug_text)
     }
 }
 
 impl Display for Host {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            Host::Domain(d) => Display::fmt(d, f),
-            Host::IPv4(d) => Display::fmt(d, f),
-            Host::IPv6(d) => Display::fmt(d, f),
+            Host::Domain(d) => f.write_str(d.get_domain()),
+            Host::IPv4(d) => f.write_str(d.get_full_ipv4()),
+            Host::IPv6(d) => f.write_str(d.get_full_ipv6()),
         }
     }
 }

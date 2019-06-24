@@ -64,8 +64,9 @@ impl Validated for Base32 {}
 
 impl Debug for Base32 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Base32({})", self.base32))?;
-        Ok(())
+        let debug_text = format!("Base32({:?})", self.base32);
+
+        f.pad(&debug_text)
     }
 }
 

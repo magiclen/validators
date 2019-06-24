@@ -66,8 +66,9 @@ impl Validated for Text {}
 
 impl Debug for Text {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Text({})", self.text))?;
-        Ok(())
+        let debug_text = format!("Text({:?})", self.text);
+
+        f.pad(&debug_text)
     }
 }
 

@@ -80,7 +80,15 @@ impl Validated for JSONArray {}
 
 impl Debug for JSONArray {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(&self.value, f)
+        if f.alternate() {
+            let debug_text = format!("JSONArray({:#?})", self.value);
+
+            f.pad(&debug_text)
+        } else {
+            let debug_text = format!("JSONArray({:?})", self.value);
+
+            f.pad(&debug_text)
+        }
     }
 }
 

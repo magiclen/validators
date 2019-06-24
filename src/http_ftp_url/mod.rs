@@ -188,8 +188,9 @@ impl Validated for HttpFtpUrl {}
 
 impl Debug for HttpFtpUrl {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("HttpFtpUrl({})", self.full_http_ftp_url))?;
-        Ok(())
+        let debug_text = format!("HttpFtpUrl({:?})", self.full_http_ftp_url);
+
+        f.pad(&debug_text)
     }
 }
 

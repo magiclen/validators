@@ -73,7 +73,15 @@ impl Validated for JSON {}
 
 impl Debug for JSON {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(&self.value, f)
+        if f.alternate() {
+            let debug_text = format!("JSON({:#?})", self.value);
+
+            f.pad(&debug_text)
+        } else {
+            let debug_text = format!("JSON({:?})", self.value);
+
+            f.pad(&debug_text)
+        }
     }
 }
 

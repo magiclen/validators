@@ -66,8 +66,9 @@ impl Validated for Line {}
 
 impl Debug for Line {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        f.write_fmt(format_args!("Line({})", self.line))?;
-        Ok(())
+        let debug_text = format!("Line({:?})", self.line);
+
+        f.pad(&debug_text)
     }
 }
 
