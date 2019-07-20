@@ -100,13 +100,7 @@ impl Validated for Host {}
 
 impl Debug for Host {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = match self {
-            Host::Domain(d) => format!("Host({})", d),
-            Host::IPv4(d) => format!("Host({})", d),
-            Host::IPv6(d) => format!("Host({})", d),
-        };
-
-        f.pad(&debug_text)
+        impl_debug_for_enum!(Host::{(Domain(v): (let .v = v)), (IPv4(v): (let .v = v)), (IPv6(v): (let .v = v))}, f, self);
     }
 }
 

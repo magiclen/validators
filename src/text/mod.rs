@@ -66,9 +66,7 @@ impl Validated for Text {}
 
 impl Debug for Text {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Text({:?})", self.text);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Text, f, self, let .0 = self.text);
     }
 }
 

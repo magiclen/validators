@@ -81,9 +81,7 @@ impl Validated for Integer {}
 
 impl Debug for Integer {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Integer({})", self.value);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Integer, f, self, let .0 = self.value);
     }
 }
 

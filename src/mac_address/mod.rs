@@ -131,9 +131,7 @@ impl Validated for MacAddress {}
 
 impl Debug for MacAddress {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("MacAddress({:?})", self.mac_address);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(MacAddress, f, self, let .0 = self.mac_address);
     }
 }
 

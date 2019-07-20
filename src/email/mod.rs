@@ -72,9 +72,7 @@ impl Validated for Email {}
 
 impl Debug for Email {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Email({:?})", self.full_email);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Email, f, self, let .0 = self.full_email);
     }
 }
 

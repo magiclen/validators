@@ -93,9 +93,7 @@ impl Validated for Version {}
 
 impl Debug for Version {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Version({:?})", self.full_version);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Version, f, self, let .0 = self.full_version);
     }
 }
 

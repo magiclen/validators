@@ -87,9 +87,7 @@ impl Validated for Number {}
 
 impl Debug for Number {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Number({})", self.value);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Number, f, self, let .0 = self.value);
     }
 }
 

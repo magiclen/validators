@@ -108,9 +108,7 @@ impl Validated for IPv4 {}
 
 impl Debug for IPv4 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("IPv4({:?})", self.full_ipv4);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(IPv4, f, self, let .0 = self.full_ipv4);
     }
 }
 

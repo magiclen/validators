@@ -64,9 +64,7 @@ impl Validated for Base64Url {}
 
 impl Debug for Base64Url {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Base64Url({:?})", self.base64_url);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Base64Url, f, self, let .0 = self.base64_url);
     }
 }
 

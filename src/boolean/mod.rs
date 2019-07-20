@@ -63,9 +63,7 @@ impl Validated for Boolean {}
 
 impl Debug for Boolean {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Boolean({:?})", self.boolean);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Boolean, f, self, let .0 = self.boolean);
     }
 }
 

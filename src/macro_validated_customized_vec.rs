@@ -58,14 +58,14 @@ impl<'de, V: ValidatedVecWrapper<T>, T: ValidatedWrapper + serde::Deserialize<'d
 #[macro_export]
 macro_rules! validated_customized_vec_struct_implement_se_de {
      ( $name:ident ) => {
-        impl<'de, T: ::validators::ValidatedWrapper + ::validators::serde::Deserialize<'de>> ::validators::serde::Deserialize<'de> for $name<T> {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_seq(::validators::VecVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
+        impl<'de, T: $crate::ValidatedWrapper + $crate::serde::Deserialize<'de>> $crate::serde::Deserialize<'de> for $name<T> {
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error> where D: $crate::serde::Deserializer<'de> {
+                deserializer.deserialize_seq($crate::VecVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + ::validators::serde::Serialize> ::validators::serde::Serialize for $name<T> {
-            fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+        impl<T: $crate::ValidatedWrapper + $crate::serde::Serialize> $crate::serde::Serialize for $name<T> {
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error> where S: $crate::serde::Serializer {
                 serializer.collect_seq(self.as_vec().iter())
             }
         }
@@ -86,19 +86,19 @@ macro_rules! validated_customized_vec_struct_implement_se_de {
 #[macro_export]
 macro_rules! validated_customized_vec_struct_implement_from_form_value {
     ( $name:ident ) => {
-        impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedVecError;
+        impl<'a, T: $crate::ValidatedWrapper> $crate::rocket::request::FromFormValue<'a> for $name<T> {
+            type Error = $crate::ValidatedCustomizedVecError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
+            fn from_form_value(form_value: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode().map_err(|err| $crate::ValidatedCustomizedVecError::UTF8Error(err))?)
             }
         }
 
-        impl<'a, T: ::validators::ValidatedWrapper> ::validators::rocket::request::FromParam<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedVecError;
+        impl<'a, T: $crate::ValidatedWrapper> $crate::rocket::request::FromParam<'a> for $name<T> {
+            type Error = $crate::ValidatedCustomizedVecError;
 
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedVecError::UTF8Error(err))?)
+            fn from_param(param: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| $crate::ValidatedCustomizedVecError::UTF8Error(err))?)
             }
         }
 
@@ -117,29 +117,13 @@ macro_rules! validated_customized_vec_struct_implement_from_form_value {
 #[macro_export]
 macro_rules! validated_customized_vec_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
-        impl<T: ::validators::ValidatedWrapper> ::std::fmt::Debug for $name<T> {
+        impl<T: $crate::ValidatedWrapper> ::std::fmt::Debug for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                let mut debug_text = format!("{}[", stringify!($name));
-
-                let len = self.$field.len();
-
-                if len > 0 {
-                    for n in self.$field.iter().take(len - 1) {
-                        debug_text.push_str(&n.to_string());
-
-                        debug_text.push_str(", ");
-                    }
-
-                    debug_text.push_str(&self.$field[len - 1].to_string());
-                }
-
-                f.write_str("]")?;
-
-                Ok(())
+                $crate::debug_helper::impl_debug_for_tuple_struct!($name, f, self, let .0 = self.$field);
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper> ::std::fmt::Display for $name<T> {
+        impl<T: $crate::ValidatedWrapper> ::std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_str("[")?;
 
@@ -162,9 +146,9 @@ macro_rules! validated_customized_vec_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper> ::std::cmp::Eq for $name<T> {}
+        impl<T: $crate::ValidatedWrapper> ::std::cmp::Eq for $name<T> {}
 
-        impl<T: ::validators::ValidatedWrapper> ::std::ops::Deref for $name<T> {
+        impl<T: $crate::ValidatedWrapper> ::std::ops::Deref for $name<T> {
             type Target = Vec<T>;
 
             fn deref(&self) -> &Self::Target {
@@ -172,27 +156,27 @@ macro_rules! validated_customized_vec_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper> ::validators::Validated for $name<T> {}
+        impl<T: $crate::ValidatedWrapper> $crate::Validated for $name<T> {}
 
-        impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedWrapper for $name<T> {
-            type Error = ::validators::ValidatedCustomizedVecError;
+        impl<T: $crate::ValidatedWrapper> $crate::ValidatedWrapper for $name<T> {
+            type Error = $crate::ValidatedCustomizedVecError;
 
-            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error> {
+            fn from_string($from_string_input: String) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error> {
+            fn from_str($from_str_input: &str) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper> ::validators::ValidatedVecWrapper<T> for $name<T> {
-            fn from_vec($from_vec_input: Vec<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
+        impl<T: $crate::ValidatedWrapper> $crate::ValidatedVecWrapper<T> for $name<T> {
+            fn from_vec($from_vec_input: Vec<T>) -> ::std::result::Result<Self, $crate::ValidatedCustomizedVecError> {
                 $name::from_vec($from_vec_input)
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper> $name<T> {
+        impl<T: $crate::ValidatedWrapper> $name<T> {
             pub fn as_vec(&self) -> &Vec<T> {
                 &self.$field
             }
@@ -201,35 +185,35 @@ macro_rules! validated_customized_vec_struct {
                 self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
+            pub fn from_string($from_string_input: String) -> ::std::result::Result<Self, $crate::ValidatedCustomizedVecError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
+            pub fn from_str($from_str_input: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedVecError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
-            pub fn from_vec($from_vec_input: Vec<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedVecError> {
+            pub fn from_vec($from_vec_input: Vec<T>) -> ::std::result::Result<Self, $crate::ValidatedCustomizedVecError> {
                 let $field = match $from_vec {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
             pub unsafe fn from_vec_unchecked($from_vec_input: Vec<T>) -> Self {
-                $name{$field:$from_vec_input}
+                $name {$field:$from_vec_input}
             }
         }
 
@@ -242,7 +226,7 @@ macro_rules! validated_customized_vec_struct {
 macro_rules! validated_customized_vec {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
         #[derive(Clone, PartialEq)]
-        struct $name<T: ::validators::ValidatedWrapper> {
+        struct $name<T: $crate::ValidatedWrapper> {
             v: Vec<T>
         }
 
@@ -268,7 +252,7 @@ macro_rules! validated_customized_vec {
     };
     ( $v:vis $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_vec_input:ident $from_vec:block ) => {
         #[derive(Clone, PartialEq)]
-        $v struct $name<T: ::validators::ValidatedWrapper> {
+        $v struct $name<T: $crate::ValidatedWrapper> {
             v: Vec<T>
         }
 
@@ -304,9 +288,9 @@ macro_rules! validated_customized_ranged_length_vec_struct {
             let len = input.len();
 
             if len > $max {
-                Err(::validators::ValidatedCustomizedVecError::Overflow)
+                Err($crate::ValidatedCustomizedVecError::Overflow)
             } else if len < $min {
-                Err(::validators::ValidatedCustomizedVecError::Underflow)
+                Err($crate::ValidatedCustomizedVecError::Underflow)
             } else {
                 Ok(input)
             }
@@ -318,7 +302,7 @@ macro_rules! validated_customized_ranged_length_vec_struct {
 macro_rules! validated_customized_ranged_length_vec {
     ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         #[derive(Clone, PartialEq)]
-        struct $name<T: ::validators::ValidatedWrapper> {
+        struct $name<T: $crate::ValidatedWrapper> {
             v: Vec<T>
         }
 
@@ -332,8 +316,8 @@ macro_rules! validated_customized_ranged_length_vec {
     };
     ( $name:ident, $min:expr, $max:expr) => {
         validated_customized_ranged_length_vec!($name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)});
+        _input {Err($crate::ValidatedCustomizedVecError::NotSupport)},
+        _input {Err($crate::ValidatedCustomizedVecError::NotSupport)});
     };
     ( $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         validated_customized_ranged_length_vec!($name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
@@ -343,7 +327,7 @@ macro_rules! validated_customized_ranged_length_vec {
     };
     ( $v:vis $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         #[derive(Clone, PartialEq)]
-        $v struct $name<T: ::validators::ValidatedWrapper> {
+        $v struct $name<T: $crate::ValidatedWrapper> {
             v: Vec<T>
         }
 
@@ -357,8 +341,8 @@ macro_rules! validated_customized_ranged_length_vec {
     };
     ( $v:vis $name:ident, $min:expr, $max:expr) => {
         validated_customized_ranged_length_vec!($v $name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedVecError::NotSupport)});
+        _input {Err($crate::ValidatedCustomizedVecError::NotSupport)},
+        _input {Err($crate::ValidatedCustomizedVecError::NotSupport)});
     };
     ( $v:vis $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         validated_customized_ranged_length_vec!($v $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);

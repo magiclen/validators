@@ -64,9 +64,7 @@ impl Validated for Base32 {}
 
 impl Debug for Base32 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Base32({:?})", self.base32);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Base32, f, self, let .0 = self.base32);
     }
 }
 

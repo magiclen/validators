@@ -188,9 +188,7 @@ impl Validated for HttpFtpUrl {}
 
 impl Debug for HttpFtpUrl {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("HttpFtpUrl({:?})", self.full_http_ftp_url);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(HttpFtpUrl, f, self, let .0 = self.full_http_ftp_url);
     }
 }
 

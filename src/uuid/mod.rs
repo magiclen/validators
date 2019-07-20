@@ -116,9 +116,7 @@ impl Validated for UUID {}
 
 impl Debug for UUID {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("UUID({:?})", self.uuid);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(UUID, f, self, let .0 = self.uuid);
     }
 }
 

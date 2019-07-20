@@ -64,9 +64,7 @@ impl Validated for ShortCryptUrlComponent {}
 
 impl Debug for ShortCryptUrlComponent {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("ShortCryptUrlComponent({:?})", self.short_crypt_url_component);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(ShortCryptUrlComponent, f, self, let .0 = self.short_crypt_url_component);
     }
 }
 

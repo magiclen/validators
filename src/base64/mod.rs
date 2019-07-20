@@ -66,9 +66,7 @@ impl Validated for Base64 {}
 
 impl Debug for Base64 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Base64({:?})", self.base64);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Base64, f, self, let .0 = self.base64);
     }
 }
 

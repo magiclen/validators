@@ -64,9 +64,7 @@ impl Validated for ShortCryptQRCodeAlphanumeric {}
 
 impl Debug for ShortCryptQRCodeAlphanumeric {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("ShortCryptQRCodeAlphanumeric({:?})", self.short_crypt_qr_code_alphanumeric);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(ShortCryptQRCodeAlphanumeric, f, self, let .0 = self.short_crypt_qr_code_alphanumeric);
     }
 }
 

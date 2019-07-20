@@ -276,6 +276,9 @@ pub extern crate regex;
 #[macro_use]
 pub extern crate lazy_static;
 
+#[macro_use]
+pub extern crate debug_helper;
+
 #[cfg(feature = "rocketly")]
 pub extern crate rocket;
 

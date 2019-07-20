@@ -125,9 +125,7 @@ impl Validated for URI {}
 
 impl Debug for URI {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("URI({:?})", self.full_uri);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(URI, f, self, let .0 = self.full_uri);
     }
 }
 

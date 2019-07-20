@@ -128,9 +128,7 @@ impl Validated for Domain {}
 
 impl Debug for Domain {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("Domain({:?})", self.full_domain);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(Domain, f, self, let .0 = self.full_domain);
     }
 }
 

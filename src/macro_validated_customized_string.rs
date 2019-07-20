@@ -49,14 +49,14 @@ impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for StringVisitor<V> {
 #[macro_export]
 macro_rules! validated_customized_string_struct_implement_se_de {
      ( $name:ident ) => {
-        impl<'de> ::validators::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_string(::validators::StringVisitor(Vec::<$name>::new()))
+        impl<'de> $crate::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error> where D: $crate::serde::Deserializer<'de> {
+                deserializer.deserialize_string($crate::StringVisitor(Vec::<$name>::new()))
             }
         }
 
-        impl ::validators::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+        impl $crate::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error> where S: $crate::serde::Serializer {
                 serializer.serialize_str(self.as_str())
             }
         }
@@ -77,19 +77,19 @@ macro_rules! validated_customized_string_struct_implement_se_de {
 #[macro_export]
 macro_rules! validated_customized_string_struct_implement_from_form_value {
     ( $name:ident ) => {
-        impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedStringError;
+        impl<'a> $crate::rocket::request::FromFormValue<'a> for $name {
+            type Error = $crate::ValidatedCustomizedStringError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
+            fn from_form_value(form_value: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode().map_err(|err| $crate::ValidatedCustomizedStringError::UTF8Error(err))?)
             }
         }
 
-        impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedStringError;
+        impl<'a> $crate::rocket::request::FromParam<'a> for $name {
+            type Error = $crate::ValidatedCustomizedStringError;
 
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedStringError::UTF8Error(err))?)
+            fn from_param(param: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| $crate::ValidatedCustomizedStringError::UTF8Error(err))?)
             }
         }
     }
@@ -109,9 +109,7 @@ macro_rules! validated_customized_string_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                let debug_text = format!("{}({:?})", stringify!($name), self.$field);
-
-                f.pad(&debug_text)
+                $crate::debug_helper::impl_debug_for_tuple_struct!($name, f, self, let .0 = self.$field);
             }
         }
 
@@ -130,16 +128,16 @@ macro_rules! validated_customized_string_struct {
             }
         }
 
-        impl ::validators::Validated for $name {}
+        impl $crate::Validated for $name {}
 
-        impl ::validators::ValidatedWrapper for $name {
-            type Error = ::validators::ValidatedCustomizedStringError;
+        impl $crate::ValidatedWrapper for $name {
+            type Error = $crate::ValidatedCustomizedStringError;
 
-            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error> {
+            fn from_string($from_string_input: String) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error> {
+            fn from_str($from_str_input: &str) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
@@ -153,26 +151,26 @@ macro_rules! validated_customized_string_struct {
                 self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedStringError> {
+            pub fn from_string($from_string_input: String) -> ::std::result::Result<Self, $crate::ValidatedCustomizedStringError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedStringError> {
+            pub fn from_str($from_str_input: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedStringError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
             pub unsafe fn from_string_unchecked($from_string_input: String) -> Self {
-                $name{$field:$from_string_input}
+                $name {$field:$from_string_input}
             }
         }
 
@@ -192,7 +190,7 @@ macro_rules! validated_customized_string_struct {
 macro_rules! validated_customized_string {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
+        struct $name {
             s: String
         }
 
@@ -206,7 +204,7 @@ macro_rules! validated_customized_string {
     };
     ( $v:vis $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        $v struct $name{
+        $v struct $name {
             s: String
         }
 
@@ -225,42 +223,42 @@ macro_rules! validated_customized_regex_string_struct {
     ( $name:ident, $field:ident, $re:expr ) => {
         validated_customized_string_struct!($name, $field,
         input {
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
+            let re = $crate::regex::Regex::new($re).map_err(|err| $crate::ValidatedCustomizedStringError::RegexError(err))?;
 
             if re.is_match(&input) {
                 Ok(input)
             } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
+                Err($crate::ValidatedCustomizedStringError::NotMatch)
             }
         },
         input {
-            let re = ::validators::regex::Regex::new($re).map_err(|err| ::validators::ValidatedCustomizedStringError::RegexError(err))?;
+            let re = $crate::regex::Regex::new($re).map_err(|err| $crate::ValidatedCustomizedStringError::RegexError(err))?;
 
             if re.is_match(input) {
                 Ok(input.to_string())
             } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
+                Err($crate::ValidatedCustomizedStringError::NotMatch)
             }
         });
     };
     ( $name:ident, $field:ident, ref $re:expr ) => {
         validated_customized_string_struct!($name, $field,
         input {
-            let re: &::validators::regex::Regex = &$re;
+            let re: &$crate::regex::Regex = &$re;
 
             if re.is_match(&input) {
                 Ok(input)
             } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
+                Err($crate::ValidatedCustomizedStringError::NotMatch)
             }
         },
         input {
-            let re: &::validators::regex::Regex = &$re;
+            let re: &$crate::regex::Regex = &$re;
 
             if re.is_match(input) {
                 Ok(input.to_string())
             } else{
-                Err(::validators::ValidatedCustomizedStringError::NotMatch)
+                Err($crate::ValidatedCustomizedStringError::NotMatch)
             }
         });
     };
@@ -270,7 +268,7 @@ macro_rules! validated_customized_regex_string_struct {
 macro_rules! validated_customized_regex_string {
     ( $name:ident, $re:expr ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
+        struct $name {
             s: String
         }
 
@@ -278,7 +276,7 @@ macro_rules! validated_customized_regex_string {
     };
     ( $v:vis $name:ident, $re:expr ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        $v struct $name{
+        $v struct $name {
             s: String
         }
 
@@ -286,7 +284,7 @@ macro_rules! validated_customized_regex_string {
     };
     ( $name:ident, ref $re:expr ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
+        struct $name {
             s: String
         }
 
@@ -294,7 +292,7 @@ macro_rules! validated_customized_regex_string {
     };
     ( $v:vis $name:ident, ref $re:expr ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        $v struct $name{
+        $v struct $name {
             s: String
         }
 

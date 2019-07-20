@@ -60,14 +60,14 @@ impl<'de, V: ValidatedHashSetWrapper<T>, T: ValidatedWrapper + Eq + Hash + serde
 #[macro_export]
 macro_rules! validated_customized_hash_set_struct_implement_se_de {
      ( $name:ident ) => {
-        impl<'de, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash + ::validators::serde::Deserialize<'de>> ::validators::serde::Deserialize<'de> for $name<T> {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_seq(::validators::HashSetVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
+        impl<'de, T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash + $crate::serde::Deserialize<'de>> $crate::serde::Deserialize<'de> for $name<T> {
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error> where D: $crate::serde::Deserializer<'de> {
+                deserializer.deserialize_seq($crate::HashSetVisitor(Vec::<$name<T>>::new(), Vec::<T>::new()))
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash + ::validators::serde::Serialize> ::validators::serde::Serialize for $name<T> {
-            fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash + $crate::serde::Serialize> $crate::serde::Serialize for $name<T> {
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error> where S: $crate::serde::Serializer {
                 serializer.collect_seq(self.as_hash_set().iter())
             }
         }
@@ -88,19 +88,19 @@ macro_rules! validated_customized_hash_set_struct_implement_se_de {
 #[macro_export]
 macro_rules! validated_customized_hash_set_struct_implement_from_form_value {
     ( $name:ident ) => {
-        impl<'a, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::rocket::request::FromFormValue<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedHashSetError;
+        impl<'a, T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> $crate::rocket::request::FromFormValue<'a> for $name<T> {
+            type Error = $crate::ValidatedCustomizedHashSetError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedHashSetError::UTF8Error(err))?)
+            fn from_form_value(form_value: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode().map_err(|err| $crate::ValidatedCustomizedHashSetError::UTF8Error(err))?)
             }
         }
 
-        impl<'a, T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::rocket::request::FromParam<'a> for $name<T> {
-            type Error = ::validators::ValidatedCustomizedHashSetError;
+        impl<'a, T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> $crate::rocket::request::FromParam<'a> for $name<T> {
+            type Error = $crate::ValidatedCustomizedHashSetError;
 
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedHashSetError::UTF8Error(err))?)
+            fn from_param(param: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| $crate::ValidatedCustomizedHashSetError::UTF8Error(err))?)
             }
         }
 
@@ -119,30 +119,13 @@ macro_rules! validated_customized_hash_set_struct_implement_from_form_value {
 #[macro_export]
 macro_rules! validated_customized_hash_set_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Debug for $name<T> {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Debug for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                let mut debug_text = format!("{}[", stringify!($name));
-
-                let len = self.$field.len();
-
-                if len > 0 {
-                    for n in self.$field.iter().take(1) {
-                        debug_text.push_str(&n.to_string());
-                    }
-
-                    for n in self.$field.iter().skip(1) {
-                        debug_text.push_str(", ");
-                        debug_text.push_str(&n.to_string());
-                    }
-                }
-
-                debug_text.push_str("]");
-
-                f.pad(&debug_text)
+                $crate::debug_helper::impl_debug_for_tuple_struct!($name, f, self, let .0 = self.$field);
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Display for $name<T> {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::fmt::Display for $name<T> {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_str("[")?;
 
@@ -165,7 +148,7 @@ macro_rules! validated_customized_hash_set_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::hash::Hash for $name<T> {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::hash::Hash for $name<T> {
             fn hash<H: ::std::hash::Hasher>(&self, state: &mut H){
                 for e in &self.$field {
                     e.hash(state)
@@ -173,7 +156,7 @@ macro_rules! validated_customized_hash_set_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::ops::Deref for $name<T> {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> ::std::ops::Deref for $name<T> {
             type Target = ::std::collections::HashSet<T>;
 
             fn deref(&self) -> &Self::Target {
@@ -181,27 +164,27 @@ macro_rules! validated_customized_hash_set_struct {
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::Validated for $name<T> {}
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> $crate::Validated for $name<T> {}
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedWrapper for $name<T> {
-            type Error = ::validators::ValidatedCustomizedHashSetError;
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> $crate::ValidatedWrapper for $name<T> {
+            type Error = $crate::ValidatedCustomizedHashSetError;
 
-            fn from_string($from_string_input: String) -> std::result::Result<Self, Self::Error> {
+            fn from_string($from_string_input: String) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
-            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Error> {
+            fn from_str($from_str_input: &str) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> ::validators::ValidatedHashSetWrapper<T> for $name<T> {
-            fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> $crate::ValidatedHashSetWrapper<T> for $name<T> {
+            fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> ::std::result::Result<Self, $crate::ValidatedCustomizedHashSetError> {
                 $name::from_hash_set($from_hash_set_input)
             }
         }
 
-        impl<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> $name<T> {
+        impl<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> $name<T> {
             pub fn as_hash_set(&self) -> &::std::collections::HashSet<T> {
                 &self.$field
             }
@@ -210,35 +193,35 @@ macro_rules! validated_customized_hash_set_struct {
                 self.$field
             }
 
-            pub fn from_string($from_string_input: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
+            pub fn from_string($from_string_input: String) -> ::std::result::Result<Self, $crate::ValidatedCustomizedHashSetError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
-            pub fn from_str($from_str_input: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
+            pub fn from_str($from_str_input: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedHashSetError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
-            pub fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> std::result::Result<Self, ::validators::ValidatedCustomizedHashSetError> {
+            pub fn from_hash_set($from_hash_set_input: ::std::collections::HashSet<T>) -> ::std::result::Result<Self, $crate::ValidatedCustomizedHashSetError> {
                 let $field = match $from_hash_set {
                     Ok(s)=> s,
                     Err(e)=> return Err(e)
                 };
 
-                Ok($name{$field})
+                Ok($name {$field})
             }
 
             pub unsafe fn from_hash_set_unchecked($from_hash_set_input: ::std::collections::HashSet<T>) -> Self {
-                $name{$field:$from_hash_set_input}
+                $name {$field:$from_hash_set_input}
             }
         }
 
@@ -251,7 +234,7 @@ macro_rules! validated_customized_hash_set_struct {
 macro_rules! validated_customized_hash_set {
     ( $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
         #[derive(Clone, PartialEq, Eq)]
-        struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
+        struct $name<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
 
@@ -277,7 +260,7 @@ macro_rules! validated_customized_hash_set {
     };
     ( $v:vis $name:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_hash_set_input:ident $from_hash_set:block ) => {
         #[derive(Clone, PartialEq, Eq)]
-        $v struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
+        $v struct $name<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
 
@@ -313,9 +296,9 @@ macro_rules! validated_customized_ranged_length_hash_set_struct {
             let len = input.len();
 
             if len > $max {
-                Err(::validators::ValidatedCustomizedHashSetError::Overflow)
+                Err($crate::ValidatedCustomizedHashSetError::Overflow)
             } else if len < $min {
-                Err(::validators::ValidatedCustomizedHashSetError::Underflow)
+                Err($crate::ValidatedCustomizedHashSetError::Underflow)
             } else {
                 Ok(input)
             }
@@ -327,7 +310,7 @@ macro_rules! validated_customized_ranged_length_hash_set_struct {
 macro_rules! validated_customized_ranged_length_hash_set {
     ( $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         #[derive(Clone, PartialEq, Eq)]
-        struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
+        struct $name<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
 
@@ -341,8 +324,8 @@ macro_rules! validated_customized_ranged_length_hash_set {
     };
     ( $name:ident, $min:expr, $max:expr) => {
         validated_customized_ranged_length_hash_set!($name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)});
+        _input {Err($crate::ValidatedCustomizedHashSetError::NotSupport)},
+        _input {Err($crate::ValidatedCustomizedHashSetError::NotSupport)});
     };
     ( $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         validated_customized_ranged_length_hash_set!($name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);
@@ -352,7 +335,7 @@ macro_rules! validated_customized_ranged_length_hash_set {
     };
     ( $v:vis $name:ident, $min:expr, $max:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         #[derive(Clone, PartialEq, Eq)]
-        $v struct $name<T: ::validators::ValidatedWrapper + Eq + ::std::hash::Hash> {
+        $v struct $name<T: $crate::ValidatedWrapper + Eq + ::std::hash::Hash> {
             v: ::std::collections::HashSet<T>
         }
 
@@ -366,8 +349,8 @@ macro_rules! validated_customized_ranged_length_hash_set {
     };
     ( $v:vis $name:ident, $min:expr, $max:expr) => {
         validated_customized_ranged_length_hash_set!($v $name, $min, $max,
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)},
-        _input {Err(::validators::ValidatedCustomizedHashSetError::NotSupport)});
+        _input {Err($crate::ValidatedCustomizedHashSetError::NotSupport)},
+        _input {Err($crate::ValidatedCustomizedHashSetError::NotSupport)});
     };
     ( $v:vis $name:ident, $equal:expr, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block) => {
         validated_customized_ranged_length_hash_set!($v $name, $equal, $equal, $from_string_input $from_string, $from_str_input $from_str);

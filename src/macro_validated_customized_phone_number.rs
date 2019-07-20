@@ -315,14 +315,14 @@ impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for PhoneNumberVisitor<V>
 #[macro_export]
 macro_rules! validated_customized_phone_number_struct_implement_se_de {
      ( $name:ident ) => {
-        impl<'de> ::validators::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error> where D: ::validators::serde::Deserializer<'de> {
-                deserializer.deserialize_string(::validators::StringVisitor(Vec::<$name>::new()))
+        impl<'de> $crate::serde::Deserialize<'de> for $name {
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error> where D: $crate::serde::Deserializer<'de> {
+                deserializer.deserialize_string($crate::StringVisitor(Vec::<$name>::new()))
             }
         }
 
-        impl ::validators::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> where S: ::validators::serde::Serializer {
+        impl $crate::serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error> where S: $crate::serde::Serializer {
                 serializer.serialize_str(self.get_full_phone_number())
             }
         }
@@ -343,19 +343,19 @@ macro_rules! validated_customized_phone_number_struct_implement_se_de {
 #[macro_export]
 macro_rules! validated_customized_phone_number_struct_implement_from_form_value {
     ( $name:ident ) => {
-        impl<'a> ::validators::rocket::request::FromFormValue<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedPhoneNumberError;
+        impl<'a> $crate::rocket::request::FromFormValue<'a> for $name {
+            type Error = $crate::ValidatedCustomizedPhoneNumberError;
 
-            fn from_form_value(form_value: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| ::validators::ValidatedCustomizedPhoneNumberError::UTF8Error(err))?)
+            fn from_form_value(form_value: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode().map_err(|err| $crate::ValidatedCustomizedPhoneNumberError::UTF8Error(err))?)
             }
         }
 
-        impl<'a> ::validators::rocket::request::FromParam<'a> for $name {
-            type Error = ::validators::ValidatedCustomizedPhoneNumberError;
+        impl<'a> $crate::rocket::request::FromParam<'a> for $name {
+            type Error = $crate::ValidatedCustomizedPhoneNumberError;
 
-            fn from_param(param: &'a ::validators::rocket::http::RawStr) -> std::result::Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| ::validators::ValidatedCustomizedPhoneNumberError::UTF8Error(err))?)
+            fn from_param(param: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(param.url_decode().map_err(|err| $crate::ValidatedCustomizedPhoneNumberError::UTF8Error(err))?)
             }
         }
     }
@@ -375,7 +375,7 @@ macro_rules! validated_customized_phone_number_struct_implement_from_form_value 
 macro_rules! validated_customized_phone_number_struct_inner {
     ( $full_phone_number:ident, $countries:ident $(,)* ) => {
         {
-            use ::validators::PhoneNumberCountry;
+            use $crate::PhoneNumberCountry;
             validated_customized_phone_number_struct_inner!($full_phone_number, $countries,
                 PhoneNumberCountry::AC,
                 PhoneNumberCountry::AD,
@@ -626,7 +626,7 @@ macro_rules! validated_customized_phone_number_struct_inner {
     };
     ( $full_phone_number:ident, $countries:ident, $($regions:expr), + $(,)* ) => {
         $(
-            if let Ok(phone_number) = ::validators::phonenumber::parse(Some($regions.to_country_id()), $full_phone_number) {
+            if let Ok(phone_number) = $crate::phonenumber::parse(Some($regions.to_country_id()), $full_phone_number) {
                 if phone_number.is_valid() {
                     $countries.push($regions);
                 }
@@ -641,9 +641,7 @@ macro_rules! validated_customized_phone_number_struct {
     ( $name:ident, $field_phone_number:ident, $countries:ident $(, $regions:expr) * $(,)* ) => {
         impl ::std::fmt::Debug for $name {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                let debug_text = format!("{}({:?}, {:?})", stringify!($name), self.$field_phone_number, self.$countries);
-
-                f.pad(&debug_text)
+                $crate::debug_helper::impl_debug_for_tuple_struct!($name, f, self, let .0 = self.$field_phone_number, let .1 = self.$countries);
             }
         }
 
@@ -662,22 +660,22 @@ macro_rules! validated_customized_phone_number_struct {
             }
         }
 
-        impl ::validators::Validated for $name {}
+        impl $crate::Validated for $name {}
 
-        impl ::validators::ValidatedWrapper for $name {
-            type Error = ::validators::ValidatedCustomizedPhoneNumberError;
+        impl $crate::ValidatedWrapper for $name {
+            type Error = $crate::ValidatedCustomizedPhoneNumberError;
 
-            fn from_string($field_phone_number: String) -> std::result::Result<Self, Self::Error> {
+            fn from_string($field_phone_number: String) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_string($field_phone_number)
             }
 
-            fn from_str($field_phone_number: &str) -> std::result::Result<Self, Self::Error> {
+            fn from_str($field_phone_number: &str) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_str($field_phone_number)
             }
         }
 
         impl<'a> $name {
-            pub fn get_countries(&self) -> &[::validators::PhoneNumberCountry] {
+            pub fn get_countries(&self) -> &[$crate::PhoneNumberCountry] {
                 &self.$countries
             }
 
@@ -689,7 +687,7 @@ macro_rules! validated_customized_phone_number_struct {
                 self.$field_phone_number
             }
 
-            pub fn from_string($field_phone_number: String) -> std::result::Result<Self, ::validators::ValidatedCustomizedPhoneNumberError> {
+            pub fn from_string($field_phone_number: String) -> ::std::result::Result<Self, $crate::ValidatedCustomizedPhoneNumberError> {
                 let mut phone_number_inner = $name::from_inner(&$field_phone_number)?;
 
                 phone_number_inner.$field_phone_number = $field_phone_number;
@@ -697,7 +695,7 @@ macro_rules! validated_customized_phone_number_struct {
                 Ok(phone_number_inner)
             }
 
-            pub fn from_str($field_phone_number: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedPhoneNumberError> {
+            pub fn from_str($field_phone_number: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedPhoneNumberError> {
                 let mut phone_number_inner = $name::from_inner($field_phone_number)?;
 
                 phone_number_inner.$field_phone_number.push_str($field_phone_number);
@@ -705,13 +703,13 @@ macro_rules! validated_customized_phone_number_struct {
                 Ok(phone_number_inner)
             }
 
-            fn from_inner($field_phone_number: &str) -> std::result::Result<Self, ::validators::ValidatedCustomizedPhoneNumberError> {
+            fn from_inner($field_phone_number: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedPhoneNumberError> {
                 let mut countries = Vec::new();
 
                 validated_customized_phone_number_struct_inner!($field_phone_number, countries, $($regions, )*);
 
                 if countries.is_empty() {
-                    Err(::validators::ValidatedCustomizedPhoneNumberError::IncorrectFormat)
+                    Err($crate::ValidatedCustomizedPhoneNumberError::IncorrectFormat)
                 } else {
                     Ok($name {
                         $field_phone_number: String::new(),
@@ -720,8 +718,8 @@ macro_rules! validated_customized_phone_number_struct {
                 }
             }
 
-            pub unsafe fn from_string_countries_unchecked($field_phone_number: String, countries: Vec<::validators::PhoneNumberCountry>) -> Self {
-                $name{$field_phone_number: $field_phone_number, $countries: countries}
+            pub unsafe fn from_string_countries_unchecked($field_phone_number: String, countries: Vec<$crate::PhoneNumberCountry>) -> Self {
+                $name {$field_phone_number: $field_phone_number, $countries: countries}
             }
         }
 
@@ -735,18 +733,18 @@ macro_rules! validated_customized_phone_number_struct {
 macro_rules! validated_customized_phone_number {
     ( $name:ident $(, $regions:expr ) * $(,)* ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        struct $name{
+        struct $name {
             full_phone_number: String,
-            countries: Vec<::validators::PhoneNumberCountry>,
+            countries: Vec<$crate::PhoneNumberCountry>,
         }
 
         validated_customized_phone_number_struct!($name, full_phone_number, countries, $($regions, )*);
     };
     ( $v:vis $name:ident $(, $regions:expr ) * $(,)* ) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
-        $v struct $name{
+        $v struct $name {
             full_phone_number: String,
-            countries: Vec<::validators::PhoneNumberCountry>,
+            countries: Vec<$crate::PhoneNumberCountry>,
         }
 
         validated_customized_phone_number_struct!($name, full_phone_number, countries, $($regions, )*);

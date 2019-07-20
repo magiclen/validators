@@ -124,9 +124,7 @@ impl Validated for IPv6 {}
 
 impl Debug for IPv6 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let debug_text = format!("IPv6({:?})", self.full_ipv6);
-
-        f.pad(&debug_text)
+        impl_debug_for_tuple_struct!(IPv6, f, self, let .0 = self.full_ipv6);
     }
 }
 
