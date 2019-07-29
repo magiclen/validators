@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.20.12"
+version = "0.20.13"
 authors = ["Magic Len <len@magiclen.org>"]
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
@@ -10,9 +10,9 @@ description= "A library for validating user input."
 readme = "README.md"
 license = "MIT"
 
-[badges]
-travis-ci = { repository = "magiclen/validators", branch = "master" }
-appveyor = { repository = "magiclen/validators", branch = "master", service = "github" }
+[badges.travis-ci]
+repository = "magiclen/validators"
+branch = "master"
 
 [dependencies]
 regex = "1.0"
