@@ -1,15 +1,15 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated, ValidatedWrapper};
+use super::{Validated, ValidatedWrapper, ValidatorOption};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
-use std::str::Utf8Error;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use std::str::Utf8Error;
 
-use super::host::{Host, HostLocalable, HostError};
+use super::host::{Host, HostError, HostLocalable};
 use super::http_url::{HttpUrl, HttpUrlError};
 
 lazy_static! {
@@ -30,12 +30,27 @@ pub enum HttpFtpUrlError {
 }
 
 impl Display for HttpFtpUrlError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
 
 impl Error for HttpFtpUrlError {}
+
+impl From<HostError> for HttpFtpUrlError {
+    #[inline]
+    fn from(err: HostError) -> Self {
+        HttpFtpUrlError::IncorrectHostFormat(err)
+    }
+}
+
+impl From<Utf8Error> for HttpFtpUrlError {
+    #[inline]
+    fn from(err: Utf8Error) -> Self {
+        HttpFtpUrlError::UTF8Error(err)
+    }
+}
 
 pub type HttpFtpUrlResult = Result<HttpFtpUrl, HttpFtpUrlError>;
 
@@ -63,6 +78,7 @@ pub struct HttpFtpUrl {
 }
 
 impl HttpFtpUrl {
+    #[inline]
     pub fn get_protocol(&self) -> Option<&str> {
         if self.protocol != self.full_http_ftp_url_len {
             if self.is_absolute {
@@ -75,26 +91,27 @@ impl HttpFtpUrl {
         }
     }
 
+    #[inline]
     pub fn get_host(&self) -> &Host {
         &self.host
     }
 
+    #[inline]
     pub fn get_path(&self) -> Option<&str> {
         if self.path != self.full_http_ftp_url_len {
             if self.query != self.full_http_ftp_url_len {
                 Some(&self.full_http_ftp_url[self.path..(self.query - 1)])
+            } else if self.fragment != self.full_http_ftp_url_len {
+                Some(&self.full_http_ftp_url[self.path..(self.fragment - 1)])
             } else {
-                if self.fragment != self.full_http_ftp_url_len {
-                    Some(&self.full_http_ftp_url[self.path..(self.fragment - 1)])
-                } else {
-                    Some(&self.full_http_ftp_url[self.path..])
-                }
+                Some(&self.full_http_ftp_url[self.path..])
             }
         } else {
             None
         }
     }
 
+    #[inline]
     pub fn get_query(&self) -> Option<&str> {
         if self.query != self.full_http_ftp_url_len {
             if self.fragment != self.full_http_ftp_url_len {
@@ -107,6 +124,7 @@ impl HttpFtpUrl {
         }
     }
 
+    #[inline]
     pub fn get_fragment(&self) -> Option<&str> {
         if self.fragment != self.full_http_ftp_url_len {
             Some(&self.full_http_ftp_url[self.fragment..])
@@ -115,46 +133,53 @@ impl HttpFtpUrl {
         }
     }
 
+    #[inline]
     pub fn get_full_http_ftp_url(&self) -> &str {
         &self.full_http_ftp_url
     }
 
+    #[inline]
     pub fn get_full_http_ftp_url_without_query_and_fragment(&self) -> &str {
         if self.query != self.full_http_ftp_url_len {
             &self.full_http_ftp_url[..(self.query - 1)]
+        } else if self.fragment != self.full_http_ftp_url_len {
+            &self.full_http_ftp_url[..(self.fragment - 1)]
         } else {
-            if self.fragment != self.full_http_ftp_url_len {
-                &self.full_http_ftp_url[..(self.fragment - 1)]
-            } else {
-                &self.full_http_ftp_url
-            }
+            &self.full_http_ftp_url
         }
     }
 
+    #[inline]
     pub fn is_https(&self) -> bool {
         self.is_https
     }
 
+    #[inline]
     pub fn is_http(&self) -> bool {
         self.is_http
     }
 
+    #[inline]
     pub fn is_ftp(&self) -> bool {
         self.is_ftp
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.is_local
     }
 
+    #[inline]
     pub fn is_absolute(&self) -> bool {
         self.is_absolute
     }
 
+    #[inline]
     pub fn into_string(self) -> String {
         self.full_http_ftp_url
     }
 
+    #[inline]
     pub fn into_http_url(self) -> Result<HttpUrl, HttpUrlError> {
         if self.is_ftp {
             return Err(HttpUrlError::IncorrectFormat);
@@ -179,6 +204,7 @@ impl HttpFtpUrl {
 impl Deref for HttpFtpUrl {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.full_http_ftp_url
     }
@@ -187,12 +213,14 @@ impl Deref for HttpFtpUrl {
 impl Validated for HttpFtpUrl {}
 
 impl Debug for HttpFtpUrl {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(HttpFtpUrl, f, self, let .0 = self.full_http_ftp_url);
     }
 }
 
 impl Display for HttpFtpUrl {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&self.full_http_ftp_url)?;
         Ok(())
@@ -200,28 +228,28 @@ impl Display for HttpFtpUrl {
 }
 
 impl PartialEq for HttpFtpUrl {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.full_http_ftp_url.eq(&other.full_http_ftp_url)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.full_http_ftp_url.ne(&other.full_http_ftp_url)
     }
 }
 
 impl Eq for HttpFtpUrl {}
 
 impl Hash for HttpFtpUrl {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_http_ftp_url.hash(state)
     }
 }
 
 impl HttpFtpUrlValidator {
+    #[inline]
     pub fn is_http_ftp_url(&self, full_http_ftp_url: &str) -> bool {
         self.parse_inner(full_http_ftp_url).is_ok()
     }
 
+    #[inline]
     pub fn parse_string(&self, full_http_ftp_url: String) -> HttpFtpUrlResult {
         let mut http_ftp_url_inner = self.parse_inner(&full_http_ftp_url)?;
 
@@ -230,6 +258,7 @@ impl HttpFtpUrlValidator {
         Ok(http_ftp_url_inner)
     }
 
+    #[inline]
     pub fn parse_str(&self, full_http_ftp_url: &str) -> HttpFtpUrlResult {
         let mut http_ftp_url_inner = self.parse_inner(full_http_ftp_url)?;
 
@@ -241,7 +270,7 @@ impl HttpFtpUrlValidator {
     fn parse_inner(&self, full_http_ftp_url: &str) -> HttpFtpUrlResult {
         let c = match HTTP_FTP_URL_RE.captures(&full_http_ftp_url) {
             Some(c) => c,
-            None => return Err(HttpFtpUrlError::LocalNotFound)
+            None => return Err(HttpFtpUrlError::LocalNotFound),
         };
 
         let full_http_ftp_url_len = full_http_ftp_url.len();
@@ -292,7 +321,8 @@ impl HttpFtpUrlValidator {
 
         let host_index = match c.get(4) {
             Some(m) => {
-                let host_localable = HostLocalable::from_str(&full_http_ftp_url[m.start()..m.end()]).map_err(|err| HttpFtpUrlError::IncorrectHostFormat(err))?;
+                let host_localable =
+                    HostLocalable::from_str(&full_http_ftp_url[m.start()..m.end()])?;
 
                 match self.local {
                     ValidatorOption::Must => {
@@ -320,32 +350,19 @@ impl HttpFtpUrlValidator {
         };
 
         let path = match c.get(5) {
-            Some(m) => {
-                m.start()
-            }
-            None => {
-                full_http_ftp_url_len
-            }
+            Some(m) => m.start(),
+            None => full_http_ftp_url_len,
         };
 
         let query = match c.get(7) {
-            Some(m) => {
-                m.start()
-            }
-            None => {
-                full_http_ftp_url_len
-            }
+            Some(m) => m.start(),
+            None => full_http_ftp_url_len,
         };
 
         let fragment = match c.get(9) {
-            Some(m) => {
-                m.start()
-            }
-            None => {
-                full_http_ftp_url_len
-            }
+            Some(m) => m.start(),
+            None => full_http_ftp_url_len,
         };
-
 
         Ok(HttpFtpUrl {
             protocol,
@@ -380,8 +397,14 @@ mod tests {
 
         let http_ftp_url = huv.parse_string(url).unwrap();
 
-        assert_eq!("ftp://magiclen.org:8080/path/to/something?a=1&b=2#12345", http_ftp_url.get_full_http_ftp_url());
-        assert_eq!("ftp://magiclen.org:8080/path/to/something", http_ftp_url.get_full_http_ftp_url_without_query_and_fragment());
+        assert_eq!(
+            "ftp://magiclen.org:8080/path/to/something?a=1&b=2#12345",
+            http_ftp_url.get_full_http_ftp_url()
+        );
+        assert_eq!(
+            "ftp://magiclen.org:8080/path/to/something",
+            http_ftp_url.get_full_http_ftp_url_without_query_and_fragment()
+        );
         assert_eq!("ftp", http_ftp_url.get_protocol().unwrap());
         assert_eq!("magiclen.org:8080", http_ftp_url.get_host().get_full_host());
         assert_eq!("/path/to/something", http_ftp_url.get_path().unwrap());
@@ -540,11 +563,12 @@ mod tests {
 // TODO ----------
 
 macro_rules! extend {
-    ( $name:ident, $protocol:expr, $local:expr ) => {
+    ($name:ident, $protocol:expr, $local:expr) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(HttpFtpUrl);
 
         impl From<$name> for HttpFtpUrl {
+            #[inline]
             fn from(d: $name) -> Self {
                 d.0
             }
@@ -553,6 +577,7 @@ macro_rules! extend {
         impl Deref for $name {
             type Target = str;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0.full_http_ftp_url
             }
@@ -563,16 +588,19 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = HttpFtpUrlError;
 
+            #[inline]
             fn from_string(full_http_ftp_url: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_http_ftp_url)
             }
 
+            #[inline]
             fn from_str(full_http_ftp_url: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_http_ftp_url)
             }
         }
 
         impl Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
                 Ok(())
@@ -580,59 +608,66 @@ macro_rules! extend {
         }
 
         impl Display for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
             }
         }
 
         impl $name {
+            #[inline]
             pub fn from_string(full_http_ftp_url: String) -> Result<$name, HttpFtpUrlError> {
                 Ok($name($name::create_validator().parse_string(full_http_ftp_url)?))
             }
 
+            #[inline]
+            #[allow(clippy::should_implement_trait)]
             pub fn from_str(full_http_ftp_url: &str) -> Result<$name, HttpFtpUrlError> {
                 Ok($name($name::create_validator().parse_str(full_http_ftp_url)?))
             }
 
             pub fn from_http_ftp_url(http_ftp_url: HttpFtpUrl) -> Result<$name, HttpFtpUrlError> {
-                 match $protocol {
+                match $protocol {
                     ValidatorOption::Must => {
                         if http_ftp_url.protocol == http_ftp_url.full_http_ftp_url_len {
-                            return Err(HttpFtpUrlError::ProtocolNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if http_ftp_url.protocol == http_ftp_url.full_http_ftp_url_len {
-                            return Err(HttpFtpUrlError::ProtocolNotAllow)
+                            return Err(HttpFtpUrlError::ProtocolNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if http_ftp_url.protocol == http_ftp_url.full_http_ftp_url_len {
+                            return Err(HttpFtpUrlError::ProtocolNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
                 match $local {
                     ValidatorOption::Must => {
                         if !http_ftp_url.is_local {
-                            return Err(HttpFtpUrlError::LocalNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if http_ftp_url.is_local {
-                            return Err(HttpFtpUrlError::LocalNotAllow)
+                            return Err(HttpFtpUrlError::LocalNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if http_ftp_url.is_local {
+                            return Err(HttpFtpUrlError::LocalNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
 
                 Ok($name(http_ftp_url))
             }
 
+            #[inline]
             pub fn into_http_ftp_url(self) -> HttpFtpUrl {
                 self.0
             }
 
+            #[inline]
             pub fn as_http_ftp_url(&self) -> &HttpFtpUrl {
                 &self.0
             }
 
+            #[inline]
             fn create_validator() -> HttpFtpUrlValidator {
                 HttpFtpUrlValidator {
                     protocol: $protocol,
@@ -642,10 +677,12 @@ macro_rules! extend {
         }
 
         impl $name {
+            #[inline]
             pub fn get_host(&self) -> &Host {
                 &self.0.host
             }
 
+            #[inline]
             pub fn get_path(&self) -> Option<&str> {
                 if self.0.path != self.0.full_http_ftp_url_len {
                     if self.0.query != self.0.full_http_ftp_url_len {
@@ -662,6 +699,7 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn get_query(&self) -> Option<&str> {
                 if self.0.query != self.0.full_http_ftp_url_len {
                     if self.0.fragment != self.0.full_http_ftp_url_len {
@@ -674,6 +712,7 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn get_fragment(&self) -> Option<&str> {
                 if self.0.fragment != self.0.full_http_ftp_url_len {
                     Some(&self.0.full_http_ftp_url[self.0.fragment..])
@@ -682,10 +721,12 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn get_full_http_ftp_url(&self) -> &str {
                 &self.0.full_http_ftp_url
             }
 
+            #[inline]
             pub fn get_full_http_ftp_url_without_query_and_fragment(&self) -> &str {
                 if self.0.query != self.0.full_http_ftp_url_len {
                     &self.0.full_http_ftp_url[..(self.0.query - 1)]
@@ -698,8 +739,18 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn is_absolute(&self) -> bool {
                 self.0.is_absolute
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = HttpFtpUrlError;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<$name, HttpFtpUrlError> {
+                $name::from_str(s)
             }
         }
 
@@ -707,8 +758,11 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = HttpFtpUrlError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| HttpFtpUrlError::UTF8Error(err))?)
+            #[inline]
+            fn from_form_value(
+                form_value: &'a ::rocket::http::RawStr,
+            ) -> Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode()?)
             }
         }
 
@@ -716,33 +770,43 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromParam<'a> for $name {
             type Error = HttpFtpUrlError;
 
+            #[inline]
             fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| HttpFtpUrlError::UTF8Error(err))?)
+                $name::from_string(param.url_decode()?)
             }
         }
 
         #[cfg(feature = "serdely")]
         impl<'de> ::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::Deserializer<'de>, {
                 struct StringVisitor;
 
                 impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
                     type Value = $name;
 
+                    #[inline]
                     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_fmt(format_args!("a HTTP URL({:?}) string", $name::create_validator()))
+                        formatter.write_fmt(format_args!(
+                            "a HTTP URL({:?}) string",
+                            $name::create_validator()
+                        ))
                     }
 
-                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_str(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_str(v).map_err(|err| E::custom(err.to_string()))
                     }
 
-                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_string(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_string(v).map_err(|err| E::custom(err.to_string()))
                     }
                 }
 
@@ -752,7 +816,10 @@ macro_rules! extend {
 
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer, {
                 serializer.serialize_str(self.get_full_http_ftp_url())
             }
         }
@@ -762,6 +829,7 @@ macro_rules! extend {
 extend!(HttpFtpUrlLocalableWithProtocol, ValidatorOption::Must, ValidatorOption::Allow);
 
 impl HttpFtpUrlLocalableWithProtocol {
+    #[inline]
     pub fn get_protocol(&self) -> &str {
         if self.0.is_absolute {
             &self.0.full_http_ftp_url[..(self.0.host_index - 3)]
@@ -770,18 +838,22 @@ impl HttpFtpUrlLocalableWithProtocol {
         }
     }
 
+    #[inline]
     pub fn is_https(&self) -> bool {
         self.0.is_https
     }
 
+    #[inline]
     pub fn is_http(&self) -> bool {
         self.0.is_http
     }
 
+    #[inline]
     pub fn is_ftp(&self) -> bool {
         self.0.is_ftp
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
@@ -790,6 +862,7 @@ impl HttpFtpUrlLocalableWithProtocol {
 extend!(HttpFtpUrlUnlocalableWithProtocol, ValidatorOption::Must, ValidatorOption::NotAllow);
 
 impl HttpFtpUrlUnlocalableWithProtocol {
+    #[inline]
     pub fn get_protocol(&self) -> &str {
         if self.0.is_absolute {
             &self.0.full_http_ftp_url[..(self.0.host_index - 3)]
@@ -798,14 +871,17 @@ impl HttpFtpUrlUnlocalableWithProtocol {
         }
     }
 
+    #[inline]
     pub fn is_https(&self) -> bool {
         self.0.is_https
     }
 
+    #[inline]
     pub fn is_http(&self) -> bool {
         self.0.is_http
     }
 
+    #[inline]
     pub fn is_ftp(&self) -> bool {
         self.0.is_ftp
     }
@@ -814,6 +890,7 @@ impl HttpFtpUrlUnlocalableWithProtocol {
 extend!(HttpFtpUrlLocalableWithoutProtocol, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl HttpFtpUrlLocalableWithoutProtocol {
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }

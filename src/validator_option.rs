@@ -6,27 +6,30 @@ pub enum ValidatorOption {
 }
 
 impl ValidatorOption {
+    #[inline]
     pub fn allow(&self) -> bool {
         match self {
             ValidatorOption::Must => true,
             ValidatorOption::Allow => true,
-            ValidatorOption::NotAllow => false
+            ValidatorOption::NotAllow => false,
         }
     }
 
+    #[inline]
     pub fn not_allow(&self) -> bool {
         match self {
             ValidatorOption::Must => false,
             ValidatorOption::Allow => false,
-            ValidatorOption::NotAllow => true
+            ValidatorOption::NotAllow => true,
         }
     }
 
+    #[inline]
     pub fn must(&self) -> bool {
         match self {
             ValidatorOption::Must => true,
             ValidatorOption::Allow => false,
-            ValidatorOption::NotAllow => false
+            ValidatorOption::NotAllow => false,
         }
     }
 }

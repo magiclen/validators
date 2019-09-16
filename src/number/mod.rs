@@ -1,7 +1,7 @@
 use super::{Validated, ValidatedWrapper, ValidatorOption};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::mem::transmute;
 use std::ops::Deref;
@@ -17,6 +17,7 @@ pub enum NumberError {
 }
 
 impl Display for NumberError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -32,42 +33,56 @@ pub struct NumberValidator {
     pub zero: ValidatorOption,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct Number {
-    value: f64
+    value: f64,
 }
 
 impl Number {
+    #[inline]
     pub fn get_number(&self) -> f64 {
         self.value
     }
 
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.value == 0f64
     }
 
+    #[inline]
     pub fn is_positive(&self) -> bool {
         self.value > 0f64
     }
 
+    #[inline]
     pub fn is_negative(&self) -> bool {
         self.value < 0f64
     }
 
+    #[inline]
     pub fn is_integer(&self) -> bool {
-        self.value.floor() == self.value
+        (self.value.floor() - self.value).abs() < 1.0e-6
     }
 
+    #[inline]
     pub unsafe fn from_f64_unchecked(number: f64) -> Number {
         Number {
-            value: number
+            value: number,
         }
+    }
+}
+
+impl PartialEq for Number {
+    #[inline]
+    fn eq(&self, other: &Number) -> bool {
+        self.value.eq(&other.value)
     }
 }
 
 impl Eq for Number {}
 
 impl Hash for Number {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         let bytes: [u8; 8] = unsafe { transmute(self.value) };
 
@@ -78,6 +93,7 @@ impl Hash for Number {
 impl Deref for Number {
     type Target = f64;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.value
     }
@@ -86,12 +102,14 @@ impl Deref for Number {
 impl Validated for Number {}
 
 impl Debug for Number {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(Number, f, self, let .0 = self.value);
     }
 }
 
 impl Display for Number {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_fmt(format_args!("{}", self.value))?;
         Ok(())
@@ -99,10 +117,12 @@ impl Display for Number {
 }
 
 impl NumberValidator {
+    #[inline]
     pub fn is_number(&self, number: &str) -> bool {
         self.parse_inner(number).is_ok()
     }
 
+    #[inline]
     pub fn parse_string(&self, full_number: String) -> NumberResult {
         let value = self.parse_inner(&full_number)?;
 
@@ -113,6 +133,7 @@ impl NumberValidator {
         Ok(value)
     }
 
+    #[inline]
     pub fn parse_str(&self, full_number: &str) -> NumberResult {
         let value = self.parse_inner(&full_number)?;
 
@@ -123,6 +144,7 @@ impl NumberValidator {
         Ok(value)
     }
 
+    #[inline]
     pub fn parse_f64(&self, value: f64) -> NumberResult {
         if value > 0f64 {
             if self.negative.must() {
@@ -136,33 +158,36 @@ impl NumberValidator {
             } else if self.zero.must() {
                 return Err(NumberError::ZeroNotFound);
             }
-        } else {
-            if self.zero.not_allow() {
-                return Err(NumberError::ZeroNotAllow);
-            }
+        } else if self.zero.not_allow() {
+            return Err(NumberError::ZeroNotAllow);
         }
 
         Ok(Number {
-            value
+            value,
         })
     }
 
+    #[inline]
     pub fn parse_f32(&self, value: f32) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_i8(&self, value: i8) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_i16(&self, value: i16) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_i32(&self, value: i32) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_i64(&self, value: i64) -> NumberResult {
         if value as f64 as i64 != value {
             return Err(NumberError::UnpreciseError);
@@ -171,6 +196,7 @@ impl NumberValidator {
         self.parse_f64(value as f64)
     }
 
+    #[inline]
     pub fn parse_i128(&self, value: i128) -> NumberResult {
         if value as f64 as i128 != value {
             return Err(NumberError::UnpreciseError);
@@ -179,18 +205,22 @@ impl NumberValidator {
         self.parse_f64(value as f64)
     }
 
+    #[inline]
     pub fn parse_u8(&self, value: u8) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_u16(&self, value: u16) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_u32(&self, value: u32) -> NumberResult {
-        self.parse_f64(value as f64)
+        self.parse_f64(f64::from(value))
     }
 
+    #[inline]
     pub fn parse_u64(&self, value: u64) -> NumberResult {
         if value as f64 as u64 != value {
             return Err(NumberError::UnpreciseError);
@@ -199,6 +229,7 @@ impl NumberValidator {
         self.parse_f64(value as f64)
     }
 
+    #[inline]
     pub fn parse_u128(&self, value: u128) -> NumberResult {
         if value as f64 as u128 != value {
             return Err(NumberError::UnpreciseError);
@@ -207,8 +238,10 @@ impl NumberValidator {
         self.parse_f64(value as f64)
     }
 
+    #[inline]
     fn parse_inner(&self, full_number: &str) -> NumberResult {
-        let value = full_number.parse::<f64>().map_err(|err| NumberError::ParseError(err.to_string()))?;
+        let value =
+            full_number.parse::<f64>().map_err(|err| NumberError::ParseError(err.to_string()))?;
         self.parse_f64(value)
     }
 }
@@ -216,6 +249,7 @@ impl NumberValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq;
 
     #[test]
     fn test_number_methods() {
@@ -228,7 +262,7 @@ mod tests {
 
         let number = nv.parse_string(full_number).unwrap();
 
-        assert_eq!(-0.556, number.get_number());
+        assert_approx_eq!(-0.556, number.get_number());
         assert_eq!(false, number.is_zero());
         assert_eq!(false, number.is_positive());
         assert_eq!(true, number.is_negative());
@@ -334,12 +368,12 @@ mod tests {
 
 #[doc(hidden)]
 pub fn precise(a: &str, b: &str) -> bool {
-    let na = a.starts_with("-");
+    let na = a.starts_with('-');
     let a = enclose(a);
-    let nb = b.starts_with("-");
+    let nb = b.starts_with('-');
     let b = enclose(b);
 
-    if a.len() > 0 {
+    if !a.is_empty() {
         a.eq(b) && na == nb
     } else {
         a.eq(b)
@@ -355,7 +389,7 @@ pub fn enclose(number: &str) -> &str {
     let mut point = None;
 
     while start < len {
-        let s = &number[start..(start + 1)];
+        let s = &number[start..=start];
 
         match s {
             "0" | "-" | "+" => (),
@@ -366,7 +400,7 @@ pub fn enclose(number: &str) -> &str {
             _ => {
                 let mut p = start + 1;
                 while p < len {
-                    let s = &number[p..(p + 1)];
+                    let s = &number[p..=p];
                     if s.eq(".") {
                         point = Some(p);
                         break;
@@ -386,7 +420,7 @@ pub fn enclose(number: &str) -> &str {
             let mut end = len - 1;
 
             while end > point {
-                let s = &number[end..(end + 1)];
+                let s = &number[end..=end];
 
                 if s.ne("0") {
                     break;
@@ -397,12 +431,10 @@ pub fn enclose(number: &str) -> &str {
             if end == point {
                 &number[start..end]
             } else {
-                &number[start..(end + 1)]
+                &number[start..=end]
             }
         }
-        None => {
-            &number[start..]
-        }
+        None => &number[start..],
     }
 }
 
@@ -509,11 +541,12 @@ mod precise_tests {
 // TODO ----------
 
 macro_rules! extend {
-    ( $name:ident, $negative:expr, $zero:expr ) => {
+    ($name:ident, $negative:expr, $zero:expr) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(Number);
 
         impl From<$name> for Number {
+            #[inline]
             fn from(d: $name) -> Self {
                 d.0
             }
@@ -522,6 +555,7 @@ macro_rules! extend {
         impl Deref for $name {
             type Target = f64;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0.value
             }
@@ -532,16 +566,19 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = NumberError;
 
-            fn from_string(full_number: String) -> Result<Self, Self::Error>{
+            #[inline]
+            fn from_string(full_number: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_number)
             }
 
-            fn from_str(full_number: &str) -> Result<Self, Self::Error>{
+            #[inline]
+            fn from_str(full_number: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_number)
             }
         }
 
         impl Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
                 Ok(())
@@ -549,107 +586,126 @@ macro_rules! extend {
         }
 
         impl Display for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
             }
         }
 
         impl $name {
+            #[inline]
             pub fn from_string(full_number: String) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_string(full_number)?))
             }
 
+            #[inline]
+            #[allow(clippy::should_implement_trait)]
             pub fn from_str(full_number: &str) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_str(full_number)?))
             }
 
             pub fn from_number(number: Number) -> Result<$name, NumberError> {
-                 match $negative {
+                match $negative {
                     ValidatorOption::Must => {
                         if number.value >= 0f64 {
-                            return Err(NumberError::NegativeNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if number.value < 0f64 {
-                            return Err(NumberError::NegativeNotAllow)
+                            return Err(NumberError::NegativeNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if number.value < 0f64 {
+                            return Err(NumberError::NegativeNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
                 match $zero {
                     ValidatorOption::Must => {
                         if number.value >= 0f64 {
-                            return Err(NumberError::ZeroNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if number.value >= 0f64 {
-                            return Err(NumberError::ZeroNotAllow)
+                            return Err(NumberError::ZeroNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if number.value >= 0f64 {
+                            return Err(NumberError::ZeroNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
 
                 Ok($name(number))
             }
 
+            #[inline]
             pub fn from_f64(value: f64) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_f64(value)?))
             }
 
+            #[inline]
             pub fn from_f32(value: f32) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_f32(value)?))
             }
 
+            #[inline]
             pub fn from_i8(value: i8) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_i8(value)?))
             }
 
+            #[inline]
             pub fn from_i16(value: i16) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_i16(value)?))
             }
 
+            #[inline]
             pub fn from_i32(value: i32) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_i32(value)?))
             }
 
+            #[inline]
             pub fn from_i64(value: i64) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_i64(value)?))
             }
 
+            #[inline]
             pub fn from_i128(value: i128) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_i128(value)?))
             }
 
+            #[inline]
             pub fn from_u8(value: u8) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_u8(value)?))
             }
 
+            #[inline]
             pub fn from_u16(value: u16) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_u16(value)?))
             }
 
+            #[inline]
             pub fn from_u32(value: u32) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_u32(value)?))
             }
 
+            #[inline]
             pub fn from_u64(value: u64) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_u64(value)?))
             }
 
+            #[inline]
             pub fn from_u128(value: u128) -> Result<$name, NumberError> {
                 Ok($name($name::create_validator().parse_u128(value)?))
             }
 
+            #[inline]
             pub fn into_number(self) -> Number {
                 self.0
             }
 
+            #[inline]
             pub fn as_number(&self) -> &Number {
                 &self.0
             }
 
+            #[inline]
             fn create_validator() -> NumberValidator {
                 NumberValidator {
                     negative: $negative,
@@ -659,12 +715,23 @@ macro_rules! extend {
         }
 
         impl $name {
+            #[inline]
             pub fn get_number(&self) -> f64 {
                 self.0.value
             }
 
+            #[inline]
             pub fn is_integer(&self) -> bool {
-                self.0.value.floor() == self.0.value
+                (self.0.value.floor() - self.0.value).abs() < 1.0e-6
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = NumberError;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<$name, NumberError> {
+                $name::from_str(s)
             }
         }
 
@@ -672,7 +739,10 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = NumberError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error>{
+            #[inline]
+            fn from_form_value(
+                form_value: &'a ::rocket::http::RawStr,
+            ) -> Result<Self, Self::Error> {
                 $name::from_str(form_value)
             }
         }
@@ -681,6 +751,7 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromParam<'a> for $name {
             type Error = NumberError;
 
+            #[inline]
             fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
                 $name::from_str(param)
             }
@@ -688,20 +759,26 @@ macro_rules! extend {
 
         #[cfg(feature = "serdely")]
         impl<'de> ::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::Deserializer<'de>, {
                 struct NumberVisitor;
 
                 impl<'de> ::serde::de::Visitor<'de> for NumberVisitor {
                     type Value = $name;
 
+                    #[inline]
                     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_fmt(format_args!("a number({:?})", $name::create_validator()))
+                        formatter
+                            .write_fmt(format_args!("a number({:?})", $name::create_validator()))
                     }
 
-                    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_f64(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_f64(v).map_err(|err| E::custom(err.to_string()))
                     }
                 }
 
@@ -711,7 +788,10 @@ macro_rules! extend {
 
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer, {
                 serializer.serialize_f64(self.get_number())
             }
         }
@@ -721,14 +801,17 @@ macro_rules! extend {
 extend!(NumberAny, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl NumberAny {
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.0.value == 0f64
     }
 
+    #[inline]
     pub fn is_positive(&self) -> bool {
         self.0.value > 0f64
     }
 
+    #[inline]
     pub fn is_negative(&self) -> bool {
         self.0.value < 0f64
     }
@@ -737,10 +820,12 @@ impl NumberAny {
 extend!(NumberGteZero, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl NumberGteZero {
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.0.value == 0f64
     }
 
+    #[inline]
     pub fn is_positive(&self) -> bool {
         self.0.value > 0f64
     }
@@ -750,15 +835,15 @@ extend!(NumberGtZero, ValidatorOption::NotAllow, ValidatorOption::NotAllow);
 
 impl NumberGtZero {}
 
-
-
 extend!(NumberLteZero, ValidatorOption::Must, ValidatorOption::Allow);
 
 impl NumberLteZero {
+    #[inline]
     pub fn is_zero(&self) -> bool {
         self.0.value == 0f64
     }
 
+    #[inline]
     pub fn is_negative(&self) -> bool {
         self.0.value < 0f64
     }
@@ -767,4 +852,3 @@ impl NumberLteZero {
 extend!(NumberLtZero, ValidatorOption::Must, ValidatorOption::NotAllow);
 
 impl NumberLtZero {}
-

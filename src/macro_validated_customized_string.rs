@@ -2,8 +2,8 @@
 use super::ValidatedWrapper;
 
 use std::error::Error;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::str::Utf8Error;
-use std::fmt::{self, Display, Debug, Formatter};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum ValidatedCustomizedStringError {
@@ -13,6 +13,7 @@ pub enum ValidatedCustomizedStringError {
 }
 
 impl Display for ValidatedCustomizedStringError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -27,20 +28,23 @@ pub struct StringVisitor<V>(pub Vec<V>);
 impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for StringVisitor<V> {
     type Value = V;
 
+    #[inline]
     fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
         formatter.write_fmt(format_args!("a string({})", stringify!($name)))
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_str(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        V::from_str(v).map_err(|err| E::custom(err.to_string()))
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: serde::de::Error {
-        V::from_string(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        V::from_string(v).map_err(|err| E::custom(err.to_string()))
     }
 }
 
@@ -48,72 +52,90 @@ impl<'de, V: ValidatedWrapper> serde::de::Visitor<'de> for StringVisitor<V> {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_string_struct_implement_se_de {
-     ( $name:ident ) => {
+    ($name:ident) => {
         impl<'de> $crate::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error> where D: $crate::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+            where
+                D: $crate::serde::Deserializer<'de>, {
                 deserializer.deserialize_string($crate::StringVisitor(Vec::<$name>::new()))
             }
         }
 
         impl $crate::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error> where S: $crate::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+            where
+                S: $crate::serde::Serializer, {
                 serializer.serialize_str(self.as_str())
             }
         }
-     }
+    };
 }
 
 #[cfg(not(feature = "serdely"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_string_struct_implement_se_de {
-    ( $name:ident ) => {
-
-    }
+    ($name:ident) => {};
 }
 
 #[cfg(feature = "rocketly")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_string_struct_implement_from_form_value {
-    ( $name:ident ) => {
+    ($name:ident) => {
         impl<'a> $crate::rocket::request::FromFormValue<'a> for $name {
             type Error = $crate::ValidatedCustomizedStringError;
 
-            fn from_form_value(form_value: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| $crate::ValidatedCustomizedStringError::UTF8Error(err))?)
+            #[inline]
+            fn from_form_value(
+                form_value: &'a $crate::rocket::http::RawStr,
+            ) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(
+                    form_value
+                        .url_decode()
+                        .map_err(|err| $crate::ValidatedCustomizedStringError::UTF8Error(err))?,
+                )
             }
         }
 
         impl<'a> $crate::rocket::request::FromParam<'a> for $name {
             type Error = $crate::ValidatedCustomizedStringError;
 
-            fn from_param(param: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| $crate::ValidatedCustomizedStringError::UTF8Error(err))?)
+            #[inline]
+            fn from_param(
+                param: &'a $crate::rocket::http::RawStr,
+            ) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(
+                    param
+                        .url_decode()
+                        .map_err(|err| $crate::ValidatedCustomizedStringError::UTF8Error(err))?,
+                )
             }
         }
-    }
+    };
 }
 
 #[cfg(not(feature = "rocketly"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_string_struct_implement_from_form_value {
-    ( $name:ident ) => {
-
-    }
+    ($name:ident) => {};
 }
 
 #[macro_export]
 macro_rules! validated_customized_string_struct {
     ( $name:ident, $field:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block ) => {
         impl ::std::fmt::Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 $crate::debug_helper::impl_debug_for_tuple_struct!($name, f, self, let .0 = self.$field);
             }
         }
 
         impl ::std::fmt::Display for $name {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_str(&self.$field)?;
                 Ok(())
@@ -123,7 +145,8 @@ macro_rules! validated_customized_string_struct {
         impl ::std::ops::Deref for $name {
             type Target = str;
 
-            fn deref(&self) -> &Self::Target {
+           #[inline]
+           fn deref(&self) -> &Self::Target {
                 &self.$field
             }
         }
@@ -133,24 +156,29 @@ macro_rules! validated_customized_string_struct {
         impl $crate::ValidatedWrapper for $name {
             type Error = $crate::ValidatedCustomizedStringError;
 
+            #[inline]
             fn from_string($from_string_input: String) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
+            #[inline]
             fn from_str($from_str_input: &str) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
         impl<'a> $name {
+            #[inline]
             pub fn as_str(&'a self) -> &'a str {
                 &self.$field
             }
 
+            #[inline]
             pub fn into_string(self) -> String {
                 self.$field
             }
 
+            #[inline]
             pub fn from_string($from_string_input: String) -> ::std::result::Result<Self, $crate::ValidatedCustomizedStringError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
@@ -160,6 +188,7 @@ macro_rules! validated_customized_string_struct {
                 Ok($name {$field})
             }
 
+            #[inline]
             pub fn from_str($from_str_input: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedStringError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
@@ -169,8 +198,18 @@ macro_rules! validated_customized_string_struct {
                 Ok($name {$field})
             }
 
+            #[inline]
             pub unsafe fn from_string_unchecked($from_string_input: String) -> Self {
                 $name {$field:$from_string_input}
+            }
+        }
+
+        impl ::std::str::FromStr for $name {
+            type Err = $crate::ValidatedCustomizedStringError;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<Self, $crate::ValidatedCustomizedStringError> {
+                $name::from_str(s)
             }
         }
 

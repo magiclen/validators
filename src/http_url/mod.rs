@@ -1,15 +1,15 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated, ValidatedWrapper};
+use super::{Validated, ValidatedWrapper, ValidatorOption};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
-use std::str::Utf8Error;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use std::str::Utf8Error;
 
-use super::host::{Host, HostLocalable, HostError};
+use super::host::{Host, HostError, HostLocalable};
 use super::http_ftp_url::HttpFtpUrl;
 
 lazy_static! {
@@ -30,12 +30,27 @@ pub enum HttpUrlError {
 }
 
 impl Display for HttpUrlError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
 
 impl Error for HttpUrlError {}
+
+impl From<HostError> for HttpUrlError {
+    #[inline]
+    fn from(err: HostError) -> Self {
+        HttpUrlError::IncorrectHostFormat(err)
+    }
+}
+
+impl From<Utf8Error> for HttpUrlError {
+    #[inline]
+    fn from(err: Utf8Error) -> Self {
+        HttpUrlError::UTF8Error(err)
+    }
+}
 
 pub type HttpUrlResult = Result<HttpUrl, HttpUrlError>;
 
@@ -61,6 +76,7 @@ pub struct HttpUrl {
 }
 
 impl HttpUrl {
+    #[inline]
     pub fn get_protocol(&self) -> Option<&str> {
         if self.protocol != self.full_http_url_len {
             if self.is_absolute {
@@ -73,26 +89,27 @@ impl HttpUrl {
         }
     }
 
+    #[inline]
     pub fn get_host(&self) -> &Host {
         &self.host
     }
 
+    #[inline]
     pub fn get_path(&self) -> Option<&str> {
         if self.path != self.full_http_url_len {
             if self.query != self.full_http_url_len {
                 Some(&self.full_http_url[self.path..(self.query - 1)])
+            } else if self.fragment != self.full_http_url_len {
+                Some(&self.full_http_url[self.path..(self.fragment - 1)])
             } else {
-                if self.fragment != self.full_http_url_len {
-                    Some(&self.full_http_url[self.path..(self.fragment - 1)])
-                } else {
-                    Some(&self.full_http_url[self.path..])
-                }
+                Some(&self.full_http_url[self.path..])
             }
         } else {
             None
         }
     }
 
+    #[inline]
     pub fn get_query(&self) -> Option<&str> {
         if self.query != self.full_http_url_len {
             if self.fragment != self.full_http_url_len {
@@ -105,6 +122,7 @@ impl HttpUrl {
         }
     }
 
+    #[inline]
     pub fn get_fragment(&self) -> Option<&str> {
         if self.fragment != self.full_http_url_len {
             Some(&self.full_http_url[self.fragment..])
@@ -113,38 +131,43 @@ impl HttpUrl {
         }
     }
 
+    #[inline]
     pub fn get_full_http_url(&self) -> &str {
         &self.full_http_url
     }
 
+    #[inline]
     pub fn get_full_http_url_without_query_and_fragment(&self) -> &str {
         if self.query != self.full_http_url_len {
             &self.full_http_url[..(self.query - 1)]
+        } else if self.fragment != self.full_http_url_len {
+            &self.full_http_url[..(self.fragment - 1)]
         } else {
-            if self.fragment != self.full_http_url_len {
-                &self.full_http_url[..(self.fragment - 1)]
-            } else {
-                &self.full_http_url
-            }
+            &self.full_http_url
         }
     }
 
+    #[inline]
     pub fn is_https(&self) -> bool {
         self.is_https
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.is_local
     }
 
+    #[inline]
     pub fn is_absolute(&self) -> bool {
         self.is_absolute
     }
 
+    #[inline]
     pub fn into_string(self) -> String {
         self.full_http_url
     }
 
+    #[inline]
     pub fn into_http_ftp_url(self) -> HttpFtpUrl {
         HttpFtpUrl {
             protocol: self.protocol,
@@ -167,6 +190,7 @@ impl HttpUrl {
 impl Deref for HttpUrl {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.full_http_url
     }
@@ -175,12 +199,14 @@ impl Deref for HttpUrl {
 impl Validated for HttpUrl {}
 
 impl Debug for HttpUrl {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(HttpUrl, f, self, let .0 = self.full_http_url);
     }
 }
 
 impl Display for HttpUrl {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&self.full_http_url)?;
         Ok(())
@@ -188,28 +214,28 @@ impl Display for HttpUrl {
 }
 
 impl PartialEq for HttpUrl {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.full_http_url.eq(&other.full_http_url)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.full_http_url.ne(&other.full_http_url)
     }
 }
 
 impl Eq for HttpUrl {}
 
 impl Hash for HttpUrl {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_http_url.hash(state)
     }
 }
 
 impl HttpUrlValidator {
+    #[inline]
     pub fn is_http_url(&self, full_http_url: &str) -> bool {
         self.parse_inner(full_http_url).is_ok()
     }
 
+    #[inline]
     pub fn parse_string(&self, full_http_url: String) -> HttpUrlResult {
         let mut http_url_inner = self.parse_inner(&full_http_url)?;
 
@@ -218,6 +244,7 @@ impl HttpUrlValidator {
         Ok(http_url_inner)
     }
 
+    #[inline]
     pub fn parse_str(&self, full_http_url: &str) -> HttpUrlResult {
         let mut http_url_inner = self.parse_inner(full_http_url)?;
 
@@ -229,7 +256,7 @@ impl HttpUrlValidator {
     fn parse_inner(&self, full_http_url: &str) -> HttpUrlResult {
         let c = match HTTP_URL_RE.captures(&full_http_url) {
             Some(c) => c,
-            None => return Err(HttpUrlError::LocalNotFound)
+            None => return Err(HttpUrlError::LocalNotFound),
         };
 
         let full_http_url_len = full_http_url.len();
@@ -263,7 +290,7 @@ impl HttpUrlValidator {
 
         let host_index = match c.get(4) {
             Some(m) => {
-                let host_localable = HostLocalable::from_str(&full_http_url[m.start()..m.end()]).map_err(|err| HttpUrlError::IncorrectHostFormat(err))?;
+                let host_localable = HostLocalable::from_str(&full_http_url[m.start()..m.end()])?;
 
                 match self.local {
                     ValidatorOption::Must => {
@@ -291,32 +318,19 @@ impl HttpUrlValidator {
         };
 
         let path = match c.get(5) {
-            Some(m) => {
-                m.start()
-            }
-            None => {
-                full_http_url_len
-            }
+            Some(m) => m.start(),
+            None => full_http_url_len,
         };
 
         let query = match c.get(7) {
-            Some(m) => {
-                m.start()
-            }
-            None => {
-                full_http_url_len
-            }
+            Some(m) => m.start(),
+            None => full_http_url_len,
         };
 
         let fragment = match c.get(9) {
-            Some(m) => {
-                m.start()
-            }
-            None => {
-                full_http_url_len
-            }
+            Some(m) => m.start(),
+            None => full_http_url_len,
         };
-
 
         Ok(HttpUrl {
             protocol,
@@ -349,8 +363,14 @@ mod tests {
 
         let http_url = huv.parse_string(url).unwrap();
 
-        assert_eq!("https://magiclen.org:8080/path/to/something?a=1&b=2#12345", http_url.get_full_http_url());
-        assert_eq!("https://magiclen.org:8080/path/to/something", http_url.get_full_http_url_without_query_and_fragment());
+        assert_eq!(
+            "https://magiclen.org:8080/path/to/something?a=1&b=2#12345",
+            http_url.get_full_http_url()
+        );
+        assert_eq!(
+            "https://magiclen.org:8080/path/to/something",
+            http_url.get_full_http_url_without_query_and_fragment()
+        );
         assert_eq!("https", http_url.get_protocol().unwrap());
         assert_eq!("magiclen.org:8080", http_url.get_host().get_full_host());
         assert_eq!("/path/to/something", http_url.get_path().unwrap());
@@ -509,11 +529,12 @@ mod tests {
 // TODO ----------
 
 macro_rules! extend {
-    ( $name:ident, $protocol:expr, $local:expr ) => {
+    ($name:ident, $protocol:expr, $local:expr) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(HttpUrl);
 
         impl From<$name> for HttpUrl {
+            #[inline]
             fn from(d: $name) -> Self {
                 d.0
             }
@@ -522,6 +543,7 @@ macro_rules! extend {
         impl Deref for $name {
             type Target = str;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0.full_http_url
             }
@@ -532,16 +554,19 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = HttpUrlError;
 
+            #[inline]
             fn from_string(full_http_url: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_http_url)
             }
 
+            #[inline]
             fn from_str(full_http_url: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_http_url)
             }
         }
 
         impl Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
                 Ok(())
@@ -549,59 +574,66 @@ macro_rules! extend {
         }
 
         impl Display for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
             }
         }
 
         impl $name {
+            #[inline]
             pub fn from_string(full_http_url: String) -> Result<$name, HttpUrlError> {
                 Ok($name($name::create_validator().parse_string(full_http_url)?))
             }
 
+            #[inline]
+            #[allow(clippy::should_implement_trait)]
             pub fn from_str(full_http_url: &str) -> Result<$name, HttpUrlError> {
                 Ok($name($name::create_validator().parse_str(full_http_url)?))
             }
 
             pub fn from_http_url(http_url: HttpUrl) -> Result<$name, HttpUrlError> {
-                 match $protocol {
+                match $protocol {
                     ValidatorOption::Must => {
                         if http_url.protocol == http_url.full_http_url_len {
-                            return Err(HttpUrlError::ProtocolNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if http_url.protocol == http_url.full_http_url_len {
-                            return Err(HttpUrlError::ProtocolNotAllow)
+                            return Err(HttpUrlError::ProtocolNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if http_url.protocol == http_url.full_http_url_len {
+                            return Err(HttpUrlError::ProtocolNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
                 match $local {
                     ValidatorOption::Must => {
                         if !http_url.is_local {
-                            return Err(HttpUrlError::LocalNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if http_url.is_local {
-                            return Err(HttpUrlError::LocalNotAllow)
+                            return Err(HttpUrlError::LocalNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if http_url.is_local {
+                            return Err(HttpUrlError::LocalNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
 
                 Ok($name(http_url))
             }
 
+            #[inline]
             pub fn into_http_url(self) -> HttpUrl {
                 self.0
             }
 
+            #[inline]
             pub fn as_http_url(&self) -> &HttpUrl {
                 &self.0
             }
 
+            #[inline]
             fn create_validator() -> HttpUrlValidator {
                 HttpUrlValidator {
                     protocol: $protocol,
@@ -611,10 +643,12 @@ macro_rules! extend {
         }
 
         impl $name {
+            #[inline]
             pub fn get_host(&self) -> &Host {
                 &self.0.host
             }
 
+            #[inline]
             pub fn get_path(&self) -> Option<&str> {
                 if self.0.path != self.0.full_http_url_len {
                     if self.0.query != self.0.full_http_url_len {
@@ -631,6 +665,7 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn get_query(&self) -> Option<&str> {
                 if self.0.query != self.0.full_http_url_len {
                     if self.0.fragment != self.0.full_http_url_len {
@@ -643,6 +678,7 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn get_fragment(&self) -> Option<&str> {
                 if self.0.fragment != self.0.full_http_url_len {
                     Some(&self.0.full_http_url[self.0.fragment..])
@@ -651,10 +687,12 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn get_full_http_url(&self) -> &str {
                 &self.0.full_http_url
             }
 
+            #[inline]
             pub fn get_full_http_url_without_query_and_fragment(&self) -> &str {
                 if self.0.query != self.0.full_http_url_len {
                     &self.0.full_http_url[..(self.0.query - 1)]
@@ -667,8 +705,18 @@ macro_rules! extend {
                 }
             }
 
+            #[inline]
             pub fn is_absolute(&self) -> bool {
                 self.0.is_absolute
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = HttpUrlError;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<$name, HttpUrlError> {
+                $name::from_str(s)
             }
         }
 
@@ -676,8 +724,11 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = HttpUrlError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| HttpUrlError::UTF8Error(err))?)
+            #[inline]
+            fn from_form_value(
+                form_value: &'a ::rocket::http::RawStr,
+            ) -> Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode()?)
             }
         }
 
@@ -685,33 +736,43 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromParam<'a> for $name {
             type Error = HttpUrlError;
 
+            #[inline]
             fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| HttpUrlError::UTF8Error(err))?)
+                $name::from_string(param.url_decode()?)
             }
         }
 
         #[cfg(feature = "serdely")]
         impl<'de> ::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::Deserializer<'de>, {
                 struct StringVisitor;
 
                 impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
                     type Value = $name;
 
+                    #[inline]
                     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_fmt(format_args!("a HTTP URL({:?}) string", $name::create_validator()))
+                        formatter.write_fmt(format_args!(
+                            "a HTTP URL({:?}) string",
+                            $name::create_validator()
+                        ))
                     }
 
-                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_str(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_str(v).map_err(|err| E::custom(err.to_string()))
                     }
 
-                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_string(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_string(v).map_err(|err| E::custom(err.to_string()))
                     }
                 }
 
@@ -721,7 +782,10 @@ macro_rules! extend {
 
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer, {
                 serializer.serialize_str(self.get_full_http_url())
             }
         }
@@ -731,6 +795,7 @@ macro_rules! extend {
 extend!(HttpUrlLocalableWithProtocol, ValidatorOption::Must, ValidatorOption::Allow);
 
 impl HttpUrlLocalableWithProtocol {
+    #[inline]
     pub fn get_protocol(&self) -> &str {
         if self.0.is_absolute {
             &self.0.full_http_url[..(self.0.host_index - 3)]
@@ -739,10 +804,12 @@ impl HttpUrlLocalableWithProtocol {
         }
     }
 
+    #[inline]
     pub fn is_https(&self) -> bool {
         self.0.is_https
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
@@ -751,6 +818,7 @@ impl HttpUrlLocalableWithProtocol {
 extend!(HttpUrlUnlocalableWithProtocol, ValidatorOption::Must, ValidatorOption::NotAllow);
 
 impl HttpUrlUnlocalableWithProtocol {
+    #[inline]
     pub fn get_protocol(&self) -> &str {
         if self.0.is_absolute {
             &self.0.full_http_url[..(self.0.host_index - 3)]
@@ -759,6 +827,7 @@ impl HttpUrlUnlocalableWithProtocol {
         }
     }
 
+    #[inline]
     pub fn is_https(&self) -> bool {
         self.0.is_https
     }
@@ -767,6 +836,7 @@ impl HttpUrlUnlocalableWithProtocol {
 extend!(HttpUrlLocalableWithoutProtocol, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl HttpUrlLocalableWithoutProtocol {
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }

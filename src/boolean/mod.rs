@@ -4,16 +4,13 @@ use self::regex::Regex;
 use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::ops::Deref;
+use std::str::FromStr;
 
 lazy_static! {
-    pub(crate) static ref TRUE_RE: Regex = {
-        Regex::new(r"^(?i)true|yes|on|y|t|1$").unwrap()
-    };
-    pub(crate) static ref FALSE_RE: Regex = {
-        Regex::new(r"^(?i)false|no|off|n|f|0$").unwrap()
-    };
+    pub(crate) static ref TRUE_RE: Regex = { Regex::new(r"^(?i)true|yes|on|y|t|1$").unwrap() };
+    pub(crate) static ref FALSE_RE: Regex = { Regex::new(r"^(?i)false|no|off|n|f|0$").unwrap() };
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -22,6 +19,7 @@ pub enum BooleanError {
 }
 
 impl Display for BooleanError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -44,9 +42,10 @@ impl Boolean {
         self.boolean
     }
 
+    #[inline]
     pub fn from_bool(boolean: bool) -> Boolean {
         Boolean {
-            boolean
+            boolean,
         }
     }
 }
@@ -54,6 +53,7 @@ impl Boolean {
 impl Deref for Boolean {
     type Target = bool;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.boolean
     }
@@ -62,12 +62,14 @@ impl Deref for Boolean {
 impl Validated for Boolean {}
 
 impl Debug for Boolean {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(Boolean, f, self, let .0 = self.boolean);
     }
 }
 
 impl Display for Boolean {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         if self.boolean {
             f.write_str("true")?;
@@ -79,18 +81,22 @@ impl Display for Boolean {
 }
 
 impl BooleanValidator {
+    #[inline]
     pub fn is_boolean(&self, boolean: &str) -> bool {
         self.parse_inner(boolean).is_ok()
     }
 
+    #[inline]
     pub fn parse_string(&self, boolean: String) -> BooleanResult {
         self.parse_inner(&boolean)
     }
 
+    #[inline]
     pub fn parse_str(&self, boolean: &str) -> BooleanResult {
         self.parse_inner(boolean)
     }
 
+    #[inline]
     fn parse_inner(&self, boolean: &str) -> BooleanResult {
         if TRUE_RE.is_match(boolean) {
             Ok(Boolean {
@@ -142,26 +148,41 @@ mod tests {
 impl ValidatedWrapper for Boolean {
     type Error = BooleanError;
 
+    #[inline]
     fn from_string(boolean: String) -> Result<Self, Self::Error> {
         Boolean::from_string(boolean)
     }
 
+    #[inline]
     fn from_str(boolean: &str) -> Result<Self, Self::Error> {
         Boolean::from_str(boolean)
     }
 }
 
 impl Boolean {
+    #[inline]
     pub fn from_string(boolean: String) -> Result<Self, BooleanError> {
         Boolean::create_validator().parse_string(boolean)
     }
 
+    #[inline]
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(boolean: &str) -> Result<Self, BooleanError> {
         Boolean::create_validator().parse_str(boolean)
     }
 
+    #[inline]
     fn create_validator() -> BooleanValidator {
         BooleanValidator {}
+    }
+}
+
+impl FromStr for Boolean {
+    type Err = BooleanError;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Boolean::from_str(s)
     }
 }
 
@@ -169,6 +190,7 @@ impl Boolean {
 impl<'a> ::rocket::request::FromParam<'a> for Boolean {
     type Error = BooleanError;
 
+    #[inline]
     fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
         Boolean::from_string(param.to_string())
     }
@@ -178,6 +200,7 @@ impl<'a> ::rocket::request::FromParam<'a> for Boolean {
 impl<'a> ::rocket::request::FromFormValue<'a> for Boolean {
     type Error = BooleanError;
 
+    #[inline]
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
         Boolean::from_str(form_value.as_str())
     }
@@ -190,37 +213,49 @@ struct StringBooleanVisitor;
 impl<'de> ::serde::de::Visitor<'de> for StringBooleanVisitor {
     type Value = Boolean;
 
+    #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("a Boolean string or a bool value")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-        Boolean::from_str(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
+        Boolean::from_str(v).map_err(|err| E::custom(err.to_string()))
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-        Boolean::from_string(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
+        Boolean::from_string(v).map_err(|err| E::custom(err.to_string()))
     }
 
-    fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E> where E: ::serde::de::Error {
+    #[inline]
+    fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
         Ok(Boolean::from_bool(v))
     }
 }
 
 #[cfg(feature = "serdely")]
 impl<'de> ::serde::Deserialize<'de> for Boolean {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>, {
         deserializer.deserialize_any(StringBooleanVisitor)
     }
 }
 
 #[cfg(feature = "serdely")]
 impl ::serde::Serialize for Boolean {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer, {
         serializer.serialize_bool(self.boolean)
     }
 }

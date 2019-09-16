@@ -4,8 +4,9 @@ use self::regex::Regex;
 use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::ops::Deref;
+use std::str::FromStr;
 
 lazy_static! {
     static ref BASE32_RE: Regex = {
@@ -19,6 +20,7 @@ pub enum Base32Error {
 }
 
 impl Display for Base32Error {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -37,17 +39,20 @@ pub struct Base32 {
 }
 
 impl Base32 {
+    #[inline]
     pub fn get_base32(&self) -> &str {
         &self.base32
     }
 
+    #[inline]
     pub fn into_string(self) -> String {
         self.base32
     }
 
+    #[inline]
     pub unsafe fn from_string_unchecked(base32: String) -> Base32 {
         Base32 {
-            base32
+            base32,
         }
     }
 }
@@ -55,6 +60,7 @@ impl Base32 {
 impl Deref for Base32 {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.base32
     }
@@ -63,12 +69,14 @@ impl Deref for Base32 {
 impl Validated for Base32 {}
 
 impl Debug for Base32 {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(Base32, f, self, let .0 = self.base32);
     }
 }
 
 impl Display for Base32 {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&self.base32)?;
         Ok(())
@@ -76,6 +84,7 @@ impl Display for Base32 {
 }
 
 impl Base32Validator {
+    #[inline]
     pub fn is_base32(&self, base32: &str) -> bool {
         self.parse_inner(base32).is_ok()
     }
@@ -96,6 +105,7 @@ impl Base32Validator {
         Ok(base32_inner)
     }
 
+    #[inline]
     fn parse_inner(&self, base32: &str) -> Base32Result {
         if BASE32_RE.is_match(base32) {
             Ok(Base32 {
@@ -136,26 +146,41 @@ mod tests {
 impl ValidatedWrapper for Base32 {
     type Error = Base32Error;
 
+    #[inline]
     fn from_string(base32: String) -> Result<Self, Self::Error> {
         Base32::from_string(base32)
     }
 
+    #[inline]
     fn from_str(base32: &str) -> Result<Self, Self::Error> {
         Base32::from_str(base32)
     }
 }
 
 impl Base32 {
+    #[inline]
     pub fn from_string(base32: String) -> Result<Self, Base32Error> {
         Base32::create_validator().parse_string(base32)
     }
 
+    #[inline]
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(base32: &str) -> Result<Self, Base32Error> {
         Base32::create_validator().parse_str(base32)
     }
 
+    #[inline]
     fn create_validator() -> Base32Validator {
         Base32Validator {}
+    }
+}
+
+impl FromStr for Base32 {
+    type Err = Base32Error;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Base32::from_str(s)
     }
 }
 
@@ -163,6 +188,7 @@ impl Base32 {
 impl<'a> ::rocket::request::FromParam<'a> for Base32 {
     type Error = Base32Error;
 
+    #[inline]
     fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
         Base32::from_str(param)
     }
@@ -172,6 +198,7 @@ impl<'a> ::rocket::request::FromParam<'a> for Base32 {
 impl<'a> ::rocket::request::FromFormValue<'a> for Base32 {
     type Error = Base32Error;
 
+    #[inline]
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
         Base32::from_str(form_value)
     }
@@ -184,33 +211,42 @@ struct StringVisitor;
 impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
     type Value = Base32;
 
+    #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("a Base32 string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-        Base32::from_str(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
+        Base32::from_str(v).map_err(|err| E::custom(err.to_string()))
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-        Base32::from_string(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
+        Base32::from_string(v).map_err(|err| E::custom(err.to_string()))
     }
 }
 
 #[cfg(feature = "serdely")]
 impl<'de> ::serde::Deserialize<'de> for Base32 {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>, {
         deserializer.deserialize_str(StringVisitor)
     }
 }
 
 #[cfg(feature = "serdely")]
 impl ::serde::Serialize for Base32 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer, {
         serializer.serialize_str(&self.base32)
     }
 }

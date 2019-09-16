@@ -1,14 +1,14 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated, ValidatedWrapper};
+use super::{Validated, ValidatedWrapper, ValidatorOption};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
-use std::net::{Ipv4Addr, Ipv6Addr};
-use std::str::{Utf8Error, FromStr};
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
+use std::net::{Ipv4Addr, Ipv6Addr};
 use std::ops::Deref;
+use std::str::{FromStr, Utf8Error};
 
 lazy_static! {
     pub(crate) static ref IPV4_RE: Regex = {
@@ -16,8 +16,14 @@ lazy_static! {
     };
 }
 
-fn is_local_ipv4(addr: &Ipv4Addr) -> bool {
-    addr.is_private() || addr.is_loopback() || addr.is_link_local() || addr.is_broadcast() || addr.is_documentation() || addr.is_unspecified()
+#[inline]
+fn is_local_ipv4(addr: Ipv4Addr) -> bool {
+    addr.is_private()
+        || addr.is_loopback()
+        || addr.is_link_local()
+        || addr.is_broadcast()
+        || addr.is_documentation()
+        || addr.is_unspecified()
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -34,12 +40,20 @@ pub enum IPv4Error {
 }
 
 impl Display for IPv4Error {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
 
 impl Error for IPv4Error {}
+
+impl From<Utf8Error> for IPv4Error {
+    #[inline]
+    fn from(err: Utf8Error) -> Self {
+        IPv4Error::UTF8Error(err)
+    }
+}
 
 pub type IPv4Result = Result<IPv4, IPv4Error>;
 
@@ -63,10 +77,12 @@ pub struct IPv4 {
 }
 
 impl IPv4 {
+    #[inline]
     pub fn get_ipv4_address(&self) -> &Ipv4Addr {
         &self.ip
     }
 
+    #[inline]
     pub fn get_port(&self) -> Option<u16> {
         if self.port_index != self.full_ipv4_len {
             Some(self.port)
@@ -75,10 +91,12 @@ impl IPv4 {
         }
     }
 
+    #[inline]
     pub fn get_full_ipv4(&self) -> &str {
         &self.full_ipv4
     }
 
+    #[inline]
     pub fn get_full_ipv4_without_port(&self) -> &str {
         if self.port_index != self.full_ipv4_len {
             &self.full_ipv4[..(self.port_index - 1)]
@@ -87,10 +105,12 @@ impl IPv4 {
         }
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.is_local
     }
 
+    #[inline]
     pub fn into_string(self) -> String {
         self.full_ipv4
     }
@@ -99,6 +119,7 @@ impl IPv4 {
 impl Deref for IPv4 {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.full_ipv4
     }
@@ -107,12 +128,14 @@ impl Deref for IPv4 {
 impl Validated for IPv4 {}
 
 impl Debug for IPv4 {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(IPv4, f, self, let .0 = self.full_ipv4);
     }
 }
 
 impl Display for IPv4 {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&self.full_ipv4)?;
         Ok(())
@@ -120,24 +143,23 @@ impl Display for IPv4 {
 }
 
 impl PartialEq for IPv4 {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.full_ipv4.eq(&other.full_ipv4)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.full_ipv4.ne(&other.full_ipv4)
     }
 }
 
 impl Eq for IPv4 {}
 
 impl Hash for IPv4 {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_ipv4.hash(state);
     }
 }
 
 impl IPv4Validator {
+    #[inline]
     pub fn is_ipv4(&self, full_ipv4: &str) -> bool {
         self.parse_inner(full_ipv4).is_ok()
     }
@@ -214,7 +236,7 @@ impl IPv4Validator {
                                 port_index = m.start();
                                 p
                             }
-                            Err(_) => return Err(IPv4Error::IncorrectPort)
+                            Err(_) => return Err(IPv4Error::IncorrectPort),
                         };
                     }
                     None => {
@@ -228,7 +250,8 @@ impl IPv4Validator {
                 match c.get(1) {
                     Some(m) => {
                         full_ipv4_len = 1;
-                        Ipv4Addr::from_str(&ipv4[m.start()..m.end()]).map_err(|_| IPv4Error::IncorrectFormat)?
+                        Ipv4Addr::from_str(&ipv4[m.start()..m.end()])
+                            .map_err(|_| IPv4Error::IncorrectFormat)?
                     }
                     None => {
                         unreachable!();
@@ -236,7 +259,7 @@ impl IPv4Validator {
                 }
             }
             None => {
-                if ipv4.starts_with("[") {
+                if ipv4.starts_with('[') {
                     let c = match super::ipv6::IPV6_PORT_RE.captures(&ipv4) {
                         Some(c) => c,
                         None => {
@@ -255,7 +278,7 @@ impl IPv4Validator {
                                     port_index = m.start();
                                     p
                                 }
-                                Err(_) => return Err(IPv4Error::IncorrectPort)
+                                Err(_) => return Err(IPv4Error::IncorrectPort),
                             };
                         }
                         None => {
@@ -267,7 +290,8 @@ impl IPv4Validator {
 
                     match c.get(1) {
                         Some(m) => {
-                            let ipv6 = Ipv6Addr::from_str(&ipv4[m.start()..m.end()]).map_err(|_| IPv4Error::IncorrectFormat)?;
+                            let ipv6 = Ipv6Addr::from_str(&ipv4[m.start()..m.end()])
+                                .map_err(|_| IPv4Error::IncorrectFormat)?;
 
                             if self.ipv6.not_allow() {
                                 return Err(IPv4Error::IPv6NotAllow);
@@ -275,7 +299,7 @@ impl IPv4Validator {
 
                             match ipv6.to_ipv4() {
                                 Some(ip) => ip,
-                                None => return Err(IPv4Error::IncorrectFormat)
+                                None => return Err(IPv4Error::IncorrectFormat),
                             }
                         }
                         None => {
@@ -292,7 +316,8 @@ impl IPv4Validator {
 
                     match c.get(1) {
                         Some(m) => {
-                            let ipv6 = Ipv6Addr::from_str(&ipv4[m.start()..m.end()]).map_err(|_| IPv4Error::IncorrectFormat)?;
+                            let ipv6 = Ipv6Addr::from_str(&ipv4[m.start()..m.end()])
+                                .map_err(|_| IPv4Error::IncorrectFormat)?;
 
                             if self.ipv6.not_allow() {
                                 return Err(IPv4Error::IPv6NotAllow);
@@ -300,7 +325,7 @@ impl IPv4Validator {
 
                             match ipv6.to_ipv4() {
                                 Some(ip) => ip,
-                                None => return Err(IPv4Error::IncorrectFormat)
+                                None => return Err(IPv4Error::IncorrectFormat),
                             }
                         }
                         None => {
@@ -311,7 +336,7 @@ impl IPv4Validator {
             }
         };
 
-        let is_local = is_local_ipv4(&ip);
+        let is_local = is_local_ipv4(ip);
 
         match self.local {
             ValidatorOption::Must => {
@@ -324,7 +349,7 @@ impl IPv4Validator {
                     return Err(IPv4Error::LocalNotAllow);
                 }
             }
-            _ => ()
+            _ => (),
         }
 
         Ok(IPv4 {
@@ -442,11 +467,12 @@ mod tests {
 // TODO ----------
 
 macro_rules! extend {
-    ( $name:ident, $port:expr, $local:expr, $ipv6:expr ) => {
+    ($name:ident, $port:expr, $local:expr, $ipv6:expr) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(IPv4);
 
         impl From<$name> for IPv4 {
+            #[inline]
             fn from(d: $name) -> Self {
                 d.0
             }
@@ -455,6 +481,7 @@ macro_rules! extend {
         impl Deref for $name {
             type Target = str;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0.full_ipv4
             }
@@ -465,16 +492,19 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = IPv4Error;
 
+            #[inline]
             fn from_string(ipv4: String) -> Result<Self, Self::Error> {
                 $name::from_string(ipv4)
             }
 
+            #[inline]
             fn from_str(ipv4: &str) -> Result<Self, Self::Error> {
                 $name::from_str(ipv4)
             }
         }
 
         impl Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
                 Ok(())
@@ -482,59 +512,67 @@ macro_rules! extend {
         }
 
         impl Display for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 Display::fmt(&self.0, f)
             }
         }
 
         impl $name {
+            #[inline]
             pub fn from_string(ipv4: String) -> Result<$name, IPv4Error> {
                 Ok($name($name::create_validator().parse_string(ipv4)?))
             }
 
+            #[inline]
+            #[allow(clippy::should_implement_trait)]
             pub fn from_str(ipv4: &str) -> Result<$name, IPv4Error> {
                 Ok($name($name::create_validator().parse_str(ipv4)?))
             }
 
+            #[inline]
             pub fn from_ipv4(ipv4: IPv4) -> Result<$name, IPv4Error> {
-                 match $port {
+                match $port {
                     ValidatorOption::Must => {
                         if ipv4.port_index == ipv4.full_ipv4_len {
-                            return Err(IPv4Error::PortNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if ipv4.port_index != ipv4.full_ipv4_len {
-                            return Err(IPv4Error::PortNotAllow)
+                            return Err(IPv4Error::PortNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if ipv4.port_index != ipv4.full_ipv4_len {
+                            return Err(IPv4Error::PortNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
                 match $local {
                     ValidatorOption::Must => {
                         if !ipv4.is_local {
-                            return Err(IPv4Error::LocalNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if ipv4.is_local {
-                            return Err(IPv4Error::LocalNotAllow)
+                            return Err(IPv4Error::LocalNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if ipv4.is_local {
+                            return Err(IPv4Error::LocalNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
 
                 Ok($name(ipv4))
             }
 
+            #[inline]
             pub fn into_ipv4(self) -> IPv4 {
                 self.0
             }
 
+            #[inline]
             pub fn as_ipv4(&self) -> &IPv4 {
                 &self.0
             }
 
+            #[inline]
             fn create_validator() -> IPv4Validator {
                 IPv4Validator {
                     port: $port,
@@ -545,14 +583,17 @@ macro_rules! extend {
         }
 
         impl $name {
+            #[inline]
             pub fn get_ipv4_address(&self) -> &Ipv4Addr {
                 &self.0.ip
             }
 
+            #[inline]
             pub fn get_full_ipv4(&self) -> &str {
                 &self.0.full_ipv4
             }
 
+            #[inline]
             pub fn get_full_ipv4_without_port(&self) -> &str {
                 if self.0.port_index != self.0.full_ipv4_len {
                     &self.0.full_ipv4[..(self.0.port_index - 1)]
@@ -562,12 +603,24 @@ macro_rules! extend {
             }
         }
 
-         #[cfg(feature = "rocketly")]
+        impl std::str::FromStr for $name {
+            type Err = IPv4Error;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<$name, IPv4Error> {
+                $name::from_str(s)
+            }
+        }
+
+        #[cfg(feature = "rocketly")]
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = IPv4Error;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| IPv4Error::UTF8Error(err))?)
+            #[inline]
+            fn from_form_value(
+                form_value: &'a ::rocket::http::RawStr,
+            ) -> Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode()?)
             }
         }
 
@@ -575,33 +628,43 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromParam<'a> for $name {
             type Error = IPv4Error;
 
+            #[inline]
             fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| IPv4Error::UTF8Error(err))?)
+                $name::from_string(param.url_decode()?)
             }
         }
 
         #[cfg(feature = "serdely")]
         impl<'de> ::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::Deserializer<'de>, {
                 struct StringVisitor;
 
                 impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
                     type Value = $name;
 
+                    #[inline]
                     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_fmt(format_args!("a IPv4({:?}) string", $name::create_validator()))
+                        formatter.write_fmt(format_args!(
+                            "a IPv4({:?}) string",
+                            $name::create_validator()
+                        ))
                     }
 
-                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_str(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_str(v).map_err(|err| E::custom(err.to_string()))
                     }
 
-                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_string(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_string(v).map_err(|err| E::custom(err.to_string()))
                     }
                 }
 
@@ -611,28 +674,44 @@ macro_rules! extend {
 
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer, {
                 serializer.serialize_str(self.get_full_ipv4())
             }
         }
     };
 }
 
-extend!(IPv4LocalableWithPort, ValidatorOption::Must, ValidatorOption::Allow, ValidatorOption::Allow);
+extend!(
+    IPv4LocalableWithPort,
+    ValidatorOption::Must,
+    ValidatorOption::Allow,
+    ValidatorOption::Allow
+);
 
 impl IPv4LocalableWithPort {
+    #[inline]
     pub fn get_port(&self) -> u16 {
         self.0.port
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
 }
 
-extend!(IPv4LocalableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow, ValidatorOption::Allow);
+extend!(
+    IPv4LocalableAllowPort,
+    ValidatorOption::Allow,
+    ValidatorOption::Allow,
+    ValidatorOption::Allow
+);
 
 impl IPv4LocalableAllowPort {
+    #[inline]
     pub fn get_port(&self) -> Option<u16> {
         if self.0.port_index != self.0.full_ipv4_len {
             Some(self.0.port)
@@ -641,30 +720,49 @@ impl IPv4LocalableAllowPort {
         }
     }
 
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
 }
 
-extend!(IPv4LocalableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::Allow, ValidatorOption::Allow);
+extend!(
+    IPv4LocalableWithoutPort,
+    ValidatorOption::NotAllow,
+    ValidatorOption::Allow,
+    ValidatorOption::Allow
+);
 
 impl IPv4LocalableWithoutPort {
+    #[inline]
     pub fn is_local(&self) -> bool {
         self.0.is_local
     }
 }
 
-extend!(IPv4UnlocalableWithPort, ValidatorOption::Must, ValidatorOption::NotAllow, ValidatorOption::Allow);
+extend!(
+    IPv4UnlocalableWithPort,
+    ValidatorOption::Must,
+    ValidatorOption::NotAllow,
+    ValidatorOption::Allow
+);
 
 impl IPv4UnlocalableWithPort {
+    #[inline]
     pub fn get_port(&self) -> u16 {
         self.0.port
     }
 }
 
-extend!(IPv4UnlocalableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAllow, ValidatorOption::Allow);
+extend!(
+    IPv4UnlocalableAllowPort,
+    ValidatorOption::Allow,
+    ValidatorOption::NotAllow,
+    ValidatorOption::Allow
+);
 
 impl IPv4UnlocalableAllowPort {
+    #[inline]
     pub fn get_port(&self) -> Option<u16> {
         if self.0.port_index != self.0.full_ipv4_len {
             Some(self.0.port)
@@ -674,6 +772,11 @@ impl IPv4UnlocalableAllowPort {
     }
 }
 
-extend!(IPv4UnlocalableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::NotAllow, ValidatorOption::Allow);
+extend!(
+    IPv4UnlocalableWithoutPort,
+    ValidatorOption::NotAllow,
+    ValidatorOption::NotAllow,
+    ValidatorOption::Allow
+);
 
 impl IPv4UnlocalableWithoutPort {}

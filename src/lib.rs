@@ -291,11 +291,15 @@ pub extern crate phonenumber;
 
 pub extern crate num_traits;
 
+#[cfg(test)]
+#[macro_use]
+extern crate assert_approx_eq;
+
 mod validator_option;
 
 pub use validator_option::*;
 
-use std::fmt::{Display, Debug};
+use std::fmt::{Debug, Display};
 
 pub trait Validated: Display + PartialEq + Clone + Debug {}
 
@@ -307,44 +311,44 @@ pub trait ValidatedWrapper: Validated {
     fn from_str(from_str_input: &str) -> Result<Self, Self::Error>;
 }
 
-pub mod domain;
-pub mod email;
-pub mod ipv4;
-pub mod ipv6;
-pub mod host;
-pub mod http_url;
-pub mod http_ftp_url;
+pub mod base32;
 pub mod base64;
 pub mod base64_url;
-pub mod base32;
-pub mod short_crypt_url_component;
-pub mod short_crypt_qr_code_alphanumeric;
+pub mod boolean;
+pub mod domain;
+pub mod email;
+pub mod host;
+pub mod http_ftp_url;
+pub mod http_url;
+pub mod integer;
+pub mod ipv4;
+pub mod ipv6;
 #[cfg(feature = "serdely")]
 pub mod json;
 #[cfg(feature = "serdely")]
-pub mod json_object;
-#[cfg(feature = "serdely")]
 pub mod json_array;
-pub mod uuid;
-pub mod mac_address;
-pub mod version;
-pub mod uri;
-pub mod text;
+#[cfg(feature = "serdely")]
+pub mod json_object;
 pub mod line;
+pub mod mac_address;
 pub mod number;
-pub mod integer;
-pub mod boolean;
+pub mod short_crypt_qr_code_alphanumeric;
+pub mod short_crypt_url_component;
+pub mod text;
+pub mod uri;
+pub mod uuid;
+pub mod version;
 
-mod macro_validated_customized_string;
-mod macro_validated_customized_number;
-mod macro_validated_customized_vec;
 mod macro_validated_customized_hash_set;
+mod macro_validated_customized_number;
 #[cfg(feature = "phone-number")]
 mod macro_validated_customized_phone_number;
+mod macro_validated_customized_string;
+mod macro_validated_customized_vec;
 
-pub use self::macro_validated_customized_string::*;
-pub use self::macro_validated_customized_number::*;
-pub use self::macro_validated_customized_vec::*;
 pub use self::macro_validated_customized_hash_set::*;
+pub use self::macro_validated_customized_number::*;
 #[cfg(feature = "phone-number")]
 pub use self::macro_validated_customized_phone_number::*;
+pub use self::macro_validated_customized_string::*;
+pub use self::macro_validated_customized_vec::*;

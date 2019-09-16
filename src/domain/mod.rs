@@ -1,13 +1,13 @@
 extern crate regex;
 
 use self::regex::Regex;
-use super::{ValidatorOption, Validated, ValidatedWrapper};
+use super::{Validated, ValidatedWrapper, ValidatorOption};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
-use std::str::Utf8Error;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use std::str::Utf8Error;
 
 lazy_static! {
     static ref DOMAIN_RE: Regex = {
@@ -27,12 +27,20 @@ pub enum DomainError {
 }
 
 impl Display for DomainError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
 
 impl Error for DomainError {}
+
+impl From<Utf8Error> for DomainError {
+    #[inline]
+    fn from(err: Utf8Error) -> Self {
+        DomainError::UTF8Error(err)
+    }
+}
 
 pub type DomainResult = Result<Domain, DomainError>;
 
@@ -54,6 +62,7 @@ pub struct Domain {
 }
 
 impl Domain {
+    #[inline]
     pub fn get_top_level_domain(&self) -> Option<&str> {
         if self.top_level_domain != self.full_domain_len {
             if self.port_index != self.full_domain_len {
@@ -66,18 +75,18 @@ impl Domain {
         }
     }
 
+    #[inline]
     pub fn get_domain(&self) -> &str {
         if self.top_level_domain != self.full_domain_len {
             &self.full_domain[self.domain..(self.top_level_domain - 1)]
+        } else if self.port_index != self.full_domain_len {
+            &self.full_domain[self.domain..(self.port_index - 1)]
         } else {
-            if self.port_index != self.full_domain_len {
-                &self.full_domain[self.domain..(self.port_index - 1)]
-            } else {
-                &self.full_domain[self.domain..]
-            }
+            &self.full_domain[self.domain..]
         }
     }
 
+    #[inline]
     pub fn get_sub_domain(&self) -> Option<&str> {
         if self.domain > 0 {
             Some(&self.full_domain[..(self.domain - 1)])
@@ -86,10 +95,12 @@ impl Domain {
         }
     }
 
+    #[inline]
     pub fn get_full_domain(&self) -> &str {
         &self.full_domain
     }
 
+    #[inline]
     pub fn get_full_domain_without_port(&self) -> &str {
         if self.port_index != self.full_domain_len {
             &self.full_domain[..(self.port_index - 1)]
@@ -98,6 +109,7 @@ impl Domain {
         }
     }
 
+    #[inline]
     pub fn get_port(&self) -> Option<u16> {
         if self.port_index != self.full_domain_len {
             Some(self.port)
@@ -106,19 +118,21 @@ impl Domain {
         }
     }
 
+    #[inline]
     pub fn is_localhost(&self) -> bool {
         self.is_localhost
     }
 
+    #[inline]
     pub fn into_string(self) -> String {
         self.full_domain
     }
 }
 
-
 impl Deref for Domain {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.full_domain
     }
@@ -127,12 +141,14 @@ impl Deref for Domain {
 impl Validated for Domain {}
 
 impl Debug for Domain {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(Domain, f, self, let .0 = self.full_domain);
     }
 }
 
 impl Display for Domain {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&self.full_domain)?;
         Ok(())
@@ -140,28 +156,28 @@ impl Display for Domain {
 }
 
 impl PartialEq for Domain {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.full_domain.eq(&other.full_domain)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.full_domain.ne(&other.full_domain)
     }
 }
 
 impl Eq for Domain {}
 
 impl Hash for Domain {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_domain.hash(state);
     }
 }
 
 impl DomainValidator {
+    #[inline]
     pub fn is_domain(&self, full_domain: &str) -> bool {
         self.parse_inner(full_domain).is_ok()
     }
 
+    #[inline]
     pub fn parse_string(&self, full_domain: String) -> DomainResult {
         let mut domain_inner = self.parse_inner(&full_domain)?;
 
@@ -170,6 +186,7 @@ impl DomainValidator {
         Ok(domain_inner)
     }
 
+    #[inline]
     pub fn parse_str(&self, full_domain: &str) -> DomainResult {
         let mut domain_inner = self.parse_inner(full_domain)?;
 
@@ -181,7 +198,7 @@ impl DomainValidator {
     fn parse_inner(&self, full_domain: &str) -> DomainResult {
         let c = match DOMAIN_RE.captures(&full_domain) {
             Some(c) => c,
-            None => return Err(DomainError::IncorrectFormat)
+            None => return Err(DomainError::IncorrectFormat),
         };
 
         let full_domain_len = full_domain.len();
@@ -238,10 +255,8 @@ impl DomainValidator {
             }
         };
 
-        if c.get(1).is_some() {
-            if is_localhost {
-                return Err(DomainError::LocalhostNotFound);
-            }
+        if c.get(1).is_some() && is_localhost {
+            return Err(DomainError::LocalhostNotFound);
         }
 
         let mut port = 0u16;
@@ -256,7 +271,7 @@ impl DomainValidator {
 
                 port = match full_domain[index..m.end()].parse::<u16>() {
                     Ok(p) => p,
-                    Err(_) => return Err(DomainError::IncorrectPort)
+                    Err(_) => return Err(DomainError::IncorrectPort),
                 };
 
                 index
@@ -421,11 +436,12 @@ mod tests {
 // TODO ----------
 
 macro_rules! extend {
-    ( $name:ident, $port:expr, $localhost:expr ) => {
+    ($name:ident, $port:expr, $localhost:expr) => {
         #[derive(Clone, PartialEq, Eq, Hash)]
         pub struct $name(Domain);
 
         impl From<$name> for Domain {
+            #[inline]
             fn from(d: $name) -> Self {
                 d.0
             }
@@ -434,6 +450,7 @@ macro_rules! extend {
         impl Deref for $name {
             type Target = str;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0.full_domain
             }
@@ -444,16 +461,19 @@ macro_rules! extend {
         impl ValidatedWrapper for $name {
             type Error = DomainError;
 
+            #[inline]
             fn from_string(full_domain: String) -> Result<Self, Self::Error> {
                 $name::from_string(full_domain)
             }
 
+            #[inline]
             fn from_str(full_domain: &str) -> Result<Self, Self::Error> {
                 $name::from_str(full_domain)
             }
         }
 
         impl Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut Formatter) -> fmt::Result {
                 f.write_fmt(format_args!("{}({})", stringify!($name), self.0))?;
                 Ok(())
@@ -467,53 +487,60 @@ macro_rules! extend {
         }
 
         impl $name {
+            #[inline]
             pub fn from_string(full_domain: String) -> Result<$name, DomainError> {
                 Ok($name($name::create_validator().parse_string(full_domain)?))
             }
 
+            #[inline]
+            #[allow(clippy::should_implement_trait)]
             pub fn from_str(full_domain: &str) -> Result<$name, DomainError> {
                 Ok($name($name::create_validator().parse_str(full_domain)?))
             }
 
+            #[inline]
             pub fn from_domain(domain: Domain) -> Result<$name, DomainError> {
-                 match $port {
+                match $port {
                     ValidatorOption::Must => {
                         if domain.port_index == domain.full_domain_len {
-                            return Err(DomainError::PortNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if domain.port_index == domain.full_domain_len {
-                            return Err(DomainError::PortNotAllow)
+                            return Err(DomainError::PortNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if domain.port_index == domain.full_domain_len {
+                            return Err(DomainError::PortNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
                 match $localhost {
                     ValidatorOption::Must => {
                         if !domain.is_localhost {
-                            return Err(DomainError::LocalhostNotFound)
-                        }
-                    },
-                    ValidatorOption::NotAllow => {
-                        if domain.is_localhost {
-                            return Err(DomainError::LocalhostNotAllow)
+                            return Err(DomainError::LocalhostNotFound);
                         }
                     }
-                    _=>()
+                    ValidatorOption::NotAllow => {
+                        if domain.is_localhost {
+                            return Err(DomainError::LocalhostNotAllow);
+                        }
+                    }
+                    _ => (),
                 }
 
                 Ok($name(domain))
             }
 
+            #[inline]
             pub fn into_domain(self) -> Domain {
                 self.0
             }
 
+            #[inline]
             pub fn as_domain(&self) -> &Domain {
                 &self.0
             }
 
+            #[inline]
             fn create_validator() -> DomainValidator {
                 DomainValidator {
                     port: $port,
@@ -523,20 +550,33 @@ macro_rules! extend {
         }
 
         impl $name {
+            #[inline]
             pub fn get_top_level_domain(&self) -> Option<&str> {
                 self.0.get_top_level_domain()
             }
 
+            #[inline]
             pub fn get_domain(&self) -> &str {
                 self.0.get_domain()
             }
 
+            #[inline]
             pub fn get_sub_domain(&self) -> Option<&str> {
                 self.0.get_sub_domain()
             }
 
+            #[inline]
             pub fn get_full_domain(&self) -> &str {
                 self.0.get_full_domain()
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = DomainError;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<$name, DomainError> {
+                $name::from_str(s)
             }
         }
 
@@ -544,8 +584,11 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromFormValue<'a> for $name {
             type Error = DomainError;
 
-            fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| DomainError::UTF8Error(err))?)
+            #[inline]
+            fn from_form_value(
+                form_value: &'a ::rocket::http::RawStr,
+            ) -> Result<Self, Self::Error> {
+                $name::from_string(form_value.url_decode()?)
             }
         }
 
@@ -553,33 +596,43 @@ macro_rules! extend {
         impl<'a> ::rocket::request::FromParam<'a> for $name {
             type Error = DomainError;
 
+            #[inline]
             fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| DomainError::UTF8Error(err))?)
+                $name::from_string(param.url_decode()?)
             }
         }
 
         #[cfg(feature = "serdely")]
         impl<'de> ::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: ::serde::Deserializer<'de>, {
                 struct StringVisitor;
 
                 impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
                     type Value = $name;
 
+                    #[inline]
                     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-                        formatter.write_fmt(format_args!("a domain({:?}) string", $name::create_validator()))
+                        formatter.write_fmt(format_args!(
+                            "a domain({:?}) string",
+                            $name::create_validator()
+                        ))
                     }
 
-                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_str(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_str(v).map_err(|err| E::custom(err.to_string()))
                     }
 
-                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-                        $name::from_string(v).map_err(|err| {
-                            E::custom(err.to_string())
-                        })
+                    #[inline]
+                    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+                    where
+                        E: ::serde::de::Error, {
+                        $name::from_string(v).map_err(|err| E::custom(err.to_string()))
                     }
                 }
 
@@ -589,7 +642,10 @@ macro_rules! extend {
 
         #[cfg(feature = "serdely")]
         impl ::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer, {
                 serializer.serialize_str(self.get_full_domain())
             }
         }
@@ -599,14 +655,17 @@ macro_rules! extend {
 extend!(DomainLocalhostableWithPort, ValidatorOption::Must, ValidatorOption::Allow);
 
 impl DomainLocalhostableWithPort {
+    #[inline]
     pub fn get_full_domain_without_port(&self) -> &str {
         self.0.get_full_domain_without_port()
     }
 
+    #[inline]
     pub fn get_port(&self) -> u16 {
         self.0.get_port().unwrap()
     }
 
+    #[inline]
     pub fn is_localhost(&self) -> bool {
         self.0.is_localhost
     }
@@ -615,14 +674,17 @@ impl DomainLocalhostableWithPort {
 extend!(DomainLocalhostableAllowPort, ValidatorOption::Allow, ValidatorOption::Allow);
 
 impl DomainLocalhostableAllowPort {
+    #[inline]
     pub fn get_full_domain_without_port(&self) -> &str {
         self.0.get_full_domain_without_port()
     }
 
+    #[inline]
     pub fn get_port(&self) -> Option<u16> {
         self.0.get_port()
     }
 
+    #[inline]
     pub fn is_localhost(&self) -> bool {
         self.0.is_localhost
     }
@@ -631,6 +693,7 @@ impl DomainLocalhostableAllowPort {
 extend!(DomainLocalhostableWithoutPort, ValidatorOption::NotAllow, ValidatorOption::Allow);
 
 impl DomainLocalhostableWithoutPort {
+    #[inline]
     pub fn is_localhost(&self) -> bool {
         self.0.is_localhost
     }
@@ -639,10 +702,12 @@ impl DomainLocalhostableWithoutPort {
 extend!(DomainUnlocalhostableWithPort, ValidatorOption::Must, ValidatorOption::NotAllow);
 
 impl DomainUnlocalhostableWithPort {
+    #[inline]
     pub fn get_full_domain_without_port(&self) -> &str {
         self.0.get_full_domain_without_port()
     }
 
+    #[inline]
     pub fn get_port(&self) -> u16 {
         self.0.get_port().unwrap()
     }
@@ -651,10 +716,12 @@ impl DomainUnlocalhostableWithPort {
 extend!(DomainUnlocalhostableAllowPort, ValidatorOption::Allow, ValidatorOption::NotAllow);
 
 impl DomainUnlocalhostableAllowPort {
+    #[inline]
     pub fn get_full_domain_without_port(&self) -> &str {
         self.0.get_full_domain_without_port()
     }
 
+    #[inline]
     pub fn get_port(&self) -> Option<u16> {
         self.0.get_port()
     }

@@ -4,15 +4,14 @@ use self::regex::Regex;
 use super::{Validated, ValidatedWrapper};
 
 use std::error::Error;
-use std::fmt::{self, Display, Debug, Formatter};
-use std::str::Utf8Error;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
+use std::str::{FromStr, Utf8Error};
 
 lazy_static! {
-    static ref VERSION_RE: Regex = {
-        Regex::new(r"^(\d)+(\.(\d)+)?(\.(\d)+)?(-([^\x00-\x1F\x7F]+))?$").unwrap()
-    };
+    static ref VERSION_RE: Regex =
+        { Regex::new(r"^(\d)+(\.(\d)+)?(\.(\d)+)?(-([^\x00-\x1F\x7F]+))?$").unwrap() };
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -22,12 +21,20 @@ pub enum VersionError {
 }
 
 impl Display for VersionError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
 
 impl Error for VersionError {}
+
+impl From<Utf8Error> for VersionError {
+    #[inline]
+    fn from(err: Utf8Error) -> Self {
+        VersionError::UTF8Error(err)
+    }
+}
 
 pub type VersionResult = Result<Version, VersionError>;
 
@@ -44,10 +51,12 @@ pub struct Version {
 }
 
 impl Version {
+    #[inline]
     pub fn get_full_version(&self) -> &str {
         &self.full_version
     }
 
+    #[inline]
     pub fn get_full_version_without_label(&self) -> &str {
         if let Some(label) = self.label {
             &self.full_version[..(label - 1)]
@@ -56,6 +65,7 @@ impl Version {
         }
     }
 
+    #[inline]
     pub fn get_label(&self) -> Option<&str> {
         if let Some(label) = self.label {
             Some(&self.full_version[label..])
@@ -64,18 +74,22 @@ impl Version {
         }
     }
 
+    #[inline]
     pub fn get_major(&self) -> u16 {
         self.major
     }
 
+    #[inline]
     pub fn get_minor(&self) -> Option<u16> {
         self.minor
     }
 
+    #[inline]
     pub fn get_patch(&self) -> Option<u16> {
         self.patch
     }
 
+    #[inline]
     pub fn into_string(self) -> String {
         self.full_version
     }
@@ -84,6 +98,7 @@ impl Version {
 impl Deref for Version {
     type Target = str;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.full_version
     }
@@ -92,12 +107,14 @@ impl Deref for Version {
 impl Validated for Version {}
 
 impl Debug for Version {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         impl_debug_for_tuple_struct!(Version, f, self, let .0 = self.full_version);
     }
 }
 
 impl Display for Version {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         f.write_str(&self.full_version)?;
         Ok(())
@@ -105,28 +122,28 @@ impl Display for Version {
 }
 
 impl PartialEq for Version {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.full_version.eq(&other.full_version)
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.full_version.ne(&other.full_version)
     }
 }
 
 impl Eq for Version {}
 
-impl Hash for Version{
-    fn hash<H: Hasher>(&self, state: &mut H){
+impl Hash for Version {
+    #[inline]
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.full_version.hash(state)
     }
 }
 
 impl VersionValidator {
+    #[inline]
     pub fn is_short_crypt_url_component_url(&self, short_crypt_url_component_url: &str) -> bool {
         self.parse_inner(short_crypt_url_component_url).is_ok()
     }
 
+    #[inline]
     pub fn parse_string(&self, full_version: String) -> VersionResult {
         let mut full_version_inner = self.parse_inner(&full_version)?;
 
@@ -135,6 +152,7 @@ impl VersionValidator {
         Ok(full_version_inner)
     }
 
+    #[inline]
     pub fn parse_str(&self, full_version: &str) -> VersionResult {
         let mut full_version_inner = self.parse_inner(full_version)?;
 
@@ -146,7 +164,7 @@ impl VersionValidator {
     fn parse_inner(&self, full_version: &str) -> VersionResult {
         let c = match VERSION_RE.captures(full_version) {
             Some(c) => c,
-            None => return Err(VersionError::IncorrectFormat)
+            None => return Err(VersionError::IncorrectFormat),
         };
 
         let major = match c.get(1) {
@@ -158,7 +176,7 @@ impl VersionValidator {
                     }
                 }
             }
-            None => unreachable!()
+            None => unreachable!(),
         };
 
         let minor = match c.get(3) {
@@ -170,7 +188,7 @@ impl VersionValidator {
                     }
                 }
             }
-            None => None
+            None => None,
         };
 
         let patch = match c.get(5) {
@@ -182,14 +200,12 @@ impl VersionValidator {
                     }
                 }
             }
-            None => None
+            None => None,
         };
 
         let label = match c.get(7) {
-            Some(m) => {
-                Some(m.start())
-            }
-            None => None
+            Some(m) => Some(m.start()),
+            None => None,
         };
 
         Ok(Version {
@@ -236,26 +252,41 @@ mod tests {
 impl ValidatedWrapper for Version {
     type Error = VersionError;
 
+    #[inline]
     fn from_string(full_version: String) -> Result<Self, Self::Error> {
         Version::from_string(full_version)
     }
 
+    #[inline]
     fn from_str(full_version: &str) -> Result<Self, Self::Error> {
         Version::from_str(full_version)
     }
 }
 
 impl Version {
+    #[inline]
     pub fn from_string(full_version: String) -> Result<Self, VersionError> {
         Version::create_validator().parse_string(full_version)
     }
 
+    #[inline]
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(full_version: &str) -> Result<Self, VersionError> {
         Version::create_validator().parse_str(full_version)
     }
 
+    #[inline]
     fn create_validator() -> VersionValidator {
         VersionValidator {}
+    }
+}
+
+impl FromStr for Version {
+    type Err = VersionError;
+
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Version::from_str(s)
     }
 }
 
@@ -263,8 +294,9 @@ impl Version {
 impl<'a> ::rocket::request::FromFormValue<'a> for Version {
     type Error = VersionError;
 
+    #[inline]
     fn from_form_value(form_value: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Version::from_string(form_value.url_decode().map_err(|err| VersionError::UTF8Error(err))?)
+        Version::from_string(form_value.url_decode()?)
     }
 }
 
@@ -272,8 +304,9 @@ impl<'a> ::rocket::request::FromFormValue<'a> for Version {
 impl<'a> ::rocket::request::FromParam<'a> for Version {
     type Error = VersionError;
 
+    #[inline]
     fn from_param(param: &'a ::rocket::http::RawStr) -> Result<Self, Self::Error> {
-        Version::from_string(param.url_decode().map_err(|err| VersionError::UTF8Error(err))?)
+        Version::from_string(param.url_decode()?)
     }
 }
 
@@ -284,33 +317,42 @@ struct StringVisitor;
 impl<'de> ::serde::de::Visitor<'de> for StringVisitor {
     type Value = Version;
 
+    #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("a version string")
     }
 
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E> where E: ::serde::de::Error {
-        Version::from_str(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
+        Version::from_str(v).map_err(|err| E::custom(err.to_string()))
     }
 
-    fn visit_string<E>(self, v: String) -> Result<Self::Value, E> where E: ::serde::de::Error {
-        Version::from_string(v).map_err(|err| {
-            E::custom(err.to_string())
-        })
+    #[inline]
+    fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+    where
+        E: ::serde::de::Error, {
+        Version::from_string(v).map_err(|err| E::custom(err.to_string()))
     }
 }
 
 #[cfg(feature = "serdely")]
 impl<'de> ::serde::Deserialize<'de> for Version {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error> where D: ::serde::Deserializer<'de> {
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>, {
         deserializer.deserialize_string(StringVisitor)
     }
 }
 
 #[cfg(feature = "serdely")]
 impl ::serde::Serialize for Version {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: ::serde::Serializer {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer, {
         serializer.serialize_str(&self.full_version)
     }
 }

@@ -1,8 +1,8 @@
 use super::ValidatedWrapper;
 
 use std::error::Error;
+use std::fmt::{self, Debug, Display, Formatter};
 use std::str::Utf8Error;
-use std::fmt::{self, Display, Debug, Formatter};
 
 use num_traits::ToPrimitive;
 
@@ -20,6 +20,7 @@ pub enum ValidatedCustomizedNumberError {
 }
 
 impl Display for ValidatedCustomizedNumberError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -35,64 +36,98 @@ pub trait ValidatedNumberWrapper<T: ToPrimitive>: ValidatedWrapper {
 pub struct NumberVisitor<V, T>(pub Vec<V>, pub Vec<T>);
 
 #[cfg(feature = "serdely")]
-impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: ValidatedWrapper + ValidatedNumberWrapper<T> + NumCast,
-                                                                      T: ToPrimitive {
+impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T>
+where
+    V: ValidatedWrapper + ValidatedNumberWrapper<T> + NumCast,
+    T: ToPrimitive,
+{
     type Value = V;
 
+    serde_if_integer128! {
+       #[inline] fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E> where E: serde::de::Error {
+            NumCast::from(v).ok_or_else( || E::custom("UnpreciseError".to_string()))
+        }
+    }
+
+    serde_if_integer128! {
+       #[inline] fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E> where E: serde::de::Error {
+            NumCast::from(v).ok_or_else( || E::custom("UnpreciseError".to_string()))
+        }
+    }
+
+    #[inline]
     fn expecting(&self, formatter: &mut Formatter) -> fmt::Result {
         formatter.write_fmt(format_args!("a string({})", stringify!($name)))
     }
 
-    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_u8<E>(self, v: u8) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_u16<E>(self, v: u16) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_u32<E>(self, v: u32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    serde_if_integer128! {
-        fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E> where E: serde::de::Error {
-            NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
-        }
+    #[inline]
+    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 
-    serde_if_integer128! {
-        fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E> where E: serde::de::Error {
-            NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
-        }
-    }
-
-    fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
-    }
-
-    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E> where E: serde::de::Error {
-        NumCast::from(v).ok_or(E::custom("UnpreciseError".to_string()))
+    #[inline]
+    fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error, {
+        NumCast::from(v).ok_or_else(|| E::custom("UnpreciseError".to_string()))
     }
 }
 
@@ -100,9 +135,12 @@ impl<'de, V, T> serde::de::Visitor<'de> for NumberVisitor<V, T> where V: Validat
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_number_struct_implement_se_de {
-    ( $name:ident, $t:ident ) => {
+    ($name:ident, $t:ident) => {
         impl<'de> $crate::serde::Deserialize<'de> for $name {
-            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error> where D: $crate::serde::Deserializer<'de> {
+            #[inline]
+            fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+            where
+                D: $crate::serde::Deserializer<'de>, {
                 let v = $crate::NumberVisitor(Vec::<$name>::new(), Vec::<$t>::new());
 
                 match stringify!($t) {
@@ -118,13 +156,16 @@ macro_rules! validated_customized_number_struct_implement_se_de {
                     "i128" => deserializer.deserialize_i128(v),
                     "f32" => deserializer.deserialize_f32(v),
                     "f64" => deserializer.deserialize_f64(v),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
         }
 
         impl $crate::serde::Serialize for $name {
-            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error> where S: $crate::serde::Serializer {
+            #[inline]
+            fn serialize<S>(&self, serializer: S) -> ::std::result::Result<S::Ok, S::Error>
+            where
+                S: $crate::serde::Serializer, {
                 match stringify!($t) {
                     "u8" => serializer.serialize_u8(self.get_number() as u8),
                     "u16" => serializer.serialize_u16(self.get_number() as u16),
@@ -138,67 +179,86 @@ macro_rules! validated_customized_number_struct_implement_se_de {
                     "i128" => serializer.serialize_i128(self.get_number() as i128),
                     "f32" => serializer.serialize_f32(self.get_number() as f32),
                     "f64" => serializer.serialize_f64(self.get_number() as f64),
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             }
         }
-    }
+    };
 }
 
 #[cfg(not(feature = "serdely"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_number_struct_implement_se_de {
-    ( $name:ident, $t:expr ) => {
-
-    }
+    ($name:ident, $t:expr) => {};
 }
 
 #[cfg(feature = "rocketly")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_number_struct_implement_from_form_value {
-    ( $name:ident ) => {
+    ($name:ident) => {
         impl<'a> $crate::rocket::request::FromFormValue<'a> for $name {
             type Error = $crate::ValidatedCustomizedNumberError;
 
-            fn from_form_value(form_value: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
-                $name::from_string(form_value.url_decode().map_err(|err| $crate::ValidatedCustomizedNumberError::UTF8Error(err))?)
+            #[inline]
+            fn from_form_value(
+                form_value: &'a $crate::rocket::http::RawStr,
+            ) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(
+                    form_value
+                        .url_decode()
+                        .map_err(|err| $crate::ValidatedCustomizedNumberError::UTF8Error(err))?,
+                )
             }
         }
 
         impl<'a> $crate::rocket::request::FromParam<'a> for $name {
             type Error = $crate::ValidatedCustomizedNumberError;
 
-            fn from_param(param: &'a $crate::rocket::http::RawStr) -> ::std::result::Result<Self, Self::Error> {
-                $name::from_string(param.url_decode().map_err(|err| $crate::ValidatedCustomizedNumberError::UTF8Error(err))?)
+            #[inline]
+            fn from_param(
+                param: &'a $crate::rocket::http::RawStr,
+            ) -> ::std::result::Result<Self, Self::Error> {
+                $name::from_string(
+                    param
+                        .url_decode()
+                        .map_err(|err| $crate::ValidatedCustomizedNumberError::UTF8Error(err))?,
+                )
             }
         }
-    }
+    };
 }
 
 #[cfg(not(feature = "rocketly"))]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! validated_customized_number_struct_implement_from_form_value {
-    ( $name:ident ) => {
-
-    }
+    ($name:ident) => {};
 }
 
 #[macro_export]
 macro_rules! validated_customized_number_struct {
     ( $name:ident, $field:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
         impl ::std::fmt::Debug for $name {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 $crate::debug_helper::impl_debug_for_tuple_struct!($name, f, self, let .0 = self.$field);
             }
         }
 
         impl ::std::fmt::Display for $name {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 f.write_fmt(format_args!("{}", self.$field))?;
                 Ok(())
+            }
+        }
+
+        impl ::std::cmp::PartialEq for $name {
+            #[inline]
+            fn eq(&self, other: &Self) -> bool {
+                self.$field.eq(&other.$field)
             }
         }
 
@@ -326,6 +386,7 @@ macro_rules! validated_customized_number_struct {
         }
 
         impl $crate::num_traits::NumCast for $name {
+            #[inline]
             fn from<T: $crate::num_traits::ToPrimitive>(n: T) -> Option<$name> {
                 $crate::ValidatedNumberWrapper::from_number(n).ok()
             }
@@ -334,6 +395,7 @@ macro_rules! validated_customized_number_struct {
         impl ::std::ops::Deref for $name {
             type Target = $t;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.$field
             }
@@ -342,42 +404,53 @@ macro_rules! validated_customized_number_struct {
         impl $crate::ValidatedWrapper for $name {
             type Error = $crate::ValidatedCustomizedNumberError;
 
+            #[inline]
             fn from_string($from_string_input: String) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_string($from_string_input)
             }
 
+            #[inline]
             fn from_str($from_str_input: &str) -> ::std::result::Result<Self, Self::Error> {
                 $name::from_str($from_str_input)
             }
         }
 
         impl<T: $crate::num_traits::ToPrimitive> $crate::ValidatedNumberWrapper<T> for $name {
+            #[inline]
             fn from_number($from_number_input: T) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 $name::from_number($crate::num_traits::NumCast::from($from_number_input).ok_or($crate::ValidatedCustomizedNumberError::UnpreciseError)?)
             }
         }
 
         impl $name {
+            #[inline]
             pub fn get_number(&self) -> $t {
                 self.$field
             }
 
+            #[inline]
+            #[allow(clippy::float_cmp)]
             pub fn is_zero(&self) -> bool {
                 self.$field == 0 as $t
             }
 
+            #[inline]
             pub fn is_positive(&self) -> bool {
                 self.$field > 0 as $t
             }
 
+            #[inline]
             pub fn is_negative(&self) -> bool {
                 self.$field < 0 as $t
             }
 
+            #[inline]
+            #[allow(clippy::float_cmp)]
             pub fn is_integer(&self) -> bool {
                 self.$field as u128 as $t == self.$field
             }
 
+            #[inline]
             pub fn from_string($from_string_input: String) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let $field = match $from_string {
                     Ok(s)=> s,
@@ -387,6 +460,7 @@ macro_rules! validated_customized_number_struct {
                 Ok($name {$field})
             }
 
+            #[inline]
             pub fn from_str($from_str_input: &str) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let $field = match $from_str {
                     Ok(s)=> s,
@@ -396,6 +470,7 @@ macro_rules! validated_customized_number_struct {
                 Ok($name {$field})
             }
 
+            #[inline]
             pub fn from_number($from_number_input: $t) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let $field = match $from_number {
                     Ok(s)=> s,
@@ -405,6 +480,8 @@ macro_rules! validated_customized_number_struct {
                 Ok($name {$field})
             }
 
+            #[inline]
+            #[allow(clippy::float_cmp)]
             pub fn from_f64($from_number_input: f64) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -415,6 +492,8 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
+            #[allow(clippy::float_cmp)]
             pub fn from_f32($from_number_input: f32) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -425,6 +504,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_isize($from_number_input: isize) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -435,6 +515,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_i8($from_number_input: i8) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -445,6 +526,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_i16($from_number_input: i16) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -455,6 +537,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_i32($from_number_input: i32) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -465,6 +548,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_i64($from_number_input: i64) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -475,6 +559,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_i128($from_number_input: i128) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -485,6 +570,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_usize($from_number_input: usize) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -495,6 +581,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_u8($from_number_input: u8) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -505,6 +592,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_u16($from_number_input: u16) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -515,6 +603,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_u32($from_number_input: u32) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -525,6 +614,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_u64($from_number_input: u64) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -535,6 +625,7 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub fn from_u128($from_number_input: u128) -> ::std::result::Result<Self, $crate::ValidatedCustomizedNumberError> {
                 let v = $from_number_input as $t;
 
@@ -545,8 +636,18 @@ macro_rules! validated_customized_number_struct {
                 Self::from_number(v)
             }
 
+            #[inline]
             pub unsafe fn from_number_unchecked($from_number_input: $t) -> Self {
                 $name {$field:$from_number_input}
+            }
+        }
+
+        impl ::std::str::FromStr for $name {
+            type Err = $crate::ValidatedCustomizedNumberError;
+
+            #[inline]
+            fn from_str(s: &str) -> Result<Self, $crate::ValidatedCustomizedNumberError> {
+                $name::from_str(s)
             }
         }
 
@@ -577,7 +678,7 @@ macro_rules! validated_customized_number_struct {
 #[macro_export]
 macro_rules! validated_customized_number {
     ( $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         struct $name {
             n: $t
         }
@@ -603,7 +704,7 @@ macro_rules! validated_customized_number {
         validated_customized_number!($name, $t, $from_string_input $from_string, $from_str_input $from_str, $from_number_input $from_number);
     };
     ( $v:vis $name:ident, $t:ident, $from_string_input:ident $from_string:block, $from_str_input:ident $from_str:block, $from_number_input:ident $from_number:block ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         $v struct $name {
             n: $t
         }
@@ -638,7 +739,7 @@ macro_rules! validated_customized_regex_number_struct {
             let re = $crate::regex::Regex::new($re).map_err(|err| $crate::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+                let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
                 if $crate::number::precise(&value.to_string(), &input) {
                     Ok(value)
@@ -653,7 +754,7 @@ macro_rules! validated_customized_regex_number_struct {
             let re = $crate::regex::Regex::new($re).map_err(|err| $crate::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(input) {
-                let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+                let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
                 if $crate::number::precise(&value.to_string(), input) {
                     Ok(value)
@@ -670,7 +771,7 @@ macro_rules! validated_customized_regex_number_struct {
             let re = $crate::regex::Regex::new($re).map_err(|err| $crate::ValidatedCustomizedNumberError::RegexError(err))?;
 
             if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+                let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
                 if $crate::number::precise(&value.to_string(), &input) {
                     Ok(value)
@@ -688,7 +789,7 @@ macro_rules! validated_customized_regex_number_struct {
             let re: &$crate::regex::Regex = &$re;
 
             if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+                let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
                 if $crate::number::precise(&value.to_string(), &input) {
                     Ok(value)
@@ -703,7 +804,7 @@ macro_rules! validated_customized_regex_number_struct {
             let re: &$crate::regex::Regex = &$re;
 
             if re.is_match(input) {
-                let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+                let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
                 if $crate::number::precise(&value.to_string(), input) {
                     Ok(value)
@@ -720,7 +821,7 @@ macro_rules! validated_customized_regex_number_struct {
             let re: &$crate::regex::Regex = &$re;
 
             if re.is_match(&input) {
-                let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+                let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
                 if $crate::number::precise(&value.to_string(), &input) {
                     Ok(value)
@@ -737,7 +838,7 @@ macro_rules! validated_customized_regex_number_struct {
 #[macro_export]
 macro_rules! validated_customized_regex_number {
     ( $name:ident, $t:ident, $re:expr ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         struct $name {
             n: $t
         }
@@ -745,7 +846,7 @@ macro_rules! validated_customized_regex_number {
         validated_customized_regex_number_struct!($name, n, $t, $re);
     };
     ( $v:vis $name:ident, $t:ident, $re:expr ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         $v struct $name {
             n: $t
         }
@@ -753,7 +854,7 @@ macro_rules! validated_customized_regex_number {
         validated_customized_regex_number_struct!($name, n, $t, $re);
     };
     ( $name:ident, $t:ident, ref $re:expr ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         struct $name {
             n: $t
         }
@@ -761,7 +862,7 @@ macro_rules! validated_customized_regex_number {
         validated_customized_regex_number_struct!($name, n, $t, ref $re);
     };
     ( $v:vis $name:ident, $t:ident, ref $re:expr ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         $v struct $name {
             n: $t
         }
@@ -775,7 +876,7 @@ macro_rules! validated_customized_ranged_number_struct {
     ( $name:ident, $field:ident, $t:ident, $min:expr, $max:expr ) => {
         validated_customized_number_struct!($name, $field, $t,
         input {
-            let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+            let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
             if value >= $min && value <= $max {
                 if $crate::number::precise(&value.to_string(), &input) {
@@ -788,7 +889,7 @@ macro_rules! validated_customized_ranged_number_struct {
             }
         },
         input {
-            let value = input.parse::<$t>().map_err(|err|$crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
+            let value = input.parse::<$t>().map_err(|err| $crate::ValidatedCustomizedNumberError::ParseError(err.to_string()))?;
 
             if value >= $min && value <= $max {
                 if $crate::number::precise(&value.to_string(), input) {
@@ -813,7 +914,7 @@ macro_rules! validated_customized_ranged_number_struct {
 #[macro_export]
 macro_rules! validated_customized_ranged_number {
     ( $name:ident, $t:ident, $min:expr, $max:expr ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         struct $name {
             n: $t
         }
@@ -821,7 +922,7 @@ macro_rules! validated_customized_ranged_number {
         validated_customized_ranged_number_struct!($name, n, $t, $min, $max);
     };
     ( $v:vis $name:ident, $t:ident, $min:expr, $max:expr ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         $v struct $name {
             n: $t
         }
@@ -861,7 +962,7 @@ macro_rules! validated_customized_primitive_number_struct {
 #[macro_export]
 macro_rules! validated_customized_primitive_number {
     ( $name:ident, $t:ident ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         struct $name {
             n: $t
         }
@@ -869,7 +970,7 @@ macro_rules! validated_customized_primitive_number {
         validated_customized_primitive_number_struct!($name, n, $t);
     };
     ( $v:vis $name:ident, $t:ident ) => {
-        #[derive(Clone, PartialEq)]
+        #[derive(Clone)]
         $v struct $name {
             n: $t
         }
