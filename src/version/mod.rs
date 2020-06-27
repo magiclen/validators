@@ -11,7 +11,7 @@ use std::str::{FromStr, Utf8Error};
 
 lazy_static! {
     static ref VERSION_RE: Regex =
-        { Regex::new(r"^(\d)+(\.(\d)+)?(\.(\d)+)?(-([^\x00-\x1F\x7F]+))?$").unwrap() };
+        Regex::new(r"^(\d)+(\.(\d)+)?(\.(\d)+)?(-([^\x00-\x1F\x7F]+))?$").unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]

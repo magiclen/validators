@@ -49,6 +49,7 @@ impl Base32 {
         self.base32
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_string_unchecked(base32: String) -> Base32 {
         Base32 {

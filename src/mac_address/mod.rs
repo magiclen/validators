@@ -11,14 +11,14 @@ use std::str::Utf8Error;
 
 lazy_static! {
     static ref MAC_ADDRESS_COLON_UPPERCASE_RE: Regex =
-        { Regex::new("^([0-9A-F]{2}:){5}[0-9A-F]{2}").unwrap() };
+        Regex::new("^([0-9A-F]{2}:){5}[0-9A-F]{2}").unwrap();
     static ref MAC_ADDRESS_COLON_LOWERCASE_RE: Regex =
-        { Regex::new("^([0-9a-f]{2}:){5}[0-9a-f]{2}$").unwrap() };
+        Regex::new("^([0-9a-f]{2}:){5}[0-9a-f]{2}$").unwrap();
     static ref MAC_ADDRESS_COLON_RE: Regex =
-        { Regex::new("^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$").unwrap() };
-    static ref MAC_ADDRESS_NO_COLON_UPPERCASE_RE: Regex = { Regex::new("^[0-9A-F]{12}").unwrap() };
-    static ref MAC_ADDRESS_NO_COLON_LOWERCASE_RE: Regex = { Regex::new("^[0-9a-f]{12}$").unwrap() };
-    static ref MAC_ADDRESS_NO_COLON_RE: Regex = { Regex::new("^[0-9a-fA-F]{12}$").unwrap() };
+        Regex::new("^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$").unwrap();
+    static ref MAC_ADDRESS_NO_COLON_UPPERCASE_RE: Regex = Regex::new("^[0-9A-F]{12}").unwrap();
+    static ref MAC_ADDRESS_NO_COLON_LOWERCASE_RE: Regex = Regex::new("^[0-9a-f]{12}$").unwrap();
+    static ref MAC_ADDRESS_NO_COLON_RE: Regex = Regex::new("^[0-9a-fA-F]{12}$").unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]

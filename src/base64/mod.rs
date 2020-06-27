@@ -60,6 +60,7 @@ impl Base64 {
         self.base64
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_string_unchecked(base64: String) -> Base64 {
         Base64 {

@@ -50,6 +50,7 @@ impl ShortCryptQRCodeAlphanumeric {
         self.short_crypt_qr_code_alphanumeric
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_string_unchecked(
         short_crypt_qr_code_alphanumeric: String,

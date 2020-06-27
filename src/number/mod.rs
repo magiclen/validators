@@ -64,6 +64,7 @@ impl Number {
         (self.value.floor() - self.value).abs() < 1.0e-6
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_f64_unchecked(number: f64) -> Number {
         Number {

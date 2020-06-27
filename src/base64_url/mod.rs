@@ -10,7 +10,7 @@ use std::str::FromStr;
 
 lazy_static! {
     static ref BASE64_URL_RE: Regex =
-        { Regex::new(r"^([A-Za-z0-9\-_]{4})*[A-Za-z0-9\-_]{2,4}$").unwrap() };
+        Regex::new(r"^([A-Za-z0-9\-_]{4})*[A-Za-z0-9\-_]{2,4}$").unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -48,6 +48,7 @@ impl Base64Url {
         self.base64_url
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_string_unchecked(base64_url: String) -> Base64Url {
         Base64Url {

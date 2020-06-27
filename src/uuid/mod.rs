@@ -11,13 +11,12 @@ use std::str::Utf8Error;
 
 lazy_static! {
     static ref UUID_UPPERCASE_RE: Regex =
-        { Regex::new("^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$").unwrap() };
+        Regex::new("^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$").unwrap();
     static ref UUID_LOWERCASE_RE: Regex =
-        { Regex::new("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").unwrap() };
-    static ref UUID_RE: Regex = {
+        Regex::new("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$").unwrap();
+    static ref UUID_RE: Regex =
         Regex::new("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
-            .unwrap()
-    };
+            .unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]

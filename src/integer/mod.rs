@@ -59,6 +59,7 @@ impl Integer {
         self.value < 0
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_i128_unchecked(integer: i128) -> Integer {
         Integer {

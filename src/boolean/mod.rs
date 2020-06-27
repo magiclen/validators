@@ -9,8 +9,8 @@ use std::ops::Deref;
 use std::str::FromStr;
 
 lazy_static! {
-    pub(crate) static ref TRUE_RE: Regex = { Regex::new(r"^(?i)true|yes|on|y|t|1$").unwrap() };
-    pub(crate) static ref FALSE_RE: Regex = { Regex::new(r"^(?i)false|no|off|n|f|0$").unwrap() };
+    pub(crate) static ref TRUE_RE: Regex = Regex::new(r"^(?i)true|yes|on|y|t|1$").unwrap();
+    pub(crate) static ref FALSE_RE: Regex = Regex::new(r"^(?i)false|no|off|n|f|0$").unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]

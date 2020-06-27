@@ -10,7 +10,7 @@ use std::str::FromStr;
 
 lazy_static! {
     static ref SHORT_CRYPT_URL_COMPONENT_RE: Regex =
-        { Regex::new(r"^([A-Za-z0-9\-_]{4})*([A-Za-z0-9\-_]|[A-Za-z0-9\-_]{3,4})$").unwrap() };
+        Regex::new(r"^([A-Za-z0-9\-_]{4})*([A-Za-z0-9\-_]|[A-Za-z0-9\-_]{3,4})$").unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -48,6 +48,7 @@ impl ShortCryptUrlComponent {
         self.short_crypt_url_component
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_string_unchecked(
         short_crypt_url_component: String,

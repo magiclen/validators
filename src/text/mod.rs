@@ -9,8 +9,7 @@ use std::ops::Deref;
 use std::str::{FromStr, Utf8Error};
 
 lazy_static! {
-    static ref TEXT_RE: Regex =
-        { Regex::new("^([^\x00-\x08\x0A-\x1F\x7F]|\r\n|\n\r|\n)*$").unwrap() };
+    static ref TEXT_RE: Regex = Regex::new("^([^\x00-\x08\x0A-\x1F\x7F]|\r\n|\n\r|\n)*$").unwrap();
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -56,6 +55,7 @@ impl Text {
         self.text
     }
 
+    #[allow(clippy::missing_safety_doc)]
     #[inline]
     pub unsafe fn from_string_unchecked(text: String) -> Text {
         Text {
