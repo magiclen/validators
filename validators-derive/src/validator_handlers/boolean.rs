@@ -33,6 +33,8 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let error_path: Path =
                     syn::parse2(quote! { validators_prelude::boolean::BooleanError }).unwrap();
 
+                let parameters_impl = quote! {};
+
                 let v_parse_str = quote! {
                     #[inline]
                     pub(crate) fn v_parse_str(s: &str) -> Result<bool, #error_path> {
@@ -309,6 +311,8 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let serde_impl = if cfg!(feature = "serde") {
+                    let expect = "a boolean, a boolean string like \"true\", \"false\", \"0\", \"1\", \"on\", \"off\", \"yes\", \"no\", or a number `0` or `1`";
+
                     quote! {
                         impl validators_prelude::Serialize for #name {
                             #[inline]
@@ -331,7 +335,7 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn expecting(&self, f: &mut validators_prelude::Formatter) -> Result<(), validators_prelude::fmt::Error> {
-                                        f.write_str("a boolean, a boolean string like \"true\", \"false\", \"0\", \"1\", \"on\", \"off\", \"yes\", \"no\", or a number `0` or `1`")
+                                        f.write_str(#expect)
                                     }
 
                                     #[inline]
@@ -427,6 +431,8 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let boolean_impl = quote! {
+                    #parameters_impl
+
                     #parse_impl
 
                     #validate_string_impl

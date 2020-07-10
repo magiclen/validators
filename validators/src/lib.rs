@@ -38,7 +38,6 @@ pub mod prelude {
         pub use core::fmt::{self, Formatter};
         pub use core::str::from_utf8_unchecked;
 
-        pub use alloc::borrow::Cow;
         pub use alloc::string::String;
         pub use alloc::vec::Vec;
 
