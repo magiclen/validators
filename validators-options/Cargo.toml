@@ -1,0 +1,19 @@
+[package]
+name = "validators-options"
+version = "0.21.0"
+authors = ["Magic Len <len@magiclen.org>"]
+edition = "2018"
+keywords = ["validator", "validation", "user"]
+categories = ["no-std", "value-formatting"]
+description = "Options for validators."
+readme = "README.md"
+license = "MIT"
+include = ["src/**/*", "Cargo.toml"]
+
+[badges.travis-ci]
+repository = "magiclen/validators"
+branch = "master"
+
+[dependencies]
+enum-ordinalize = "3.1"
+educe = "0.4"

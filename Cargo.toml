@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "validators-options",
+    "validators-derive",
+    "validators"
+]

@@ -1,0 +1,53 @@
+[package]
+name = "validators-derive"
+version = "0.21.0"
+authors = ["Magic Len <len@magiclen.org>"]
+edition = "2018"
+keywords = ["validator", "validation", "user", "serde", "rocket"]
+categories = ["no-std", "parser-implementations", "value-formatting", "rust-patterns"]
+description = "This crate provides a procedural macro to define validators with optional parameters."
+readme = "README.md"
+license = "MIT"
+include = ["src/**/*", "Cargo.toml"]
+
+[badges.travis-ci]
+repository = "magiclen/validators"
+branch = "master"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+validators-options = { version = "0.21", path = "../validators-options" }
+validators = { version = "0.21", path = "../validators" }
+
+proc-macro2 = "1"
+syn = "1"
+quote = "1"
+
+[features]
+default = ["full"]
+std = ["validators/std"]
+
+full = [
+    "base32",
+    "base32_decoded",
+    "base64",
+    "base64_decoded",
+    "base64_url",
+    "base64_url_decoded",
+    "boolean",
+    "domain",
+]
+
+base32 = ["validators/base32"]
+base32_decoded = ["validators/base32_decoded"]
+base64 = ["validators/base64"]
+base64_decoded = ["validators/base64_decoded"]
+base64_url = ["validators/base64_url"]
+base64_url_decoded = ["validators/base64_url_decoded"]
+boolean = ["validators/boolean"]
+domain = ["validators/domain"]
+
+serde = ["validators/serde"]
+rocket = ["validators/rocket"]

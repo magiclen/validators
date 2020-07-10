@@ -1,0 +1,41 @@
+[package]
+name = "validators"
+version = "0.21.0"
+authors = ["Magic Len <len@magiclen.org>"]
+edition = "2018"
+keywords = ["validator", "validation", "user", "serde", "rocket"]
+categories = ["no-std", "parser-implementations", "value-formatting"]
+description = "This crate provides traits, errors and other dependencies used with the `validators-derive` crate."
+readme = "README.md"
+license = "MIT"
+include = ["src/**/*", "Cargo.toml"]
+
+[badges.travis-ci]
+repository = "magiclen/validators"
+branch = "master"
+
+[dependencies]
+validators-options = { version = "0.21", path = "../validators-options" }
+
+data-encoding = { version = "2.2", optional = true }
+
+serde-dep = { package = "serde", version = "1", optional = true }
+rocket-dep = { package = "rocket", version = "0.4", optional = true }
+
+[features]
+std = []
+
+base32 = []
+base32_decoded = ["data-encoding"]
+base64 = []
+base64_decoded = ["data-encoding"]
+base64_url = []
+base64_url_decoded = ["data-encoding"]
+boolean = []
+domain = []
+
+serde = ["serde-dep"]
+rocket = ["rocket-dep"]
+
+[package.metadata.docs.rs]
+all-features = true
