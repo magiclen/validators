@@ -25,6 +25,9 @@ proc-macro2 = "1"
 syn = "1"
 quote = "1"
 
+educe = "0.4"
+enum-ordinalize = "3.1"
+
 [features]
 default = ["full"]
 std = ["validators/std"]

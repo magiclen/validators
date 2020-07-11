@@ -6,19 +6,29 @@
     feature = "base64_url",
     feature = "base64_url_decoded",
     feature = "boolean",
+    feature = "domain",
 )))]
 compile_error!("at least one of the validator features must be enabled");
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Ordinalize)]
 pub enum Validator {
+    #[cfg(feature = "base32")]
     base32,
+    #[cfg(feature = "base32_decoded")]
     base32_decoded,
+    #[cfg(feature = "base64")]
     base64,
+    #[cfg(feature = "base64_decoded")]
     base64_decoded,
+    #[cfg(feature = "base64_url")]
     base64_url,
+    #[cfg(feature = "base64_url_decoded")]
     base64_url_decoded,
+    #[cfg(feature = "boolean")]
     boolean,
+    #[cfg(feature = "domain")]
+    domain,
 }
 
 impl Validator {
@@ -41,23 +51,14 @@ impl Validator {
             "base64_url_decoded" => Validator::base64_url_decoded,
             #[cfg(feature = "boolean")]
             "boolean" => Validator::boolean,
+            #[cfg(feature = "domain")]
+            "domain" => Validator::domain,
             _ => {
-                panic!("Unsupported validator `{}`. Available validators are {:?}", s, [
-                    #[cfg(feature = "base32")]
-                    Validator::base32,
-                    #[cfg(feature = "base32_decoded")]
-                    Validator::base32_decoded,
-                    #[cfg(feature = "base64")]
-                    Validator::base64,
-                    #[cfg(feature = "base64_decoded")]
-                    Validator::base64_decoded,
-                    #[cfg(feature = "base64_url")]
-                    Validator::base64_url,
-                    #[cfg(feature = "base64_url_decoded")]
-                    Validator::base64_url_decoded,
-                    #[cfg(feature = "boolean")]
-                    Validator::boolean,
-                ])
+                panic!(
+                    "Unsupported validator `{}`. Available validators are {:?}",
+                    s,
+                    Validator::variants()
+                )
             }
         }
     }

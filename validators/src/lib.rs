@@ -13,6 +13,9 @@ pub extern crate validators_options;
 #[cfg(feature = "data-encoding")]
 pub extern crate data_encoding;
 
+#[cfg(feature = "idna")]
+pub extern crate idna;
+
 #[cfg(feature = "serde")]
 #[allow(unused_imports)]
 #[macro_use]
@@ -22,6 +25,7 @@ extern crate serde_dep as serde;
 extern crate rocket_dep as rocket;
 
 mod errors;
+pub mod functions;
 pub mod traits;
 
 pub use errors::*;
@@ -38,11 +42,18 @@ pub mod prelude {
         pub use core::fmt::{self, Formatter};
         pub use core::str::from_utf8_unchecked;
 
+        pub use alloc::borrow::Cow;
         pub use alloc::string::String;
         pub use alloc::vec::Vec;
 
+        #[cfg(feature = "std")]
+        pub use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
         #[cfg(feature = "data-encoding")]
         pub use crate::data_encoding;
+
+        #[cfg(feature = "idna")]
+        pub use crate::idna;
 
         #[cfg(feature = "serde")]
         pub use crate::serde::serde_if_integer128;
@@ -60,6 +71,7 @@ pub mod prelude {
         pub use crate::rocket::http::{RawStr, Status};
 
         pub use crate::errors::*;
+        pub use crate::functions::*;
         pub use crate::validators_options::*;
     }
 

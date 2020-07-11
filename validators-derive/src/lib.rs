@@ -198,16 +198,55 @@ assert_eq!(false, MyBoolean::parse_char('0').unwrap().0);
 assert_eq!(true, MyBoolean::parse_isize(1).unwrap().0);
 ```
 
+### domain
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(domain(port(NotAllow)))]
+pub struct Domain {
+    domain: String,
+    is_ipv4: bool,
+    is_local: bool,
+}
+
+assert!(Domain::parse_string("example.com").is_ok());
+assert_eq!("xn--fiq228c.com", Domain::parse_string("中文.com").unwrap().domain);
+
+#[derive(Validator)]
+#[validator(domain)]
+pub struct DomainAllowPort {
+    domain: String,
+    is_ipv4: bool,
+    is_local: bool,
+    port: Option<u16>,
+}
+
+assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap().port);
+```
+
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 
+#[macro_use]
+extern crate enum_ordinalize;
+
 extern crate validators_options;
 
 extern crate proc_macro;
 extern crate syn;
+
+#[allow(unused_imports)]
+#[macro_use]
+extern crate educe;
 
 #[macro_use]
 extern crate quote;
@@ -245,23 +284,32 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         let meta_name = meta.path().into_token_stream().to_string();
 
                                         match Validator::from_str(meta_name) {
-                                            Validator::base32 => return base32_handler(ast, meta),
+                                            #[cfg(feature = "base32")]
+                                            Validator::base32 => return base32::base32_handler(ast, meta),
+                                            #[cfg(feature = "base32_decoded")]
                                             Validator::base32_decoded => {
-                                                return base32_decoded_handler(ast, meta)
+                                                return base32_decoded::base32_decoded_handler(ast, meta)
                                             }
-                                            Validator::base64 => return base64_handler(ast, meta),
+                                            #[cfg(feature = "base64")]
+                                            Validator::base64 => return base64::base64_handler(ast, meta),
+                                            #[cfg(feature = "base64_decoded")]
                                             Validator::base64_decoded => {
-                                                return base64_decoded_handler(ast, meta)
+                                                return base64_decoded::base64_decoded_handler(ast, meta)
                                             }
+                                            #[cfg(feature = "base64_url")]
                                             Validator::base64_url => {
-                                                return base64_url_handler(ast, meta)
+                                                return base64_url::base64_url_handler(ast, meta)
                                             }
+                                            #[cfg(feature = "base64_url_decoded")]
                                             Validator::base64_url_decoded => {
-                                                return base64_url_decoded_handler(ast, meta)
+                                                return base64_url_decoded::base64_url_decoded_handler(ast, meta)
                                             }
+                                            #[cfg(feature = "boolean")]
                                             Validator::boolean => {
-                                                return boolean_handler(ast, meta)
+                                                return boolean::boolean_handler(ast, meta)
                                             }
+                                            #[cfg(feature = "domain")]
+                                            Validator::domain => return domain::domain_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

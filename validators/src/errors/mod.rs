@@ -15,3 +15,6 @@ pub mod base64_url_decoded;
 
 #[cfg(feature = "boolean")]
 pub mod boolean;
+
+#[cfg(feature = "domain")]
+pub mod domain;

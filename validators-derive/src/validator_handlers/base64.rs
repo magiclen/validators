@@ -43,52 +43,15 @@ pub fn base64_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     match meta_name.as_str() {
                                         "padding" => {
-                                            if let Meta::List(list) = meta {
-                                                if padding_is_set {
-                                                    panic::reset_parameter(meta_name.as_str());
-                                                }
-
-                                                padding_is_set = true;
-
-                                                if list.nested.len() != 1 {
-                                                    panic::parameter_incorrect_format(
-                                                        meta_name.as_str(),
-                                                        &correct_usage_for_padding,
-                                                    );
-                                                }
-
-                                                for p in list.nested.iter() {
-                                                    if let NestedMeta::Meta(meta) = p {
-                                                        if let Meta::Path(path) = meta {
-                                                            if let Some(ident) = path.get_ident() {
-                                                                padding =
-                                                                    ValidatorOption::from_ident(
-                                                                        ident,
-                                                                    );
-                                                            } else {
-                                                                panic::parameter_incorrect_format(
-                                                                    meta_name.as_str(),
-                                                                    &correct_usage_for_padding,
-                                                                );
-                                                            }
-                                                        } else {
-                                                            panic::parameter_incorrect_format(
-                                                                meta_name.as_str(),
-                                                                &correct_usage_for_padding,
-                                                            );
-                                                        }
-                                                    } else {
-                                                        panic::parameter_incorrect_format(
-                                                            meta_name.as_str(),
-                                                            &correct_usage_for_padding,
-                                                        );
-                                                    }
-                                                }
-                                            } else {
-                                                panic::parameter_incorrect_format(
+                                            if let Some(validator_option) =
+                                                ValidatorOption::from_meta(
                                                     meta_name.as_str(),
+                                                    meta,
+                                                    &mut padding_is_set,
                                                     &correct_usage_for_padding,
-                                                );
+                                                )
+                                            {
+                                                padding = validator_option;
                                             }
                                         }
                                         _ => panic::unknown_parameter("base64", meta_name.as_str()),

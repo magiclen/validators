@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use core::fmt::{self, Debug, Formatter};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -5,6 +7,8 @@ pub enum TypeEnum {
     String,
     VecU8,
     Boolean,
+    U16,
+    OptionU16,
 }
 
 impl TypeEnum {
@@ -14,6 +18,8 @@ impl TypeEnum {
             TypeEnum::String => "String",
             TypeEnum::VecU8 => "Vec<u8>",
             TypeEnum::Boolean => "bool",
+            TypeEnum::U16 => "u16",
+            TypeEnum::OptionU16 => "Option<u16>",
         }
     }
 }
