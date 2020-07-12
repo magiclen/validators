@@ -84,10 +84,10 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(base32(padding(Must)))]
-pub struct MyBase32(String);
+pub struct Base32WithPadding(String);
 
-assert!(MyBase32::parse_string("GEZDGNBVGY3TQOI=").is_ok());
-assert!(MyBase32::parse_string("GEZDGNBVGY3TQOI").is_err());
+assert!(Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=").is_ok());
+assert!(Base32WithPadding::parse_string("GEZDGNBVGY3TQOI").is_err());
 ```
 
 ### base32_decoded
@@ -101,9 +101,9 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(base32_decoded(padding(Must)))]
-pub struct MyBase32Decoded(Vec<u8>);
+pub struct Base32WithPaddingDecoded(Vec<u8>);
 
-assert_eq!(b"123456789", MyBase32Decoded::parse_string("GEZDGNBVGY3TQOI=").unwrap().0.as_slice());
+assert_eq!(b"123456789", Base32WithPaddingDecoded::parse_string("GEZDGNBVGY3TQOI=").unwrap().0.as_slice());
 ```
 
 ### base64
@@ -117,10 +117,10 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(base64(padding(Must)))]
-pub struct MyBase64(String);
+pub struct Base64WithPadding(String);
 
-assert!(MyBase64::parse_string("MTIzNDU2Nzg5MA==").is_ok());
-assert!(MyBase64::parse_string("MTIzNDU2Nzg5MA").is_err());
+assert!(Base64WithPadding::parse_string("MTIzNDU2Nzg5MA==").is_ok());
+assert!(Base64WithPadding::parse_string("MTIzNDU2Nzg5MA").is_err());
 ```
 
 ### base64_decoded
@@ -134,9 +134,9 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(base64_decoded(padding(Must)))]
-pub struct MyBase64Decoded(Vec<u8>);
+pub struct Base64WithPaddingDecoded(Vec<u8>);
 
-assert_eq!(b"1234567890", MyBase64Decoded::parse_string("MTIzNDU2Nzg5MA==").unwrap().0.as_slice());
+assert_eq!(b"1234567890", Base64WithPaddingDecoded::parse_string("MTIzNDU2Nzg5MA==").unwrap().0.as_slice());
 ```
 
 ### base64_url
@@ -150,9 +150,9 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(base64_url(padding(NotAllow)))]
-pub struct MyBase64Url(String);
+pub struct Base64WithoutPaddingUrl(String);
 
-assert!(MyBase64Url::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1GW2xSBVzeno").is_ok());
+assert!(Base64WithoutPaddingUrl::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1GW2xSBVzeno").is_ok());
 ```
 
 ### base64_url_decoded
@@ -166,9 +166,9 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(base64_url_decoded(padding(NotAllow)))]
-pub struct MyBase64UrlDecoded(Vec<u8>);
+pub struct Base64WithoutPaddingUrlDecoded(Vec<u8>);
 
-assert_eq!([62, 100, 124, 132, 152, 99, 129, 83, 92, 7, 173, 115, 170, 23, 63, 7, 103, 110, 103, 185, 93, 240, 108, 181, 25, 109, 177, 72, 21, 115, 122, 122], MyBase64UrlDecoded::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1GW2xSBVzeno").unwrap().0.as_slice());
+assert_eq!([62, 100, 124, 132, 152, 99, 129, 83, 92, 7, 173, 115, 170, 23, 63, 7, 103, 110, 103, 185, 93, 240, 108, 181, 25, 109, 177, 72, 21, 115, 122, 122], Base64WithoutPaddingUrlDecoded::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1GW2xSBVzeno").unwrap().0.as_slice());
 ```
 
 ### boolean
@@ -182,20 +182,20 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(boolean)]
-pub struct MyBoolean(bool);
+pub struct Boolean(bool);
 
-assert_eq!(true, MyBoolean::parse_str("true").unwrap().0);
-assert_eq!(false, MyBoolean::parse_str("f").unwrap().0);
-assert_eq!(true, MyBoolean::parse_str("y").unwrap().0);
-assert_eq!(false, MyBoolean::parse_str("no").unwrap().0);
-assert_eq!(true, MyBoolean::parse_str("on").unwrap().0);
-assert_eq!(false, MyBoolean::parse_str("off").unwrap().0);
-assert_eq!(true, MyBoolean::parse_str("1").unwrap().0);
+assert_eq!(true, Boolean::parse_str("true").unwrap().0);
+assert_eq!(false, Boolean::parse_str("f").unwrap().0);
+assert_eq!(true, Boolean::parse_str("y").unwrap().0);
+assert_eq!(false, Boolean::parse_str("no").unwrap().0);
+assert_eq!(true, Boolean::parse_str("on").unwrap().0);
+assert_eq!(false, Boolean::parse_str("off").unwrap().0);
+assert_eq!(true, Boolean::parse_str("1").unwrap().0);
 
-assert_eq!(true, MyBoolean::parse_char('t').unwrap().0);
-assert_eq!(false, MyBoolean::parse_char('0').unwrap().0);
+assert_eq!(true, Boolean::parse_char('t').unwrap().0);
+assert_eq!(false, Boolean::parse_char('0').unwrap().0);
 
-assert_eq!(true, MyBoolean::parse_isize(1).unwrap().0);
+assert_eq!(true, Boolean::parse_isize(1).unwrap().0);
 ```
 
 ### domain
@@ -209,14 +209,14 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(NotAllow)))]
-pub struct Domain {
+pub struct DomainWithoutPort {
     domain: String,
     is_ipv4: bool,
     is_local: bool,
 }
 
-assert!(Domain::parse_string("example.com").is_ok());
-assert_eq!("xn--fiq228c.com", Domain::parse_string("中文.com").unwrap().domain);
+assert!(DomainWithoutPort::parse_string("example.com").is_ok());
+assert_eq!("xn--fiq228c.com", DomainWithoutPort::parse_string("中文.com").unwrap().domain);
 
 #[derive(Validator)]
 #[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(Allow)))]
@@ -241,7 +241,7 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(email(comment(Allow), ip(Allow), local(Allow), at_least_two_labels(Allow)))]
-pub struct EmailAllowCommentAllowIPAllowLocal {
+pub struct EmailAllowComment {
     pub local_part: String,
     pub need_quoted: bool,
     pub domain_part: validators::models::Host,
@@ -252,9 +252,40 @@ pub struct EmailAllowCommentAllowIPAllowLocal {
     pub is_local: bool,
 }
 
-assert!(EmailAllowCommentAllowIPAllowLocal::parse_string("(john)joke@example.com").is_ok());
+assert!(EmailAllowComment::parse_string("(john)joke@example.com").is_ok());
+
+#[derive(Validator)]
+#[validator(email(comment(NotAllow), ip(Allow), local(Allow), at_least_two_labels(Allow)))]
+pub struct EmailNotAllowComment {
+    pub local_part: String,
+    pub need_quoted: bool,
+    pub domain_part: validators::models::Host,
+    pub is_local: bool,
+}
+
+assert!(EmailNotAllowComment::parse_string("(john)joke@example.com").is_err());
 ```
 
+### host
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(host(local(Allow), at_least_two_labels(Must), port(Allow)))]
+pub struct HostMustAtLeastTwoLabels {
+    pub host: validators::models::Host,
+    pub is_local: bool,
+    pub port: Option<u16>,
+}
+
+assert!(HostMustAtLeastTwoLabels::parse_string("example.com:8000").is_ok());
+assert!(HostMustAtLeastTwoLabels::parse_string("example").is_err());
+```
 
 */
 
@@ -338,6 +369,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             Validator::domain => return domain::domain_handler(ast, meta),
                                             #[cfg(feature = "email")]
                                             Validator::email => return email::email_handler(ast, meta),
+                                            #[cfg(feature = "host")]
+                                            Validator::host => return host::host_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

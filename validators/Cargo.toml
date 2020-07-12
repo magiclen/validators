@@ -35,6 +35,7 @@ base64_url_decoded = ["data-encoding"]
 boolean = []
 domain = ["std", "idna"]
 email = ["std", "idna"]
+host = ["std", "idna"]
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

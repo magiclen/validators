@@ -29,7 +29,7 @@ impl Display for DomainError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            DomainError::Invalid => f.write_str("invalid Domain"),
+            DomainError::Invalid => f.write_str("invalid domain"),
             DomainError::IPv4Must => f.write_str("must use an IPv4"),
             DomainError::IPv4NotAllow => f.write_str("must not use an IPv4"),
             DomainError::LocalMust => f.write_str("must be local"),

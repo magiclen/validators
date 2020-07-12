@@ -42,6 +42,7 @@ full = [
     "boolean",
     "domain",
     "email",
+    "host",
 ]
 
 base32 = ["validators/base32"]
@@ -53,6 +54,7 @@ base64_url_decoded = ["validators/base64_url_decoded"]
 boolean = ["validators/boolean"]
 domain = ["validators/domain"]
 email = ["validators/email"]
+host = ["validators/host"]
 
 serde = ["validators/serde"]
 rocket = ["validators/rocket"]
