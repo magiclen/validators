@@ -9,6 +9,9 @@ pub enum TypeEnum {
     Boolean,
     U16,
     OptionU16,
+    OptionString,
+    IpAddr,
+    Host,
 }
 
 impl TypeEnum {
@@ -20,6 +23,9 @@ impl TypeEnum {
             TypeEnum::Boolean => "bool",
             TypeEnum::U16 => "u16",
             TypeEnum::OptionU16 => "Option<u16>",
+            TypeEnum::OptionString => "Option<String>",
+            TypeEnum::IpAddr => "std::net::IpAddr",
+            TypeEnum::Host => "crate::validators::models::Host",
         }
     }
 }

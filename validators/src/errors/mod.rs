@@ -18,3 +18,6 @@ pub mod boolean;
 
 #[cfg(feature = "domain")]
 pub mod domain;
+
+#[cfg(feature = "email")]
+pub mod email;

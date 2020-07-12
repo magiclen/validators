@@ -130,6 +130,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             let mut local = ValidatorOption::new();
             let mut port = ValidatorOption::new();
             let mut at_least_two_labels = ValidatorOption::new();
+            let mut conflict = ValidatorOption::NotAllow;
 
             let correct_usage_for_attribute = [stringify!(#[validator(domain)])];
 
@@ -157,6 +158,11 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 stringify!(#[validator(domain(at_least_two_labels(NotAllow)))]),
             ];
 
+            let correct_usage_for_conflict = [
+                stringify!(#[validator(domain(conflict(Allow)))]),
+                stringify!(#[validator(domain(conflict(NotAllow)))]),
+            ];
+
             match meta {
                 Meta::Path(_) => (),
                 Meta::List(list) => {
@@ -164,6 +170,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     let mut local_is_set = false;
                     let mut port_is_set = false;
                     let mut at_least_two_labels_is_set = false;
+                    let mut conflict_is_set = false;
 
                     for p in list.nested.iter() {
                         match p {
@@ -211,6 +218,23 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             at_least_two_labels = validator_option;
                                         }
                                     }
+                                    "conflict" => {
+                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                            meta_name.as_str(),
+                                            meta,
+                                            &mut conflict_is_set,
+                                            &correct_usage_for_conflict,
+                                        ) {
+                                            if validator_option == ValidatorOption::Must {
+                                                panic::parameter_incorrect_format(
+                                                    meta_name.as_str(),
+                                                    &correct_usage_for_conflict,
+                                                );
+                                            }
+
+                                            conflict = validator_option;
+                                        }
+                                    }
                                     _ => panic::unknown_parameter("domain", meta_name.as_str()),
                                 }
                             }
@@ -228,8 +252,16 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
             }
 
+            let mut meta_is_conflict = false;
+
             if ipv4.must() && at_least_two_labels.not_allow() {
-                panic!("`ipv4(Must)` and at_least_two_labels(NotAllow) cannot be used together.");
+                if conflict.not_allow() {
+                    panic!(
+                        "`ipv4(Must)` and `at_least_two_labels(NotAllow)` cannot be used together."
+                    );
+                }
+
+                meta_is_conflict = true;
             }
 
             match ipv4 {
@@ -697,31 +729,31 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
             };
 
-            let check_at_least_two_labels = {
-                match at_least_two_labels {
-                    ValidatorOption::Allow => quote! {},
-                    ValidatorOption::Must => {
-                        quote! {
-                            if !is_local && !is_at_least_two_labels_domain(&ascii_domain) {
-                                return Err(#error_path::AtLeastTwoLabelsMust);
-                            }
-                        }
-                    }
-                    ValidatorOption::NotAllow => {
-                        quote! {
-                            if !is_local && is_at_least_two_labels_domain(&ascii_domain) {
-                                return Err(#error_path::AtLeastTwoLabelsNotAllow);
-                            }
-                        }
-                    }
-                }
-            };
-
             let handle_none_ipv4 = if ipv4.must() {
                 quote! {
                     return Err(#error_path::IPv4Must);
                 }
             } else {
+                let check_at_least_two_labels = {
+                    match at_least_two_labels {
+                        ValidatorOption::Allow => quote! {},
+                        ValidatorOption::Must => {
+                            quote! {
+                                if !is_local && !validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                    return Err(#error_path::AtLeastTwoLabelsMust);
+                                }
+                            }
+                        }
+                        ValidatorOption::NotAllow => {
+                            quote! {
+                                if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                    return Err(#error_path::AtLeastTwoLabelsNotAllow);
+                                }
+                            }
+                        }
+                    }
+                };
+
                 quote! {
                     match validators_prelude::idna::Config::default()
                         .use_std3_ascii_rules(true)
@@ -745,7 +777,16 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
             };
 
+            let conflict_meta = if meta_is_conflict {
+                quote! {
+                    #[allow(unreachable_code)]
+                }
+            } else {
+                quote! {}
+            };
+
             let v_parse_str = quote! {
+                #conflict_meta
                 pub(crate) fn v_parse_str(s: validators_prelude::Cow<str>) -> Result<(validators_prelude::String, Option<u16>, bool, bool), #error_path> {
                     let bytes = s.as_bytes();
 
@@ -819,7 +860,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             #[inline]
                             pub fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
                                 match self.port {
-                                    Some(port) => validators_prelude::Cow::from(format!("{}:{}", self.get_domain_non_fully_qualified(), port)),
+                                    Some(port) => validators_prelude::Cow::from(validators_prelude::format!("{}:{}", self.get_domain_non_fully_qualified(), port)),
                                     None => validators_prelude::Cow::from(self.get_domain_non_fully_qualified()),
                                 }
                             }
@@ -829,7 +870,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         quote! {
                             #[inline]
                             pub fn to_uri_authority_string(&self) -> String {
-                                format!("{}:{}", self.get_domain_non_fully_qualified(), self.port)
+                                validators_prelude::format!("{}:{}", self.get_domain_non_fully_qualified(), self.port)
                             }
                         }
                     }
@@ -849,14 +890,6 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #fully_qualified
 
                     #to_uri_authority_string
-
-                    #[inline]
-                    pub fn to_unicode_domain_string(&self) -> String {
-                        validators_prelude::idna::Config::default()
-                            .use_std3_ascii_rules(true)
-                            .to_unicode(self.get_domain_non_fully_qualified())
-                            .0
-                    }
                 }
             };
 
@@ -1125,9 +1158,16 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     E: validators_prelude::DeError, {
                                     <#name as ValidateString>::parse_str(v).map_err(validators_prelude::DeError::custom)
                                 }
+
+                                #[inline]
+                                fn visit_string<E>(self, v: String) -> Result<Self::Value, E>
+                                where
+                                    E: validators_prelude::DeError, {
+                                    <#name as ValidateString>::parse_string(v).map_err(validators_prelude::DeError::custom)
+                                }
                             }
 
-                            deserializer.deserialize_str(ValidatingVisitor)
+                            deserializer.deserialize_string(ValidatingVisitor)
                         }
                     }
                 }

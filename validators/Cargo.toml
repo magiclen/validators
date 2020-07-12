@@ -5,7 +5,7 @@ authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
 categories = ["no-std", "parser-implementations", "value-formatting"]
-description = "This crate provides functions, traits, errors and other dependencies used with the `validators-derive` crate."
+description = "This crate provides models, function traits, errors and other dependencies used with the `validators-derive` crate."
 readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml"]
@@ -34,6 +34,7 @@ base64_url = []
 base64_url_decoded = ["data-encoding"]
 boolean = []
 domain = ["std", "idna"]
+email = ["std", "idna"]
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

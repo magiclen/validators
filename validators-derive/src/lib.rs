@@ -208,7 +208,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(domain(port(NotAllow)))]
+#[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(NotAllow)))]
 pub struct Domain {
     domain: String,
     is_ipv4: bool,
@@ -219,7 +219,7 @@ assert!(Domain::parse_string("example.com").is_ok());
 assert_eq!("xn--fiq228c.com", Domain::parse_string("中文.com").unwrap().domain);
 
 #[derive(Validator)]
-#[validator(domain)]
+#[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(Allow)))]
 pub struct DomainAllowPort {
     domain: String,
     is_ipv4: bool,
@@ -229,6 +229,32 @@ pub struct DomainAllowPort {
 
 assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap().port);
 ```
+
+### email
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(email(comment(Allow), ip(Allow), local(Allow), at_least_two_labels(Allow)))]
+pub struct EmailAllowCommentAllowIPAllowLocal {
+    pub local_part: String,
+    pub need_quoted: bool,
+    pub domain_part: validators::models::Host,
+    pub comment_before_local_part: Option<String>,
+    pub comment_after_local_part: Option<String>,
+    pub comment_before_domain_part: Option<String>,
+    pub comment_after_domain_part: Option<String>,
+    pub is_local: bool,
+}
+
+assert!(EmailAllowCommentAllowIPAllowLocal::parse_string("(john)joke@example.com").is_ok());
+```
+
 
 */
 
@@ -310,6 +336,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             }
                                             #[cfg(feature = "domain")]
                                             Validator::domain => return domain::domain_handler(ast, meta),
+                                            #[cfg(feature = "email")]
+                                            Validator::email => return email::email_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

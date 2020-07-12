@@ -1,7 +1,7 @@
 /*!
 # Validators
 
-This crate provides traits, errors and other dependencies used with the [`validators-derive`](https://crates.io/crates/validators-derive) crate.
+This crate provides models, function traits, errors and other dependencies used with the [`validators-derive`](https://crates.io/crates/validators-derive) crate.
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -26,6 +26,7 @@ extern crate rocket_dep as rocket;
 
 mod errors;
 pub mod functions;
+pub mod models;
 pub mod traits;
 
 pub use errors::*;
@@ -72,7 +73,10 @@ pub mod prelude {
 
         pub use crate::errors::*;
         pub use crate::functions::*;
+        pub use crate::models::*;
         pub use crate::validators_options::*;
+
+        pub use crate::alloc::format;
     }
 
     pub use crate::traits::*;

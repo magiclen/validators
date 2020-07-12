@@ -7,6 +7,7 @@
     feature = "base64_url_decoded",
     feature = "boolean",
     feature = "domain",
+    feature = "email",
 )))]
 compile_error!("at least one of the validator features must be enabled");
 
@@ -29,6 +30,8 @@ pub enum Validator {
     boolean,
     #[cfg(feature = "domain")]
     domain,
+    #[cfg(feature = "email")]
+    email,
 }
 
 impl Validator {
@@ -53,6 +56,8 @@ impl Validator {
             "boolean" => Validator::boolean,
             #[cfg(feature = "domain")]
             "domain" => Validator::domain,
+            #[cfg(feature = "email")]
+            "email" => Validator::email,
             _ => {
                 panic!(
                     "Unsupported validator `{}`. Available validators are {:?}",
