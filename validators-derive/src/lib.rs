@@ -273,15 +273,39 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(host(local(Allow), at_least_two_labels(Must), port(Allow)))]
-pub struct HostMustAtLeastTwoLabels {
+pub struct HostMustAtLeastTwoLabelsAllowPort {
     pub host: validators::models::Host,
     pub port: Option<u16>,
     pub is_local: bool,
 }
 
-assert!(HostMustAtLeastTwoLabels::parse_string("example.com:8000").is_ok());
-assert!(HostMustAtLeastTwoLabels::parse_string("example").is_err());
+assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example.com:8000").is_ok());
+assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example").is_err());
 ```
+
+### ip
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use std::net::IpAddr;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(ip(local(Allow), port(Allow)))]
+pub struct IPAllowPort {
+    pub ip: IpAddr,
+    pub port: Option<u16>,
+}
+
+assert!(IPAllowPort::parse_string("127.0.0.1").is_ok());
+assert!(IPAllowPort::parse_string("127.0.0.1:8000").is_ok());
+```
+
+
 
 */
 
@@ -367,6 +391,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             Validator::email => return email::email_handler(ast, meta),
                                             #[cfg(feature = "host")]
                                             Validator::host => return host::host_handler(ast, meta),
+                                            #[cfg(feature = "ip")]
+                                            Validator::ip => return ip::ip_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

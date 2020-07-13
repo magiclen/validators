@@ -36,6 +36,7 @@ boolean = []
 domain = ["std", "idna"]
 email = ["std", "idna"]
 host = ["std", "idna"]
+ip = ["std"]
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

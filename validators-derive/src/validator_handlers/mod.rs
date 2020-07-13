@@ -18,3 +18,5 @@ pub mod domain;
 pub mod email;
 #[cfg(feature = "host")]
 pub mod host;
+#[cfg(feature = "ip")]
+pub mod ip;
