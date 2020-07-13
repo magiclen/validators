@@ -342,6 +342,33 @@ assert!(IPv6WithoutPort::parse_string("::ffff:c000:0280").is_ok());
 assert!(IPv6WithoutPort::parse_string("[::ffff:c000:0280]").is_ok());
 ```
 
+### json
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(json)]
+pub struct JSONString(pub String);
+
+#[derive(Validator)]
+#[validator(json)]
+pub struct JSONNumber(pub f64);
+
+#[derive(Validator)]
+#[validator(json)]
+pub struct JSONBoolean(pub bool);
+
+assert!(JSONString::parse_string("123").is_err());
+assert!(JSONString::parse_string("\"123\"").is_ok());
+assert!(JSONNumber::parse_u64(123).is_ok());
+assert!(JSONBoolean::parse_bool(false).is_ok());
+```
+
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -376,9 +403,13 @@ use quote::ToTokens;
 use syn::{DeriveInput, Meta, NestedMeta};
 
 use support_validators::Validator;
-use syn_validator_options::*;
 use type_enum::*;
 use validator_handlers::*;
+
+#[allow(unused_imports)]
+use syn_validator_options::*;
+
+#[allow(unused_imports)]
 use validators_options::*;
 
 fn derive_input_handler(ast: DeriveInput) -> TokenStream {
@@ -432,6 +463,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             Validator::ipv4 => return ipv4::ipv4_handler(ast, meta),
                                             #[cfg(feature = "ipv6")]
                                             Validator::ipv6 => return ipv6::ipv6_handler(ast, meta),
+                                            #[cfg(feature = "json")]
+                                            Validator::json => return json::json_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

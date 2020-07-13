@@ -269,3 +269,33 @@ pub trait ValidateUnsignedInteger {
         Self::validate_u16(u16::from(u))
     }
 }
+
+/// Validate and deserialize (floating) numbers.
+pub trait ValidateNumber {
+    type Error;
+    type Output;
+
+    fn parse_f64(f: f64) -> Result<Self::Output, Self::Error>;
+
+    fn validate_f64(f: f64) -> Result<(), Self::Error>;
+
+    #[inline]
+    fn parse_f32(f: f32) -> Result<Self::Output, Self::Error> {
+        Self::parse_f64(f as f64)
+    }
+
+    #[inline]
+    fn validate_f32(f: f32) -> Result<(), Self::Error> {
+        Self::validate_f64(f as f64)
+    }
+}
+
+/// Validate and deserialize boolean.
+pub trait ValidateBoolean {
+    type Error;
+    type Output;
+
+    fn parse_bool(b: bool) -> Result<Self::Output, Self::Error>;
+
+    fn validate_bool(b: bool) -> Result<(), Self::Error>;
+}

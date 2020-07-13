@@ -31,11 +31,13 @@ pub fn derive_attribute_not_set_up_yet(attribute_name: &str) -> ! {
     )
 }
 
+#[allow(dead_code)]
 #[inline]
 pub fn reset_parameter(parameter_name: &str) -> ! {
     panic!("Try to reset the `{}` parameter.", parameter_name)
 }
 
+#[allow(dead_code)]
 #[inline]
 pub fn unknown_parameter(attribute_name: &str, parameter_name: &str) -> ! {
     panic!("Unknown parameter `{}` used in the `{}` attribute.", parameter_name, attribute_name)

@@ -1123,7 +1123,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             // TODO reuse the input `s`
             let v_parse_str = quote! {
                 #conflict_meta
-                pub(crate) fn v_parse_str(s: validators_prelude::Cow<str>) -> Result<(validators_prelude::String, bool, validators_prelude::Host, Option<validators_prelude::String>, Option<validators_prelude::String>, Option<validators_prelude::String>, Option<validators_prelude::String>, bool), #error_path> {
+                fn v_parse_str(s: validators_prelude::Cow<str>) -> Result<(validators_prelude::String, bool, validators_prelude::Host, Option<validators_prelude::String>, Option<validators_prelude::String>, Option<validators_prelude::String>, Option<validators_prelude::String>, bool), #error_path> {
                     let bytes = s.as_bytes();
                     let length = bytes.len();
 

@@ -37,7 +37,7 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let v_parse_str = quote! {
                     #[inline]
-                    pub(crate) fn v_parse_str(s: &str) -> Result<bool, #error_path> {
+                    fn v_parse_str(s: &str) -> Result<bool, #error_path> {
                         let bytes = s.as_bytes();
 
                         let mut iter = bytes.iter().copied();

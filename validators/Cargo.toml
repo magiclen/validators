@@ -19,6 +19,7 @@ validators-options = { version = "0.21", path = "../validators-options" }
 
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }
+serde_json = { version = "1", optional = true }
 
 serde-dep = { package = "serde", version = "1", optional = true }
 rocket-dep = { package = "rocket", version = "0.4", optional = true }
@@ -39,6 +40,7 @@ host = ["std", "idna"]
 ip = ["std"]
 ipv4 = ["std"]
 ipv6 = ["std"]
+json = ["serde_json"]
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

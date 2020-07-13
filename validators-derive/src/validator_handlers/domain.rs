@@ -807,7 +807,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             let v_parse_str = quote! {
                 #conflict_meta
-                pub(crate) fn v_parse_str(s: validators_prelude::Cow<str>) -> Result<(validators_prelude::String, Option<u16>, bool, bool), #error_path> {
+                fn v_parse_str(s: validators_prelude::Cow<str>) -> Result<(validators_prelude::String, Option<u16>, bool, bool), #error_path> {
                     let bytes = s.as_bytes();
 
                     if bytes.is_empty() {

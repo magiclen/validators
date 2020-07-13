@@ -16,6 +16,9 @@ pub extern crate data_encoding;
 #[cfg(feature = "idna")]
 pub extern crate idna;
 
+#[cfg(feature = "serde_json")]
+pub extern crate serde_json;
+
 #[cfg(feature = "serde")]
 #[allow(unused_imports)]
 #[macro_use]
@@ -56,11 +59,14 @@ pub mod prelude {
         #[cfg(feature = "idna")]
         pub use crate::idna;
 
+        #[cfg(feature = "serde_json")]
+        pub use crate::serde_json;
+
         #[cfg(feature = "serde")]
         pub use crate::serde::serde_if_integer128;
 
         #[cfg(feature = "serde")]
-        pub use crate::serde::ser::{Serialize, Serializer};
+        pub use crate::serde::ser::{Error as SeError, Serialize, Serializer};
 
         #[cfg(feature = "serde")]
         pub use crate::serde::de::{Deserialize, Deserializer, Error as DeError, Visitor};

@@ -33,3 +33,6 @@ pub mod ipv4;
 
 #[cfg(feature = "ipv6")]
 pub mod ipv6;
+
+#[cfg(feature = "json")]
+pub mod json;

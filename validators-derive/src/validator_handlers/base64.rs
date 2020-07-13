@@ -124,13 +124,13 @@ pub fn base64_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let v_parse_str = quote! {
                     #[inline]
-                    pub(crate) fn v_parse_str(s: &str) -> Result<(), #error_path> {
+                    fn v_parse_str(s: &str) -> Result<(), #error_path> {
                         Self::v_parse_u8_slice(s.as_bytes())
                     }
                 };
 
                 let v_parse_u8_slice = quote! {
-                    pub(crate) fn v_parse_u8_slice(v: &[u8]) -> Result<(), #error_path> {
+                    fn v_parse_u8_slice(v: &[u8]) -> Result<(), #error_path> {
                         let length = v.len();
 
                         if length == 0 {

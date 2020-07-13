@@ -261,7 +261,7 @@ pub fn ipv4_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             };
 
             let v_parse_str = quote! {
-                pub(crate) fn v_parse_str(s: &str) -> Result<(validators_prelude::Ipv4Addr, Option<u16>, bool), #error_path> {
+                fn v_parse_str(s: &str) -> Result<(validators_prelude::Ipv4Addr, Option<u16>, bool), #error_path> {
                     use core::str::FromStr;
 
                     let bytes = s.as_bytes();
