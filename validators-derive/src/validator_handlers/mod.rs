@@ -20,3 +20,5 @@ pub mod email;
 pub mod host;
 #[cfg(feature = "ip")]
 pub mod ip;
+#[cfg(feature = "ipv4")]
+pub mod ipv4;

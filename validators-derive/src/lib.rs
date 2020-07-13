@@ -302,10 +302,26 @@ pub struct IPAllowPort {
 }
 
 assert!(IPAllowPort::parse_string("127.0.0.1").is_ok());
-assert!(IPAllowPort::parse_string("127.0.0.1:8000").is_ok());
+assert!(IPAllowPort::parse_string("[::ffff:c000:0280]:8000").is_ok());
 ```
 
+### ipv4
 
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use std::net::Ipv4Addr;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(ipv4(local(Allow), port(NotAllow)))]
+pub struct IPv4WithoutPort(pub Ipv4Addr);
+
+assert!(IPv4WithoutPort::parse_string("127.0.0.1").is_ok());
+```
 
 */
 
@@ -393,6 +409,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             Validator::host => return host::host_handler(ast, meta),
                                             #[cfg(feature = "ip")]
                                             Validator::ip => return ip::ip_handler(ast, meta),
+                                            #[cfg(feature = "ipv4")]
+                                            Validator::ipv4 => return ipv4::ipv4_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

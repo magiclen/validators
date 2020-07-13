@@ -889,7 +889,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     ValidatorOption::Must => {
                         quote! {
                             #[inline]
-                            pub fn to_uri_authority_string(&self) -> String {
+                            pub fn to_uri_authority_string(&self) -> validators_prelude::String {
                                 validators_prelude::format!("{}:{}", self.get_domain_non_fully_qualified(), self.port)
                             }
                         }

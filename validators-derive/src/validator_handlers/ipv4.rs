@@ -13,42 +13,42 @@ pub struct Struct(TypeEnum);
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPort {
-    ip: TypeEnum,
+    ipv4: TypeEnum,
     port: TypeEnum,
 }
 
-const ITEM: Struct = Struct(TypeEnum::IpAddr);
+const ITEM: Struct = Struct(TypeEnum::Ipv4Addr);
 
 const ITEM_ALLOW_PORT: StructAllowPort = StructAllowPort {
-    ip: TypeEnum::IpAddr,
+    ipv4: TypeEnum::Ipv4Addr,
     port: TypeEnum::OptionU16,
 };
 
 const ITEM_WITH_PORT: StructAllowPort = StructAllowPort {
-    ip: TypeEnum::IpAddr,
+    ipv4: TypeEnum::Ipv4Addr,
     port: TypeEnum::U16,
 };
 
-const VALIDATOR: Validator = Validator::ip;
+const VALIDATOR: Validator = Validator::ipv4;
 
-pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
+pub fn ipv4_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
     match ast.data {
         Data::Struct(data) => {
             let mut local = ValidatorOption::new();
             let mut port = ValidatorOption::new();
 
-            let correct_usage_for_attribute = [stringify!(#[validator(ip)])];
+            let correct_usage_for_attribute = [stringify!(#[validator(ipv4)])];
 
             let correct_usage_for_local = [
-                stringify!(#[validator(ip(local(Must)))]),
-                stringify!(#[validator(ip(local(Allow)))]),
-                stringify!(#[validator(ip(local(NotAllow)))]),
+                stringify!(#[validator(ipv4(local(Must)))]),
+                stringify!(#[validator(ipv4(local(Allow)))]),
+                stringify!(#[validator(ipv4(local(NotAllow)))]),
             ];
 
             let correct_usage_for_port = [
-                stringify!(#[validator(ip(port(Must)))]),
-                stringify!(#[validator(ip(port(Allow)))]),
-                stringify!(#[validator(ip(port(NotAllow)))]),
+                stringify!(#[validator(ipv4(port(Must)))]),
+                stringify!(#[validator(ipv4(port(Allow)))]),
+                stringify!(#[validator(ipv4(port(NotAllow)))]),
             ];
 
             match meta {
@@ -83,12 +83,12 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port = validator_option;
                                         }
                                     }
-                                    _ => panic::unknown_parameter("ip", meta_name.as_str()),
+                                    _ => panic::unknown_parameter("ipv4", meta_name.as_str()),
                                 }
                             }
                             NestedMeta::Lit(_) => {
                                 panic::attribute_incorrect_format(
-                                    "ip",
+                                    "ipv4",
                                     &correct_usage_for_attribute,
                                 )
                             }
@@ -96,7 +96,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 }
                 Meta::NameValue(_) => {
-                    panic::attribute_incorrect_format("ip", &correct_usage_for_attribute)
+                    panic::attribute_incorrect_format("ipv4", &correct_usage_for_attribute)
                 }
             }
 
@@ -113,7 +113,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         for field in data.fields.iter() {
                             let ident = field.ident.as_ref().unwrap();
 
-                            if ident != "ip" && ident != "port" {
+                            if ident != "ipv4" && ident != "port" {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_ALLOW_PORT),
@@ -139,7 +139,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         for field in data.fields.iter() {
                             let ident = field.ident.as_ref().unwrap();
 
-                            if ident != "ip" && ident != "port" {
+                            if ident != "ipv4" && ident != "port" {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_WITH_PORT),
@@ -165,7 +165,8 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             // TODO impl
 
-            let error_path: Path = syn::parse2(quote! { validators_prelude::ip::IPError }).unwrap();
+            let error_path: Path =
+                syn::parse2(quote! { validators_prelude::ipv4::IPv4Error }).unwrap();
 
             let local_path = local.to_path();
             let port_path = port.to_path();
@@ -193,92 +194,6 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 return Err(#error_path::LocalNotAllow);
                             }
                         }
-                    }
-                }
-            };
-
-            let handle_local_ipv6 = if local == ValidatorOption::Allow {
-                quote! {
-                    false
-                }
-            } else {
-                quote! {
-                    validators_prelude::is_local_ipv6(ip)
-                }
-            };
-
-            let handle_ipv6_without_port = if port.must() {
-                quote! {
-                    return Err(#error_path::PortMust);
-                }
-            } else {
-                quote! {
-                    let ip_str = unsafe { validators_prelude::from_utf8_unchecked(&bytes[1..last_index]) };
-
-                    match validators_prelude::Ipv6Addr::from_str(ip_str) {
-                        Ok(ip) => {
-                            let is_local = #handle_local_ipv6;
-
-                            #check_local
-
-                            (validators_prelude::IpAddr::V6(ip), None, is_local)
-                        }
-                        Err(_) => return Err(#error_path::Invalid),
-                    }
-                }
-            };
-
-            let handle_ipv6_with_port = if port.not_allow() {
-                quote! {
-                    return Err(#error_path::PortNotAllow);
-                }
-            } else {
-                quote! {
-                    match bytes.iter().copied().rposition(|e| e == b':') {
-                        Some(colon_index) => {
-                            if colon_index > 2 && bytes[colon_index - 1] == b']' {
-                                let ip_str = unsafe { validators_prelude::from_utf8_unchecked(&bytes[1..(colon_index - 1)]) };
-
-                                match validators_prelude::Ipv6Addr::from_str(ip_str) {
-                                    Ok(ip) => {
-                                        let port_str = unsafe { validators_prelude::from_utf8_unchecked(&bytes[(colon_index + 1)..]) };
-
-                                        match port_str.parse::<u16>() {
-                                            Ok(port) => {
-                                                let is_local = #handle_local_ipv6;
-
-                                                #check_local
-
-                                                (validators_prelude::IpAddr::V6(ip), Some(port), is_local)
-                                            }
-                                            Err(_) => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                    Err(_) => return Err(#error_path::Invalid),
-                                }
-                            } else {
-                                return Err(#error_path::Invalid);
-                            }
-                        }
-                        None => return Err(#error_path::Invalid),
-                    }
-                }
-            };
-
-            let handle_ipv6_non_bracket = if port.must() {
-                quote! {
-                    Ok(_) => {
-                        return Err(#error_path::PortMust);
-                    }
-                }
-            } else {
-                quote! {
-                    Ok(ip) => {
-                        let is_local = #handle_local_ipv6;
-
-                        #check_local
-
-                        (validators_prelude::IpAddr::V6(ip), None, is_local)
                     }
                 }
             };
@@ -315,7 +230,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                         #check_local
 
-                                        (validators_prelude::IpAddr::V4(ip), Some(port), is_local)
+                                        (ip, Some(port), is_local)
                                     }
                                     Err(_) => return Err(#error_path::Invalid),
                                 }
@@ -338,7 +253,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                             #check_local
 
-                            (validators_prelude::IpAddr::V4(ip), None, is_local)
+                            (ip, None, is_local)
                         }
                         Err(_) => return Err(#error_path::Invalid),
                     }
@@ -346,7 +261,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             };
 
             let v_parse_str = quote! {
-                pub(crate) fn v_parse_str(s: &str) -> Result<(validators_prelude::IpAddr, Option<u16>, bool), #error_path> {
+                pub(crate) fn v_parse_str(s: &str) -> Result<(validators_prelude::Ipv4Addr, Option<u16>, bool), #error_path> {
                     use core::str::FromStr;
 
                     let bytes = s.as_bytes();
@@ -355,25 +270,10 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         return Err(#error_path::Invalid);
                     }
 
-                    Ok(if bytes[0] == b'[' {
-                        let last_index = bytes.len() - 1;
-
-                        if bytes[last_index] == b']' {
-                            #handle_ipv6_without_port
-                        } else {
-                            #handle_ipv6_with_port
-                        }
-                    } else {
-                        match validators_prelude::Ipv6Addr::from_str(s) {
-                            #handle_ipv6_non_bracket
-                            Err(_) => {
-                                match bytes.iter().copied().rposition(|e| e == b':') {
-                                    #handle_ipv4_with_port
-                                    None => {
-                                        #handle_ipv4_without_port
-                                    }
-                                }
-                            }
+                    Ok(match bytes.iter().copied().rposition(|e| e == b':') {
+                        #handle_ipv4_with_port
+                        None => {
+                            #handle_ipv4_without_port
                         }
                     })
                 }
@@ -390,20 +290,10 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     ValidatorOption::Allow => {
                         quote! {
                             #[inline]
-                            pub fn to_uri_authority_string(&self) -> validators_prelude::String {
-                                match &self.ip {
-                                    validators_prelude::IpAddr::V4(ip) => {
-                                        match self.port {
-                                            Some(port) => validators_prelude::format!("{}:{}", ip, port),
-                                            None => validators_prelude::format!("{}", ip),
-                                        }
-                                    },
-                                    validators_prelude::IpAddr::V6(ip) => {
-                                        match self.port {
-                                            Some(port) => validators_prelude::format!("[{}]:{}", ip, port),
-                                            None => validators_prelude::format!("[{}]", ip),
-                                        }
-                                    },
+                            pub fn to_uri_authority_string(&self) -> String {
+                                match self.port {
+                                    Some(port) => validators_prelude::format!("{}:{}", self.ipv4, port),
+                                    None => validators_prelude::format!("{}", self.ipv4),
                                 }
                             }
                         }
@@ -411,22 +301,16 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     ValidatorOption::Must => {
                         quote! {
                             #[inline]
-                            pub fn to_uri_authority_string(&self) -> validators_prelude::String {
-                                match &self.ip {
-                                    validators_prelude::IpAddr::V4(ip) => validators_prelude::format!("{}:{}", ip, self.port),
-                                    validators_prelude::IpAddr::V6(ip) => validators_prelude::format!("[{}]:{}", ip, self.port),
-                                }
+                            pub fn to_uri_authority_string(&self) -> String {
+                                validators_prelude::format!("{}:{}", self.ipv4, self.port)
                             }
                         }
                     }
                     ValidatorOption::NotAllow => {
                         quote! {
                             #[inline]
-                            pub fn to_uri_authority_string(&self) -> validators_prelude::String {
-                                match &self.0 {
-                                    validators_prelude::IpAddr::V4(ip) => validators_prelude::format!("{}", ip),
-                                    validators_prelude::IpAddr::V6(ip) => validators_prelude::format!("[{}]", ip),
-                                }
+                            pub fn to_uri_authority_string(&self) -> String {
+                                validators_prelude::format!("{}", self.0)
                             }
                         }
                     }
@@ -444,7 +328,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     ValidatorOption::Allow => {
                         quote! {
                             #name {
-                                ip,
+                                ipv4,
                                 port: _port,
                             }
                         }
@@ -452,14 +336,14 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     ValidatorOption::Must => {
                         quote! {
                             #name {
-                                ip,
+                                ipv4,
                                 port: _port.unwrap(),
                             }
                         }
                     }
                     ValidatorOption::NotAllow => {
                         quote! {
-                            #name(ip)
+                            #name(ipv4)
                         }
                     }
                 }
@@ -472,14 +356,14 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                     #[inline]
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self::Output, Self::Error> {
-                        let (ip, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
+                        let (ipv4, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> Result<Self::Output, Self::Error> {
-                        let (ip, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
+                        let (ipv4, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
 
                         Ok(#create_instance)
                     }
@@ -495,7 +379,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             let serde_impl = if cfg!(feature = "serde") {
                 let expect = {
-                    let mut s = String::from("an IP string");
+                    let mut s = String::from("an IPv4 string");
 
                     match local {
                         ValidatorOption::Allow => {
@@ -607,7 +491,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 quote! {}
             };
 
-            let ip_impl = quote! {
+            let ipv4_impl = quote! {
                 #parameters_impl
 
                 #parse_impl
@@ -621,7 +505,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 #rocket_impl
             };
 
-            ip_impl.into()
+            ipv4_impl.into()
         }
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }

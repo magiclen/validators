@@ -662,7 +662,7 @@ pub fn host_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     ValidatorOption::Must => {
                         quote! {
                             #[inline]
-                            pub fn to_uri_authority_string(&self) -> String {
+                            pub fn to_uri_authority_string(&self) -> validators_prelude::String {
                                 match &self.host {
                                     validators_prelude::Host::IPv4(ip) => validators_prelude::format!("{}:{}", ip, self.port),
                                     validators_prelude::Host::IPv6(ip) => validators_prelude::format!("[{}]:{}", ip, self.port),

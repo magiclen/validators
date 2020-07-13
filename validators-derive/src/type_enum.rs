@@ -11,6 +11,8 @@ pub enum TypeEnum {
     OptionU16,
     OptionString,
     IpAddr,
+    Ipv4Addr,
+    Ipv6Addr,
     Host,
 }
 
@@ -25,6 +27,8 @@ impl TypeEnum {
             TypeEnum::OptionU16 => "Option<u16>",
             TypeEnum::OptionString => "Option<String>",
             TypeEnum::IpAddr => "std::net::IpAddr",
+            TypeEnum::Ipv4Addr => "std::net::Ipv4Addr",
+            TypeEnum::Ipv6Addr => "std::net::Ipv6Addr",
             TypeEnum::Host => "crate::validators::models::Host",
         }
     }
