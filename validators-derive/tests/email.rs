@@ -198,24 +198,7 @@ fn basic() {
                 {
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(NotAllow)))]
-                    pub struct EmailAllowIPAllowLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: validators::models::Host,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), local(Must)))]
-                    pub struct EmailAllowIPLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: validators::models::Host,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), local(NotAllow)))]
-                    pub struct EmailAllowIPNonLocal {
+                    pub struct EmailAllowIP {
                         pub local_part: String,
                         pub need_quoted: bool,
                         pub domain_part: validators::models::Host,
@@ -223,24 +206,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(NotAllow), ip(Must), conflict(Allow)))]
-                    pub struct EmailIPAllowLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: std::net::IpAddr,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(Must), local(Must), conflict(Allow)))]
-                    pub struct EmailIPLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: std::net::IpAddr,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(Must), local(NotAllow), conflict(Allow)))]
-                    pub struct EmailIPNonLocal {
+                    pub struct EmailIP {
                         pub local_part: String,
                         pub need_quoted: bool,
                         pub domain_part: std::net::IpAddr,
@@ -248,24 +214,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(NotAllow), ip(NotAllow)))]
-                    pub struct EmailNonIPAllowLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: String,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(NotAllow), local(Must)))]
-                    pub struct EmailNonIPLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: String,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(NotAllow), local(NotAllow)))]
-                    pub struct EmailNonIPNonLocal {
+                    pub struct EmailNonIP {
                         pub local_part: String,
                         pub need_quoted: bool,
                         pub domain_part: String,
@@ -273,32 +222,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*))]
-                    pub struct EmailAllowCommentAllowIPAllowLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: validators::models::Host,
-                        pub comment_before_local_part: Option<String>,
-                        pub comment_after_local_part: Option<String>,
-                        pub comment_before_domain_part: Option<String>,
-                        pub comment_after_domain_part: Option<String>,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*local(Must)))]
-                    pub struct EmailAllowCommentAllowIPLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: validators::models::Host,
-                        pub comment_before_local_part: Option<String>,
-                        pub comment_after_local_part: Option<String>,
-                        pub comment_before_domain_part: Option<String>,
-                        pub comment_after_domain_part: Option<String>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*local(NotAllow)))]
-                    pub struct EmailAllowCommentAllowIPNonLocal {
+                    pub struct EmailAllowCommentAllowIP {
                         pub local_part: String,
                         pub need_quoted: bool,
                         pub domain_part: validators::models::Host,
@@ -310,32 +234,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*ip(Must), conflict(Allow)))]
-                    pub struct EmailAllowCommentIPAllowLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: std::net::IpAddr,
-                        pub comment_before_local_part: Option<String>,
-                        pub comment_after_local_part: Option<String>,
-                        pub comment_before_domain_part: Option<String>,
-                        pub comment_after_domain_part: Option<String>,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*ip(Must), local(Must), conflict(Allow)))]
-                    pub struct EmailAllowCommentIPLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: std::net::IpAddr,
-                        pub comment_before_local_part: Option<String>,
-                        pub comment_after_local_part: Option<String>,
-                        pub comment_before_domain_part: Option<String>,
-                        pub comment_after_domain_part: Option<String>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*ip(Must), local(NotAllow), conflict(Allow)))]
-                    pub struct EmailAllowCommentIPNonLocal {
+                    pub struct EmailAllowCommentIP {
                         pub local_part: String,
                         pub need_quoted: bool,
                         pub domain_part: std::net::IpAddr,
@@ -347,32 +246,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*ip(NotAllow)))]
-                    pub struct EmailAllowCommentNonIPAllowLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: String,
-                        pub comment_before_local_part: Option<String>,
-                        pub comment_after_local_part: Option<String>,
-                        pub comment_before_domain_part: Option<String>,
-                        pub comment_after_domain_part: Option<String>,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*ip(NotAllow), local(Must)))]
-                    pub struct EmailAllowCommentNonIPLocal {
-                        pub local_part: String,
-                        pub need_quoted: bool,
-                        pub domain_part: String,
-                        pub comment_before_local_part: Option<String>,
-                        pub comment_after_local_part: Option<String>,
-                        pub comment_before_domain_part: Option<String>,
-                        pub comment_after_domain_part: Option<String>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(email($($p($v),)*ip(NotAllow), local(NotAllow)))]
-                    pub struct EmailAllowCommentNonIPNonLocal {
+                    pub struct EmailAllowCommentNonIP {
                         pub local_part: String,
                         pub need_quoted: bool,
                         pub domain_part: String,
@@ -388,24 +262,100 @@ fn basic() {
                                 $p = $v,
                             )*
                         };
-                        EmailAllowIPAllowLocal,
-                        EmailAllowIPLocal,
-                        EmailAllowIPNonLocal,
-                        EmailIPAllowLocal,
-                        EmailIPLocal,
-                        EmailIPNonLocal,
-                        EmailNonIPAllowLocal,
-                        EmailNonIPLocal,
-                        EmailNonIPNonLocal,
-                        EmailAllowCommentAllowIPAllowLocal,
-                        EmailAllowCommentAllowIPLocal,
-                        EmailAllowCommentAllowIPNonLocal,
-                        EmailAllowCommentIPAllowLocal,
-                        EmailAllowCommentIPLocal,
-                        EmailAllowCommentIPNonLocal,
-                        EmailAllowCommentNonIPAllowLocal,
-                        EmailAllowCommentNonIPLocal,
-                        EmailAllowCommentNonIPNonLocal,
+                        EmailAllowIP,
+                        EmailIP,
+                        EmailNonIP,
+                        EmailAllowCommentAllowIP,
+                        EmailAllowCommentIP,
+                        EmailAllowCommentNonIP,
+                    );
+                }
+            )*
+        }
+    }
+
+    macro_rules! test2 {
+        ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
+            $(
+                {
+                    #[derive(Validator)]
+                    #[validator(email($($p($v),)*comment(NotAllow)))]
+                    pub struct EmailAllowIPIsLocal {
+                        pub local_part: String,
+                        pub need_quoted: bool,
+                        pub domain_part: validators::models::Host,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(email($($p($v),)*comment(NotAllow), ip(Must), conflict(Allow)))]
+                    pub struct EmailIPIsLocal {
+                        pub local_part: String,
+                        pub need_quoted: bool,
+                        pub domain_part: std::net::IpAddr,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(email($($p($v),)*comment(NotAllow), ip(NotAllow)))]
+                    pub struct EmailNonIPIsLocal {
+                        pub local_part: String,
+                        pub need_quoted: bool,
+                        pub domain_part: String,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(email($($p($v),)*))]
+                    pub struct EmailAllowCommentAllowIPIsLocal {
+                        pub local_part: String,
+                        pub need_quoted: bool,
+                        pub domain_part: validators::models::Host,
+                        pub comment_before_local_part: Option<String>,
+                        pub comment_after_local_part: Option<String>,
+                        pub comment_before_domain_part: Option<String>,
+                        pub comment_after_domain_part: Option<String>,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(email($($p($v),)*ip(Must), conflict(Allow)))]
+                    pub struct EmailAllowCommentIPIsLocal {
+                        pub local_part: String,
+                        pub need_quoted: bool,
+                        pub domain_part: std::net::IpAddr,
+                        pub comment_before_local_part: Option<String>,
+                        pub comment_after_local_part: Option<String>,
+                        pub comment_before_domain_part: Option<String>,
+                        pub comment_after_domain_part: Option<String>,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(email($($p($v),)*ip(NotAllow)))]
+                    pub struct EmailAllowCommentNonIPIsLocal {
+                        pub local_part: String,
+                        pub need_quoted: bool,
+                        pub domain_part: String,
+                        pub comment_before_local_part: Option<String>,
+                        pub comment_after_local_part: Option<String>,
+                        pub comment_before_domain_part: Option<String>,
+                        pub comment_after_domain_part: Option<String>,
+                        pub is_local: bool,
+                    }
+
+                    test_inner!(
+                        stringify! {
+                            $(
+                                $p = $v,
+                            )*
+                        };
+                        EmailAllowIPIsLocal,
+                        EmailIPIsLocal,
+                        EmailNonIPIsLocal,
+                        EmailAllowCommentAllowIPIsLocal,
+                        EmailAllowCommentIPIsLocal,
+                        EmailAllowCommentNonIPIsLocal,
                     );
                 }
             )*
@@ -414,26 +364,85 @@ fn basic() {
 
     test! {
         {
+            local => Must,
             at_least_two_labels => Allow,
             non_ascii => Allow,
         },
         {
-            at_least_two_labels => Must,
+            local => Must,
+            at_least_two_labels => Allow,
+            non_ascii => NotAllow,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => Allow,
             non_ascii => Allow,
         },
         {
+            local => NotAllow,
+            at_least_two_labels => Allow,
+            non_ascii => NotAllow,
+        },
+        {
+            local => Must,
             at_least_two_labels => NotAllow,
             non_ascii => Allow,
         },
         {
-            at_least_two_labels => Allow,
+            local => Must,
+            at_least_two_labels => NotAllow,
             non_ascii => NotAllow,
         },
         {
+            local => NotAllow,
+            at_least_two_labels => NotAllow,
+            non_ascii => Allow,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => NotAllow,
+            non_ascii => NotAllow,
+        },
+        {
+            local => Must,
+            at_least_two_labels => Must,
+            non_ascii => Allow,
+        },
+        {
+            local => Must,
             at_least_two_labels => Must,
             non_ascii => NotAllow,
         },
         {
+            local => NotAllow,
+            at_least_two_labels => Must,
+            non_ascii => Allow,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => Must,
+            non_ascii => NotAllow,
+        },
+    }
+
+    test2! {
+        {
+            local => Allow,
+            at_least_two_labels => Must,
+            non_ascii => Allow,
+        },
+        {
+            local => Allow,
+            at_least_two_labels => Must,
+            non_ascii => NotAllow,
+        },
+        {
+            local => Allow,
+            at_least_two_labels => NotAllow,
+            non_ascii => Allow,
+        },
+        {
+            local => Allow,
             at_least_two_labels => NotAllow,
             non_ascii => NotAllow,
         },

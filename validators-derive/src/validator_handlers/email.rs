@@ -14,15 +14,6 @@ pub struct Struct {
     domain_part: TypeEnum,
 }
 
-#[derive(Educe)]
-#[educe(Debug(name = "Struct"))]
-pub struct StructAllowLocal {
-    local_part: TypeEnum,
-    need_quoted: TypeEnum,
-    domain_part: TypeEnum,
-    is_local: TypeEnum,
-}
-
 #[derive(Debug)]
 pub struct StructAllowComment {
     local_part: TypeEnum,
@@ -32,6 +23,15 @@ pub struct StructAllowComment {
     comment_after_local_part: TypeEnum,
     comment_before_domain_part: TypeEnum,
     comment_after_domain_part: TypeEnum,
+}
+
+#[derive(Educe)]
+#[educe(Debug(name = "Struct"))]
+pub struct StructAllowLocal {
+    local_part: TypeEnum,
+    need_quoted: TypeEnum,
+    domain_part: TypeEnum,
+    is_local: TypeEnum,
 }
 
 #[derive(Educe)]
@@ -65,27 +65,6 @@ const ITEM_MUST_IP: Struct = Struct {
     domain_part: TypeEnum::IpAddr,
 };
 
-const ITEM_ALLOW_LOCAL: StructAllowLocal = StructAllowLocal {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::String,
-    is_local: TypeEnum::Boolean,
-};
-
-const ITEM_ALLOW_LOCAL_ALLOW_IP: StructAllowLocal = StructAllowLocal {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::Host,
-    is_local: TypeEnum::Boolean,
-};
-
-const ITEM_ALLOW_LOCAL_MUST_IP: StructAllowLocal = StructAllowLocal {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::IpAddr,
-    is_local: TypeEnum::Boolean,
-};
-
 const ITEM_ALLOW_COMMENT: StructAllowComment = StructAllowComment {
     local_part: TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
@@ -114,6 +93,27 @@ const ITEM_ALLOW_COMMENT_MUST_IP: StructAllowComment = StructAllowComment {
     comment_after_local_part: TypeEnum::OptionString,
     comment_before_domain_part: TypeEnum::OptionString,
     comment_after_domain_part: TypeEnum::OptionString,
+};
+
+const ITEM_ALLOW_LOCAL: StructAllowLocal = StructAllowLocal {
+    local_part: TypeEnum::String,
+    need_quoted: TypeEnum::Boolean,
+    domain_part: TypeEnum::String,
+    is_local: TypeEnum::Boolean,
+};
+
+const ITEM_ALLOW_LOCAL_ALLOW_IP: StructAllowLocal = StructAllowLocal {
+    local_part: TypeEnum::String,
+    need_quoted: TypeEnum::Boolean,
+    domain_part: TypeEnum::Host,
+    is_local: TypeEnum::Boolean,
+};
+
+const ITEM_ALLOW_LOCAL_MUST_IP: StructAllowLocal = StructAllowLocal {
+    local_part: TypeEnum::String,
+    need_quoted: TypeEnum::Boolean,
+    domain_part: TypeEnum::IpAddr,
+    is_local: TypeEnum::Boolean,
 };
 
 const ITEM_ALLOW_COMMENT_ALLOW_LOCAL: StructAllowCommentAllowLocal = StructAllowCommentAllowLocal {
@@ -320,215 +320,212 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             if comment.allow() {
                 match ip {
                     ValidatorOption::Allow => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 8 {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP),
-                                        );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "comment_before_local_part"
-                                            && ident != "comment_after_local_part"
-                                            && ident != "comment_before_domain_part"
-                                            && ident != "comment_after_domain_part"
-                                            && ident != "is_local"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 8 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP),
                                     );
                                 }
-                            }
-                            _ => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 7 {
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "comment_before_local_part"
+                                        && ident != "comment_after_local_part"
+                                        && ident != "comment_before_domain_part"
+                                        && ident != "comment_after_domain_part"
+                                        && ident != "is_local"
+                                    {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
+                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP),
                                         );
                                     }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "comment_before_local_part"
-                                            && ident != "comment_after_local_part"
-                                            && ident != "comment_before_domain_part"
-                                            && ident != "comment_after_domain_part"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP),
+                                );
+                            }
+                        } else {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 7 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
                                     );
                                 }
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "comment_before_local_part"
+                                        && ident != "comment_after_local_part"
+                                        && ident != "comment_before_domain_part"
+                                        && ident != "comment_after_domain_part"
+                                    {
+                                        panic::validator_only_support_for_item(
+                                            VALIDATOR,
+                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
+                                );
                             }
                         }
                     }
                     ValidatorOption::Must => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 8 {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP),
-                                        );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "comment_before_local_part"
-                                            && ident != "comment_after_local_part"
-                                            && ident != "comment_before_domain_part"
-                                            && ident != "comment_after_domain_part"
-                                            && ident != "is_local"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 8 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP),
                                     );
                                 }
-                            }
-                            _ => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 7 {
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "comment_before_local_part"
+                                        && ident != "comment_after_local_part"
+                                        && ident != "comment_before_domain_part"
+                                        && ident != "comment_after_domain_part"
+                                        && ident != "is_local"
+                                    {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
+                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP),
                                         );
                                     }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "comment_before_local_part"
-                                            && ident != "comment_after_local_part"
-                                            && ident != "comment_before_domain_part"
-                                            && ident != "comment_after_domain_part"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP),
+                                );
+                            }
+                        } else {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 7 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
                                     );
                                 }
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "comment_before_local_part"
+                                        && ident != "comment_after_local_part"
+                                        && ident != "comment_before_domain_part"
+                                        && ident != "comment_after_domain_part"
+                                    {
+                                        panic::validator_only_support_for_item(
+                                            VALIDATOR,
+                                            Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
+                                );
                             }
                         }
                     }
                     ValidatorOption::NotAllow => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 8 {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL),
-                                        );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "comment_before_local_part"
-                                            && ident != "comment_after_local_part"
-                                            && ident != "comment_before_domain_part"
-                                            && ident != "comment_after_domain_part"
-                                            && ident != "is_local"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL),
-                                            );
-                                        }
-                                    }
-                                } else {
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 8 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL),
                                     );
                                 }
-                            }
-                            _ => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 7 {
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "comment_before_local_part"
+                                        && ident != "comment_after_local_part"
+                                        && ident != "comment_before_domain_part"
+                                        && ident != "comment_after_domain_part"
+                                        && ident != "is_local"
+                                    {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT),
+                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL),
                                         );
                                     }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "comment_before_local_part"
-                                            && ident != "comment_after_local_part"
-                                            && ident != "comment_before_domain_part"
-                                            && ident != "comment_after_domain_part"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_COMMENT),
-                                            );
-                                        }
-                                    }
-                                } else {
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL),
+                                );
+                            }
+                        } else {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 7 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_COMMENT),
                                     );
                                 }
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "comment_before_local_part"
+                                        && ident != "comment_after_local_part"
+                                        && ident != "comment_before_domain_part"
+                                        && ident != "comment_after_domain_part"
+                                    {
+                                        panic::validator_only_support_for_item(
+                                            VALIDATOR,
+                                            Box::new(ITEM_ALLOW_COMMENT),
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_COMMENT),
+                                );
                             }
                         }
                     }
@@ -536,191 +533,185 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 match ip {
                     ValidatorOption::Allow => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 4 {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_LOCAL_ALLOW_IP),
-                                        );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "is_local"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_LOCAL_ALLOW_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 4 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_LOCAL_ALLOW_IP),
                                     );
                                 }
-                            }
-                            _ => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "is_local"
+                                    {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_IP),
+                                            Box::new(ITEM_ALLOW_LOCAL_ALLOW_IP),
                                         );
                                     }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_LOCAL_ALLOW_IP),
+                                );
+                            }
+                        } else {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 3 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_IP),
                                     );
                                 }
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                    {
+                                        panic::validator_only_support_for_item(
+                                            VALIDATOR,
+                                            Box::new(ITEM_ALLOW_IP),
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_IP),
+                                );
                             }
                         }
                     }
                     ValidatorOption::Must => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 4 {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_LOCAL_MUST_IP),
-                                        );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "is_local"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_LOCAL_MUST_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 4 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_LOCAL_MUST_IP),
                                     );
                                 }
-                            }
-                            _ => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "is_local"
+                                    {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_MUST_IP),
+                                            Box::new(ITEM_ALLOW_LOCAL_MUST_IP),
                                         );
                                     }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_MUST_IP),
-                                            );
-                                        }
-                                    }
-                                } else {
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_LOCAL_MUST_IP),
+                                );
+                            }
+                        } else {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 3 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_MUST_IP),
                                     );
                                 }
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                    {
+                                        panic::validator_only_support_for_item(
+                                            VALIDATOR,
+                                            Box::new(ITEM_MUST_IP),
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_MUST_IP),
+                                );
                             }
                         }
                     }
                     ValidatorOption::NotAllow => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 4 {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_LOCAL),
-                                        );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                            && ident != "is_local"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_LOCAL),
-                                            );
-                                        }
-                                    }
-                                } else {
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 4 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM_ALLOW_LOCAL),
                                     );
                                 }
-                            }
-                            _ => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                        && ident != "is_local"
+                                    {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM),
+                                            Box::new(ITEM_ALLOW_LOCAL),
                                         );
                                     }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "local_part"
-                                            && ident != "need_quoted"
-                                            && ident != "domain_part"
-                                        {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM),
-                                            );
-                                        }
-                                    }
-                                } else {
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(
+                                    VALIDATOR,
+                                    Box::new(ITEM_ALLOW_LOCAL),
+                                );
+                            }
+                        } else {
+                            if let Fields::Named(_) = &data.fields {
+                                if data.fields.len() != 3 {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM),
                                     );
                                 }
+
+                                for field in data.fields.iter() {
+                                    let ident = field.ident.as_ref().unwrap();
+
+                                    if ident != "local_part"
+                                        && ident != "need_quoted"
+                                        && ident != "domain_part"
+                                    {
+                                        panic::validator_only_support_for_item(
+                                            VALIDATOR,
+                                            Box::new(ITEM),
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                             }
                         }
                     }
@@ -834,6 +825,30 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     return Err(#error_path::AtLeastTwoLabelsNotAllow);
                 }
             } else {
+                let handle_local_ipv6 = if at_least_two_labels == ValidatorOption::Allow
+                    && local == ValidatorOption::Allow
+                {
+                    quote! {
+                        false
+                    }
+                } else {
+                    quote! {
+                        validators_prelude::is_local_ipv6(ip)
+                    }
+                };
+
+                let handle_local_ipv4 = if at_least_two_labels == ValidatorOption::Allow
+                    && local == ValidatorOption::Allow
+                {
+                    quote! {
+                        false
+                    }
+                } else {
+                    quote! {
+                        validators_prelude::is_local_ipv4(ip)
+                    }
+                };
+
                 quote! {
                     use core::str::FromStr;
 
@@ -867,7 +882,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                     as isize
                                                     - ip_str.len() as isize;
 
-                                                (validators_prelude::Host::IPv6(ip), validators_prelude::is_local_ipv6(ip))
+                                                (validators_prelude::Host::IPv6(ip), #handle_local_ipv6)
                                             }
                                             Err(_) => return Err(#error_path::Invalid),
                                         }
@@ -892,7 +907,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Ok(ip) => {
                                             domain_part_length = closing_bracket_index + 1;
 
-                                            (validators_prelude::Host::IPv4(ip), validators_prelude::is_local_ipv4(ip))
+                                            (validators_prelude::Host::IPv4(ip), #handle_local_ipv4)
                                         }
                                         Err(_) => return Err(#error_path::Invalid),
                                     }
@@ -911,6 +926,18 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     return Err(#error_path::IPMust);
                 }
             } else {
+                let handle_local_domain = if at_least_two_labels == ValidatorOption::Allow
+                    && local == ValidatorOption::Allow
+                {
+                    quote! {
+                        false
+                    }
+                } else {
+                    quote! {
+                        validators_prelude::is_local_domain(&ascii_domain)
+                    }
+                };
+
                 let check_at_least_two_labels = {
                     match at_least_two_labels {
                         ValidatorOption::Allow => quote! {},
@@ -959,7 +986,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         Ok(ascii_domain) => {
                             domain_part_length += domain_str.len();
 
-                            let is_local = validators_prelude::is_local_domain(&ascii_domain);
+                            let is_local = #handle_local_domain;
 
                             #check_at_least_two_labels
 
@@ -1558,116 +1585,113 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 if comment.allow() {
                     match ip {
                         ValidatorOption::Allow => {
-                            match local {
-                                ValidatorOption::Allow => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part,
-                                            comment_before_local_part: _comment_before_local_part,
-                                            comment_after_local_part: _comment_after_local_part,
-                                            comment_before_domain_part: _comment_before_domain_part,
-                                            comment_after_domain_part: _comment_after_domain_part,
-                                            is_local: _is_local,
-                                        }
+                            if local == ValidatorOption::Allow
+                                && at_least_two_labels != ValidatorOption::Allow
+                            {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part,
+                                        comment_before_local_part: _comment_before_local_part,
+                                        comment_after_local_part: _comment_after_local_part,
+                                        comment_before_domain_part: _comment_before_domain_part,
+                                        comment_after_domain_part: _comment_after_domain_part,
+                                        is_local: _is_local,
                                     }
                                 }
-                                _ => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part,
-                                            comment_before_local_part: _comment_before_local_part,
-                                            comment_after_local_part: _comment_after_local_part,
-                                            comment_before_domain_part: _comment_before_domain_part,
-                                            comment_after_domain_part: _comment_after_domain_part,
-                                        }
+                            } else {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part,
+                                        comment_before_local_part: _comment_before_local_part,
+                                        comment_after_local_part: _comment_after_local_part,
+                                        comment_before_domain_part: _comment_before_domain_part,
+                                        comment_after_domain_part: _comment_after_domain_part,
                                     }
                                 }
                             }
                         }
                         ValidatorOption::Must => {
-                            match local {
-                                ValidatorOption::Allow => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
-                                                    validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
-                                                    validators_prelude::Host::Domain(_) => unreachable!(),
-                                                }
-                                            },
-                                            comment_before_local_part: _comment_before_local_part,
-                                            comment_after_local_part: _comment_after_local_part,
-                                            comment_before_domain_part: _comment_before_domain_part,
-                                            comment_after_domain_part: _comment_after_domain_part,
-                                            is_local: _is_local,
-                                        }
+                            if local == ValidatorOption::Allow
+                                && at_least_two_labels != ValidatorOption::Allow
+                            {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
+                                                validators_prelude::Host::Domain(_) => unreachable!(),
+                                            }
+                                        },
+                                        comment_before_local_part: _comment_before_local_part,
+                                        comment_after_local_part: _comment_after_local_part,
+                                        comment_before_domain_part: _comment_before_domain_part,
+                                        comment_after_domain_part: _comment_after_domain_part,
+                                        is_local: _is_local,
                                     }
                                 }
-                                _ => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
-                                                    validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
-                                                    _ => unreachable!(),
-                                                }
-                                            },
-                                            comment_before_local_part: _comment_before_local_part,
-                                            comment_after_local_part: _comment_after_local_part,
-                                            comment_before_domain_part: _comment_before_domain_part,
-                                            comment_after_domain_part: _comment_after_domain_part,
-                                        }
+                            } else {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
+                                                _ => unreachable!(),
+                                            }
+                                        },
+                                        comment_before_local_part: _comment_before_local_part,
+                                        comment_after_local_part: _comment_after_local_part,
+                                        comment_before_domain_part: _comment_before_domain_part,
+                                        comment_after_domain_part: _comment_after_domain_part,
                                     }
                                 }
                             }
                         }
                         ValidatorOption::NotAllow => {
-                            match local {
-                                ValidatorOption::Allow => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::Domain(domain) => domain,
-                                                    _ => unreachable!(),
-                                                }
-                                            },
-                                            comment_before_local_part: _comment_before_local_part,
-                                            comment_after_local_part: _comment_after_local_part,
-                                            comment_before_domain_part: _comment_before_domain_part,
-                                            comment_after_domain_part: _comment_after_domain_part,
-                                            is_local: _is_local,
-                                        }
+                            if local == ValidatorOption::Allow
+                                && at_least_two_labels != ValidatorOption::Allow
+                            {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::Domain(domain) => domain,
+                                                _ => unreachable!(),
+                                            }
+                                        },
+                                        comment_before_local_part: _comment_before_local_part,
+                                        comment_after_local_part: _comment_after_local_part,
+                                        comment_before_domain_part: _comment_before_domain_part,
+                                        comment_after_domain_part: _comment_after_domain_part,
+                                        is_local: _is_local,
                                     }
                                 }
-                                _ => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::Domain(domain) => domain,
-                                                    _ => unreachable!(),
-                                                }
-                                            },
-                                            comment_before_local_part: _comment_before_local_part,
-                                            comment_after_local_part: _comment_after_local_part,
-                                            comment_before_domain_part: _comment_before_domain_part,
-                                            comment_after_domain_part: _comment_after_domain_part,
-                                        }
+                            } else {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::Domain(domain) => domain,
+                                                _ => unreachable!(),
+                                            }
+                                        },
+                                        comment_before_local_part: _comment_before_local_part,
+                                        comment_after_local_part: _comment_after_local_part,
+                                        comment_before_domain_part: _comment_before_domain_part,
+                                        comment_after_domain_part: _comment_after_domain_part,
                                     }
                                 }
                             }
@@ -1676,92 +1700,89 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 } else {
                     match ip {
                         ValidatorOption::Allow => {
-                            match local {
-                                ValidatorOption::Allow => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part,
-                                            is_local: _is_local,
-                                        }
+                            if local == ValidatorOption::Allow
+                                && at_least_two_labels != ValidatorOption::Allow
+                            {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part,
+                                        is_local: _is_local,
                                     }
                                 }
-                                _ => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part,
-                                        }
+                            } else {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part,
                                     }
                                 }
                             }
                         }
                         ValidatorOption::Must => {
-                            match local {
-                                ValidatorOption::Allow => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
-                                                    validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
-                                                    validators_prelude::Host::Domain(_) => unreachable!(),
-                                                }
-                                            },
-                                            is_local: _is_local,
-                                        }
+                            if local == ValidatorOption::Allow
+                                && at_least_two_labels != ValidatorOption::Allow
+                            {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
+                                                validators_prelude::Host::Domain(_) => unreachable!(),
+                                            }
+                                        },
+                                        is_local: _is_local,
                                     }
                                 }
-                                _ => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
-                                                    validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
-                                                    _ => unreachable!(),
-                                                }
-                                            },
-                                        }
+                            } else {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::IPv4(ip) => validators_prelude::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => validators_prelude::IpAddr::V6(ip),
+                                                _ => unreachable!(),
+                                            }
+                                        },
                                     }
                                 }
                             }
                         }
                         ValidatorOption::NotAllow => {
-                            match local {
-                                ValidatorOption::Allow => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::Domain(domain) => domain,
-                                                    _ => unreachable!(),
-                                                }
-                                            },
-                                            is_local: _is_local,
-                                        }
+                            if local == ValidatorOption::Allow
+                                && at_least_two_labels != ValidatorOption::Allow
+                            {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::Domain(domain) => domain,
+                                                _ => unreachable!(),
+                                            }
+                                        },
+                                        is_local: _is_local,
                                     }
                                 }
-                                _ => {
-                                    quote! {
-                                        #name {
-                                            local_part,
-                                            need_quoted,
-                                            domain_part: {
-                                                match domain_part {
-                                                    validators_prelude::Host::Domain(domain) => domain,
-                                                    _ => unreachable!(),
-                                                }
-                                            },
-                                        }
+                            } else {
+                                quote! {
+                                    #name {
+                                        local_part,
+                                        need_quoted,
+                                        domain_part: {
+                                            match domain_part {
+                                                validators_prelude::Host::Domain(domain) => domain,
+                                                _ => unreachable!(),
+                                            }
+                                        },
                                     }
                                 }
                             }

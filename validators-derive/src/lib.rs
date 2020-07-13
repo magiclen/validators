@@ -249,7 +249,6 @@ pub struct EmailAllowComment {
     pub comment_after_local_part: Option<String>,
     pub comment_before_domain_part: Option<String>,
     pub comment_after_domain_part: Option<String>,
-    pub is_local: bool,
 }
 
 assert!(EmailAllowComment::parse_string("(john)joke@example.com").is_ok());
@@ -260,7 +259,6 @@ pub struct EmailNotAllowComment {
     pub local_part: String,
     pub need_quoted: bool,
     pub domain_part: validators::models::Host,
-    pub is_local: bool,
 }
 
 assert!(EmailNotAllowComment::parse_string("(john)joke@example.com").is_err());
