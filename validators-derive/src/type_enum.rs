@@ -31,10 +31,7 @@ impl TypeEnum {
             TypeEnum::Ipv4Addr => "std::net::Ipv4Addr",
             TypeEnum::Ipv6Addr => "std::net::Ipv6Addr",
             TypeEnum::Host => "crate::validators::models::Host",
-            #[cfg(feature = "serde")]
             TypeEnum::Serde => "T: crate::serde::se::Serialize + crate::serde::de::Deserialize",
-            #[cfg(not(feature = "serde"))]
-            TypeEnum::Serde => "T: crate::serde::de::Deserialize",
         }
     }
 }
