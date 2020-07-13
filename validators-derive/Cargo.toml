@@ -45,6 +45,7 @@ full = [
     "host",
     "ip",
     "ipv4",
+    "ipv6",
 ]
 
 base32 = ["validators/base32"]
@@ -59,6 +60,7 @@ email = ["validators/email"]
 host = ["validators/host"]
 ip = ["validators/ip"]
 ipv4 = ["validators/ipv4"]
+ipv6 = ["validators/ipv6"]
 
 serde = ["validators/serde"]
 rocket = ["validators/rocket"]

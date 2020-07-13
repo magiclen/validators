@@ -38,6 +38,7 @@ email = ["std", "idna"]
 host = ["std", "idna"]
 ip = ["std"]
 ipv4 = ["std"]
+ipv6 = ["std"]
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

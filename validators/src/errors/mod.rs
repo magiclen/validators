@@ -30,3 +30,6 @@ pub mod ip;
 
 #[cfg(feature = "ipv4")]
 pub mod ipv4;
+
+#[cfg(feature = "ipv6")]
+pub mod ipv6;
