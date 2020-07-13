@@ -355,38 +355,36 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP),
                                 );
                             }
-                        } else {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 7 {
-                                    panic::validator_only_support_for_item(
-                                        VALIDATOR,
-                                        Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
-                                    );
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident = field.ident.as_ref().unwrap();
-
-                                    if ident != "local_part"
-                                        && ident != "need_quoted"
-                                        && ident != "domain_part"
-                                        && ident != "comment_before_local_part"
-                                        && ident != "comment_after_local_part"
-                                        && ident != "comment_before_domain_part"
-                                        && ident != "comment_after_domain_part"
-                                    {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
-                                        );
-                                    }
-                                }
-                            } else {
+                        } else if let Fields::Named(_) = &data.fields {
+                            if data.fields.len() != 7 {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
                                 );
                             }
+
+                            for field in data.fields.iter() {
+                                let ident = field.ident.as_ref().unwrap();
+
+                                if ident != "local_part"
+                                    && ident != "need_quoted"
+                                    && ident != "domain_part"
+                                    && ident != "comment_before_local_part"
+                                    && ident != "comment_after_local_part"
+                                    && ident != "comment_before_domain_part"
+                                    && ident != "comment_after_domain_part"
+                                {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
+                                    );
+                                }
+                            }
+                        } else {
+                            panic::validator_only_support_for_item(
+                                VALIDATOR,
+                                Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
+                            );
                         }
                     }
                     ValidatorOption::Must => {
@@ -425,38 +423,36 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP),
                                 );
                             }
-                        } else {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 7 {
-                                    panic::validator_only_support_for_item(
-                                        VALIDATOR,
-                                        Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
-                                    );
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident = field.ident.as_ref().unwrap();
-
-                                    if ident != "local_part"
-                                        && ident != "need_quoted"
-                                        && ident != "domain_part"
-                                        && ident != "comment_before_local_part"
-                                        && ident != "comment_after_local_part"
-                                        && ident != "comment_before_domain_part"
-                                        && ident != "comment_after_domain_part"
-                                    {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
-                                        );
-                                    }
-                                }
-                            } else {
+                        } else if let Fields::Named(_) = &data.fields {
+                            if data.fields.len() != 7 {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
                                 );
                             }
+
+                            for field in data.fields.iter() {
+                                let ident = field.ident.as_ref().unwrap();
+
+                                if ident != "local_part"
+                                    && ident != "need_quoted"
+                                    && ident != "domain_part"
+                                    && ident != "comment_before_local_part"
+                                    && ident != "comment_after_local_part"
+                                    && ident != "comment_before_domain_part"
+                                    && ident != "comment_after_domain_part"
+                                {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
+                                    );
+                                }
+                            }
+                        } else {
+                            panic::validator_only_support_for_item(
+                                VALIDATOR,
+                                Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
+                            );
                         }
                     }
                     ValidatorOption::NotAllow => {
@@ -495,38 +491,36 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     Box::new(ITEM_ALLOW_COMMENT_ALLOW_LOCAL),
                                 );
                             }
-                        } else {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 7 {
-                                    panic::validator_only_support_for_item(
-                                        VALIDATOR,
-                                        Box::new(ITEM_ALLOW_COMMENT),
-                                    );
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident = field.ident.as_ref().unwrap();
-
-                                    if ident != "local_part"
-                                        && ident != "need_quoted"
-                                        && ident != "domain_part"
-                                        && ident != "comment_before_local_part"
-                                        && ident != "comment_after_local_part"
-                                        && ident != "comment_before_domain_part"
-                                        && ident != "comment_after_domain_part"
-                                    {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_COMMENT),
-                                        );
-                                    }
-                                }
-                            } else {
+                        } else if let Fields::Named(_) = &data.fields {
+                            if data.fields.len() != 7 {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_ALLOW_COMMENT),
                                 );
                             }
+
+                            for field in data.fields.iter() {
+                                let ident = field.ident.as_ref().unwrap();
+
+                                if ident != "local_part"
+                                    && ident != "need_quoted"
+                                    && ident != "domain_part"
+                                    && ident != "comment_before_local_part"
+                                    && ident != "comment_after_local_part"
+                                    && ident != "comment_before_domain_part"
+                                    && ident != "comment_after_domain_part"
+                                {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_COMMENT),
+                                    );
+                                }
+                            }
+                        } else {
+                            panic::validator_only_support_for_item(
+                                VALIDATOR,
+                                Box::new(ITEM_ALLOW_COMMENT),
+                            );
                         }
                     }
                 }
@@ -564,34 +558,32 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     Box::new(ITEM_ALLOW_LOCAL_ALLOW_IP),
                                 );
                             }
-                        } else {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 3 {
-                                    panic::validator_only_support_for_item(
-                                        VALIDATOR,
-                                        Box::new(ITEM_ALLOW_IP),
-                                    );
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident = field.ident.as_ref().unwrap();
-
-                                    if ident != "local_part"
-                                        && ident != "need_quoted"
-                                        && ident != "domain_part"
-                                    {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_ALLOW_IP),
-                                        );
-                                    }
-                                }
-                            } else {
+                        } else if let Fields::Named(_) = &data.fields {
+                            if data.fields.len() != 3 {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_ALLOW_IP),
                                 );
                             }
+
+                            for field in data.fields.iter() {
+                                let ident = field.ident.as_ref().unwrap();
+
+                                if ident != "local_part"
+                                    && ident != "need_quoted"
+                                    && ident != "domain_part"
+                                {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IP),
+                                    );
+                                }
+                            }
+                        } else {
+                            panic::validator_only_support_for_item(
+                                VALIDATOR,
+                                Box::new(ITEM_ALLOW_IP),
+                            );
                         }
                     }
                     ValidatorOption::Must => {
@@ -626,34 +618,32 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     Box::new(ITEM_ALLOW_LOCAL_MUST_IP),
                                 );
                             }
-                        } else {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 3 {
-                                    panic::validator_only_support_for_item(
-                                        VALIDATOR,
-                                        Box::new(ITEM_MUST_IP),
-                                    );
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident = field.ident.as_ref().unwrap();
-
-                                    if ident != "local_part"
-                                        && ident != "need_quoted"
-                                        && ident != "domain_part"
-                                    {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM_MUST_IP),
-                                        );
-                                    }
-                                }
-                            } else {
+                        } else if let Fields::Named(_) = &data.fields {
+                            if data.fields.len() != 3 {
                                 panic::validator_only_support_for_item(
                                     VALIDATOR,
                                     Box::new(ITEM_MUST_IP),
                                 );
                             }
+
+                            for field in data.fields.iter() {
+                                let ident = field.ident.as_ref().unwrap();
+
+                                if ident != "local_part"
+                                    && ident != "need_quoted"
+                                    && ident != "domain_part"
+                                {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_MUST_IP),
+                                    );
+                                }
+                            }
+                        } else {
+                            panic::validator_only_support_for_item(
+                                VALIDATOR,
+                                Box::new(ITEM_MUST_IP),
+                            );
                         }
                     }
                     ValidatorOption::NotAllow => {
@@ -688,31 +678,26 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     Box::new(ITEM_ALLOW_LOCAL),
                                 );
                             }
-                        } else {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 3 {
+                        } else if let Fields::Named(_) = &data.fields {
+                            if data.fields.len() != 3 {
+                                panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
+                            }
+
+                            for field in data.fields.iter() {
+                                let ident = field.ident.as_ref().unwrap();
+
+                                if ident != "local_part"
+                                    && ident != "need_quoted"
+                                    && ident != "domain_part"
+                                {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
                                         Box::new(ITEM),
                                     );
                                 }
-
-                                for field in data.fields.iter() {
-                                    let ident = field.ident.as_ref().unwrap();
-
-                                    if ident != "local_part"
-                                        && ident != "need_quoted"
-                                        && ident != "domain_part"
-                                    {
-                                        panic::validator_only_support_for_item(
-                                            VALIDATOR,
-                                            Box::new(ITEM),
-                                        );
-                                    }
-                                }
-                            } else {
-                                panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                             }
+                        } else {
+                            panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                         }
                     }
                 }
