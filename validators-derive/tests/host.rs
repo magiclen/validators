@@ -135,62 +135,21 @@ fn basic() {
                 {
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*))]
-                    pub struct HostAllowLocalAllowPort {
+                    pub struct HostAllowPort {
                         pub host: validators::models::Host,
-                        pub is_local: bool,
                         pub port: Option<u16>,
                     }
 
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Must)))]
-                    pub struct HostAllowLocalWithPort {
+                    pub struct HostWithPort {
                         pub host: validators::models::Host,
-                        pub is_local: bool,
                         pub port: u16,
                     }
 
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(NotAllow)))]
-                    pub struct HostAllowLocalWithoutPort {
-                        pub host: validators::models::Host,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(host($($p($v),)*local(Must)))]
-                    pub struct HostLocalAllowPort {
-                        pub host: validators::models::Host,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(host($($p($v),)*local(Must), port(Must)))]
-                    pub struct HostLocalWithPort {
-                        pub host: validators::models::Host,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(host($($p($v),)*local(Must), port(NotAllow)))]
-                    pub struct HostLocalWithoutPort(validators::models::Host);
-
-                    #[derive(Validator)]
-                    #[validator(host($($p($v),)*local(NotAllow)))]
-                    pub struct HostNonLocalAllowPort {
-                        pub host: validators::models::Host,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(host($($p($v),)*local(NotAllow), port(Must)))]
-                    pub struct HostNonLocalWithPort {
-                        pub host: validators::models::Host,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(host($($p($v),)*local(NotAllow), port(NotAllow)))]
-                    pub struct HostNonLocalWithoutPort(validators::models::Host);
+                    pub struct HostWithoutPort(pub validators::models::Host);
 
                     test_inner!(
                         stringify! {
@@ -198,15 +157,51 @@ fn basic() {
                                 $p = $v,
                             )*
                         };
-                        HostAllowLocalAllowPort,
-                        HostAllowLocalWithPort,
-                        HostAllowLocalWithoutPort,
-                        HostLocalAllowPort,
-                        HostLocalWithPort,
-                        HostLocalWithoutPort,
-                        HostNonLocalAllowPort,
-                        HostNonLocalWithPort,
-                        HostNonLocalWithoutPort,
+                        HostAllowPort,
+                        HostWithPort,
+                        HostWithoutPort,
+                    );
+                }
+            )*
+        }
+    }
+
+    macro_rules! test2 {
+        ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
+            $(
+                {
+                    #[derive(Validator)]
+                    #[validator(host($($p($v),)*))]
+                    pub struct HostAllowPortIsLocal {
+                        pub host: validators::models::Host,
+                        pub port: Option<u16>,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(host($($p($v),)*port(Must)))]
+                    pub struct HostWithPortIsLocal {
+                        pub host: validators::models::Host,
+                        pub port: u16,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(host($($p($v),)*port(NotAllow)))]
+                    pub struct HostWithoutPortIsLocal {
+                        pub host: validators::models::Host,
+                        pub is_local: bool,
+                    };
+
+                    test_inner!(
+                        stringify! {
+                            $(
+                                $p = $v,
+                            )*
+                        };
+                        HostAllowPortIsLocal,
+                        HostWithPortIsLocal,
+                        HostWithoutPortIsLocal,
                     );
                 }
             )*
@@ -215,12 +210,38 @@ fn basic() {
 
     test! {
         {
+            local => Must,
             at_least_two_labels => Allow,
         },
         {
+            local => Must,
             at_least_two_labels => Must,
         },
         {
+            local => Must,
+            at_least_two_labels => NotAllow,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => Allow,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => Must,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => NotAllow,
+        },
+    }
+
+    test2! {
+        {
+            local => Allow,
+            at_least_two_labels => Must,
+        },
+        {
+            local => Allow,
             at_least_two_labels => NotAllow,
         },
     }

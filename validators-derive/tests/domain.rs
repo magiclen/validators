@@ -381,6 +381,18 @@ fn basic() {
             local => Must,
             at_least_two_labels => NotAllow,
         },
+        {
+            local => NotAllow,
+            at_least_two_labels => Allow,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => Must,
+        },
+        {
+            local => NotAllow,
+            at_least_two_labels => NotAllow,
+        },
     }
 
     test2! {

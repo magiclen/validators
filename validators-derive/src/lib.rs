@@ -275,8 +275,8 @@ use validators::prelude::*;
 #[validator(host(local(Allow), at_least_two_labels(Must), port(Allow)))]
 pub struct HostMustAtLeastTwoLabels {
     pub host: validators::models::Host,
-    pub is_local: bool,
     pub port: Option<u16>,
+    pub is_local: bool,
 }
 
 assert!(HostMustAtLeastTwoLabels::parse_string("example.com:8000").is_ok());
