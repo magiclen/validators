@@ -212,7 +212,6 @@ use validators::prelude::*;
 pub struct DomainWithoutPort {
     domain: String,
     is_ipv4: bool,
-    is_local: bool,
 }
 
 assert!(DomainWithoutPort::parse_string("example.com").is_ok());
@@ -223,7 +222,6 @@ assert_eq!("xn--fiq228c.com", DomainWithoutPort::parse_string("中文.com").unwr
 pub struct DomainAllowPort {
     domain: String,
     is_ipv4: bool,
-    is_local: bool,
     port: Option<u16>,
 }
 

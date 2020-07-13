@@ -193,193 +193,62 @@ fn basic() {
                 {
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*))]
-                    pub struct DomainAllowIPv4AllowLocalAllowPort {
+                    pub struct DomainAllowIPv4AllowPort {
                         pub domain: String,
                         pub is_ipv4: bool,
-                        pub is_local: bool,
                         pub port: Option<u16>,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*port(Must)))]
-                    pub struct DomainAllowIPv4AllowLocalWithPort {
+                    pub struct DomainAllowIPv4WithPort {
                         pub domain: String,
                         pub is_ipv4: bool,
-                        pub is_local: bool,
                         pub port: u16,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*port(NotAllow)))]
-                    struct DomainAllowIPv4AllowLocalWithoutPort {
-                        pub domain: String,
-                        pub is_ipv4: bool,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*local(Must)))]
-                    pub struct DomainAllowIPv4LocalAllowPort {
-                        pub domain: String,
-                        pub is_ipv4: bool,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*local(Must), port(Must)))]
-                    pub struct DomainAllowIPv4LocalWithPort {
-                        pub domain: String,
-                        pub is_ipv4: bool,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*local(Must), port(NotAllow)))]
-                    struct DomainAllowIPv4LocalWithoutPort {
-                        pub domain: String,
-                        pub is_ipv4: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*local(NotAllow)))]
-                    pub struct DomainAllowIPv4NonLocalAllowPort {
-                        pub domain: String,
-                        pub is_ipv4: bool,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*local(NotAllow), port(Must)))]
-                    pub struct DomainAllowIPv4NonLocalWithPort {
-                        pub domain: String,
-                        pub is_ipv4: bool,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*local(NotAllow), port(NotAllow)))]
-                    struct DomainAllowIPv4NonLocalWithoutPort {
+                    struct DomainAllowIPv4WithoutPort {
                         pub domain: String,
                         pub is_ipv4: bool,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), conflict(Allow)))]
-                    pub struct DomainIPv4AllowLocalAllowPort {
+                    pub struct DomainIPv4AllowPort {
                         pub domain: String,
-                        pub is_local: bool,
                         pub port: Option<u16>,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), port(Must), conflict(Allow)))]
-                    pub struct DomainIPv4AllowLocalWithPort {
+                    pub struct DomainIPv4WithPort {
                         pub domain: String,
-                        pub is_local: bool,
                         pub port: u16,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), port(NotAllow), conflict(Allow)))]
-                    struct DomainIPv4AllowLocalWithoutPort {
-                        pub domain: String,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(Must), local(Must), conflict(Allow)))]
-                    pub struct DomainIPv4LocalAllowPort {
-                        pub domain: String,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(Must), local(Must), port(Must), conflict(Allow)))]
-                    pub struct DomainIPv4LocalWithPort {
-                        pub domain: String,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(Must), local(Must), port(NotAllow), conflict(Allow)))]
-                    struct DomainIPv4LocalWithoutPort(pub String);
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(NotAllow)))]
-                    pub struct DomainIPv4NonLocalAllowPort {
-                        pub domain: String,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(NotAllow), port(Must)))]
-                    pub struct DomainIPv4NonLocalWithPort {
-                        pub domain: String,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(NotAllow), port(NotAllow)))]
-                    struct DomainIPv4NonLocalWithoutPort(pub String);
+                    struct DomainIPv4WithoutPort(pub String);
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(NotAllow)))]
-                    pub struct DomainNonIPv4AllowLocalAllowPort {
+                    pub struct DomainNonIPv4AllowPort {
                         pub domain: String,
-                        pub is_local: bool,
                         pub port: Option<u16>,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(NotAllow), port(Must)))]
-                    pub struct DomainNonIPv4AllowLocalWithPort {
+                    pub struct DomainNonIPv4WithPort {
                         pub domain: String,
-                        pub is_local: bool,
                         pub port: u16,
                     }
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(NotAllow), port(NotAllow)))]
-                    struct DomainNonIPv4AllowLocalWithoutPort {
-                        pub domain: String,
-                        pub is_local: bool,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(Must)))]
-                    pub struct DomainNonIPv4LocalAllowPort {
-                        pub domain: String,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(Must), port(Must)))]
-                    pub struct DomainNonIPv4LocalWithPort {
-                        pub domain: String,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(Must), port(NotAllow)))]
-                    struct DomainNonIPv4LocalWithoutPort(pub String);
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(NotAllow)))]
-                    pub struct DomainNonIPv4NonLocalAllowPort {
-                        pub domain: String,
-                        pub port: Option<u16>,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(NotAllow), port(Must)))]
-                    pub struct DomainNonIPv4NonLocalWithPort {
-                        pub domain: String,
-                        pub port: u16,
-                    }
-
-                    #[derive(Validator)]
-                    #[validator(domain($($p($v),)*ipv4(NotAllow), local(NotAllow), port(NotAllow)))]
-                    struct DomainNonIPv4NonLocalWithoutPort(pub String);
+                    struct DomainNonIPv4WithoutPort(pub String);
 
                     test_inner!(
                         stringify! {
@@ -387,33 +256,112 @@ fn basic() {
                                 $p = $v,
                             )*
                         };
-                        DomainAllowIPv4AllowLocalAllowPort,
-                        DomainAllowIPv4AllowLocalWithPort,
-                        DomainAllowIPv4AllowLocalWithoutPort,
-                        DomainAllowIPv4LocalAllowPort,
-                        DomainAllowIPv4LocalWithPort,
-                        DomainAllowIPv4LocalWithoutPort,
-                        DomainAllowIPv4NonLocalAllowPort,
-                        DomainAllowIPv4NonLocalWithPort,
-                        DomainAllowIPv4NonLocalWithoutPort,
-                        DomainIPv4AllowLocalAllowPort,
-                        DomainIPv4AllowLocalWithPort,
-                        DomainIPv4AllowLocalWithoutPort,
-                        DomainIPv4LocalAllowPort,
-                        DomainIPv4LocalWithPort,
-                        DomainIPv4LocalWithoutPort,
-                        DomainIPv4NonLocalAllowPort,
-                        DomainIPv4NonLocalWithPort,
-                        DomainIPv4NonLocalWithoutPort,
-                        DomainNonIPv4AllowLocalAllowPort,
-                        DomainNonIPv4AllowLocalWithPort,
-                        DomainNonIPv4AllowLocalWithoutPort,
-                        DomainNonIPv4LocalAllowPort,
-                        DomainNonIPv4LocalWithPort,
-                        DomainNonIPv4LocalWithoutPort,
-                        DomainNonIPv4NonLocalAllowPort,
-                        DomainNonIPv4NonLocalWithPort,
-                        DomainNonIPv4NonLocalWithoutPort
+                        DomainAllowIPv4AllowPort,
+                        DomainAllowIPv4WithPort,
+                        DomainAllowIPv4WithoutPort,
+                        DomainIPv4AllowPort,
+                        DomainIPv4WithPort,
+                        DomainIPv4WithoutPort,
+                        DomainNonIPv4AllowPort,
+                        DomainNonIPv4WithPort,
+                        DomainNonIPv4WithoutPort,
+                    );
+                }
+            )*
+        }
+    }
+
+    macro_rules! test2 {
+        ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
+            $(
+                {
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*))]
+                    pub struct DomainAllowIPv4AllowPortIsLocal {
+                        pub domain: String,
+                        pub is_ipv4: bool,
+                        pub port: Option<u16>,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*port(Must)))]
+                    pub struct DomainAllowIPv4WithPortIsLocal {
+                        pub domain: String,
+                        pub is_ipv4: bool,
+                        pub port: u16,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*port(NotAllow)))]
+                    struct DomainAllowIPv4WithoutPortIsLocal {
+                        pub domain: String,
+                        pub is_ipv4: bool,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*ipv4(Must), conflict(Allow)))]
+                    pub struct DomainIPv4AllowPortIsLocal {
+                        pub domain: String,
+                        pub port: Option<u16>,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*ipv4(Must), port(Must), conflict(Allow)))]
+                    pub struct DomainIPv4WithPortIsLocal {
+                        pub domain: String,
+                        pub port: u16,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*ipv4(Must), port(NotAllow), conflict(Allow)))]
+                    struct DomainIPv4WithoutPortIsLocal {
+                        pub domain: String,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*ipv4(NotAllow)))]
+                    pub struct DomainNonIPv4AllowPortIsLocal {
+                        pub domain: String,
+                        pub port: Option<u16>,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*ipv4(NotAllow), port(Must)))]
+                    pub struct DomainNonIPv4WithPortIsLocal {
+                        pub domain: String,
+                        pub port: u16,
+                        pub is_local: bool,
+                    }
+
+                    #[derive(Validator)]
+                    #[validator(domain($($p($v),)*ipv4(NotAllow), port(NotAllow)))]
+                    struct DomainNonIPv4WithoutPortIsLocal {
+                        pub domain: String,
+                        pub is_local: bool,
+                    }
+
+                    test_inner!(
+                        stringify! {
+                            $(
+                                $p = $v,
+                            )*
+                        };
+                        DomainAllowIPv4AllowPortIsLocal,
+                        DomainAllowIPv4WithPortIsLocal,
+                        DomainAllowIPv4WithoutPortIsLocal,
+                        DomainIPv4AllowPortIsLocal,
+                        DomainIPv4WithPortIsLocal,
+                        DomainIPv4WithoutPortIsLocal,
+                        DomainNonIPv4AllowPortIsLocal,
+                        DomainNonIPv4WithPortIsLocal,
+                        DomainNonIPv4WithoutPortIsLocal,
                     );
                 }
             )*
@@ -422,12 +370,26 @@ fn basic() {
 
     test! {
         {
+            local => Must,
             at_least_two_labels => Allow,
         },
         {
+            local => Must,
             at_least_two_labels => Must,
         },
         {
+            local => Must,
+            at_least_two_labels => NotAllow,
+        },
+    }
+
+    test2! {
+        {
+            local => Allow,
+            at_least_two_labels => Must,
+        },
+        {
+            local => Allow,
             at_least_two_labels => NotAllow,
         },
     }

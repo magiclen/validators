@@ -266,350 +266,346 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             match ipv4 {
                 ValidatorOption::Allow => {
-                    match local {
-                        ValidatorOption::Allow => {
-                            match port {
-                                ValidatorOption::Allow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 4 {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT),
-                                            );
-                                        }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_ipv4"
-                                                && ident != "is_local"
-                                                && ident != "port"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(
-                                                        ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
-                                                    ),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                    if local == ValidatorOption::Allow
+                        && at_least_two_labels != ValidatorOption::Allow
+                    {
+                        match port {
+                            ValidatorOption::Allow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 4 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::Must => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 4 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_ipv4"
+                                            && ident != "is_local"
+                                            && ident != "port"
+                                        {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT),
+                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_ipv4"
-                                                && ident != "is_local"
-                                                && ident != "port"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::Must => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 4 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::NotAllow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 3 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_ipv4"
+                                            && ident != "is_local"
+                                            && ident != "port"
+                                        {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL),
+                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_ipv4"
-                                                && ident != "is_local"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::NotAllow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 3 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL),
                                         );
                                     }
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_ipv4"
+                                            && ident != "is_local"
+                                        {
+                                            panic::validator_only_support_for_item(
+                                                VALIDATOR,
+                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL),
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL),
+                                    );
                                 }
                             }
                         }
-                        _ => {
-                            match port {
-                                ValidatorOption::Allow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 3 {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
-                                            );
-                                        }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_ipv4"
-                                                && ident != "port"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                    } else {
+                        match port {
+                            ValidatorOption::Allow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 3 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::Must => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 3 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_ipv4"
+                                            && ident != "port"
+                                        {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
+                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_ipv4"
-                                                && ident != "port"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::Must => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 3 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::NotAllow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 2 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_ipv4"
+                                            && ident != "port"
+                                        {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4),
+                                                Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain" && ident != "is_ipv4" {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_IPV4),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::NotAllow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 2 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_IPV4),
                                         );
                                     }
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain" && ident != "is_ipv4" {
+                                            panic::validator_only_support_for_item(
+                                                VALIDATOR,
+                                                Box::new(ITEM_ALLOW_IPV4),
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_IPV4),
+                                    );
                                 }
                             }
                         }
                     }
                 }
                 _ => {
-                    match local {
-                        ValidatorOption::Allow => {
-                            match port {
-                                ValidatorOption::Allow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 3 {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_LOCAL_ALLOW_PORT),
-                                            );
-                                        }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_local"
-                                                && ident != "port"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_LOCAL_ALLOW_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                    if local == ValidatorOption::Allow
+                        && at_least_two_labels != ValidatorOption::Allow
+                    {
+                        match port {
+                            ValidatorOption::Allow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 3 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_LOCAL_ALLOW_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::Must => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 3 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_local"
+                                            && ident != "port"
+                                        {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_LOCAL_WITH_PORT),
+                                                Box::new(ITEM_ALLOW_LOCAL_ALLOW_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain"
-                                                && ident != "is_local"
-                                                && ident != "port"
-                                            {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_LOCAL_WITH_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_LOCAL_ALLOW_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::Must => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 3 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_LOCAL_WITH_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::NotAllow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 2 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain"
+                                            && ident != "is_local"
+                                            && ident != "port"
+                                        {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_LOCAL),
+                                                Box::new(ITEM_ALLOW_LOCAL_WITH_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain" && ident != "is_local" {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_LOCAL),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_LOCAL_WITH_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::NotAllow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 2 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_LOCAL),
                                         );
                                     }
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain" && ident != "is_local" {
+                                            panic::validator_only_support_for_item(
+                                                VALIDATOR,
+                                                Box::new(ITEM_ALLOW_LOCAL),
+                                            );
+                                        }
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_LOCAL),
+                                    );
                                 }
                             }
                         }
-                        _ => {
-                            match port {
-                                ValidatorOption::Allow => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 2 {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_PORT),
-                                            );
-                                        }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain" && ident != "port" {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_ALLOW_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                    } else {
+                        match port {
+                            ValidatorOption::Allow => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 2 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_ALLOW_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::Must => {
-                                    if let Fields::Named(_) = &data.fields {
-                                        if data.fields.len() != 2 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain" && ident != "port" {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_WITH_PORT),
+                                                Box::new(ITEM_ALLOW_PORT),
                                             );
                                         }
-
-                                        for field in data.fields.iter() {
-                                            let ident = field.ident.as_ref().unwrap();
-
-                                            if ident != "domain" && ident != "port" {
-                                                panic::validator_only_support_for_item(
-                                                    VALIDATOR,
-                                                    Box::new(ITEM_WITH_PORT),
-                                                );
-                                            }
-                                        }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_ALLOW_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::Must => {
+                                if let Fields::Named(_) = &data.fields {
+                                    if data.fields.len() != 2 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM_WITH_PORT),
                                         );
                                     }
-                                }
-                                ValidatorOption::NotAllow => {
-                                    if let Fields::Unnamed(_) = &data.fields {
-                                        if data.fields.len() != 1 {
+
+                                    for field in data.fields.iter() {
+                                        let ident = field.ident.as_ref().unwrap();
+
+                                        if ident != "domain" && ident != "port" {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM),
+                                                Box::new(ITEM_WITH_PORT),
                                             );
                                         }
-                                    } else {
+                                    }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM_WITH_PORT),
+                                    );
+                                }
+                            }
+                            ValidatorOption::NotAllow => {
+                                if let Fields::Unnamed(_) = &data.fields {
+                                    if data.fields.len() != 1 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
                                             Box::new(ITEM),
                                         );
                                     }
+                                } else {
+                                    panic::validator_only_support_for_item(
+                                        VALIDATOR,
+                                        Box::new(ITEM),
+                                    );
                                 }
                             }
                         }
@@ -716,11 +712,23 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 }
             } else {
+                let handle_local_ipv4 = if at_least_two_labels == ValidatorOption::Allow
+                    && local == ValidatorOption::Allow
+                {
+                    quote! {
+                        false
+                    }
+                } else {
+                    quote! {
+                        validators_prelude::is_local_ipv4(ip)
+                    }
+                };
+
                 quote! {
                     Ok(ip) => {
                         let port = #handle_port;
 
-                        let is_local = validators_prelude::is_local_ipv4(ip);
+                        let is_local = #handle_local_ipv4;
 
                         #check_local
 
@@ -734,6 +742,18 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     return Err(#error_path::IPv4Must);
                 }
             } else {
+                let handle_local_domain = if at_least_two_labels == ValidatorOption::Allow
+                    && local == ValidatorOption::Allow
+                {
+                    quote! {
+                        false
+                    }
+                } else {
+                    quote! {
+                        validators_prelude::is_local_domain(&ascii_domain)
+                    }
+                };
+
                 let check_at_least_two_labels = {
                     match at_least_two_labels {
                         ValidatorOption::Allow => quote! {},
@@ -764,7 +784,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         Ok(ascii_domain) => {
                             let port = #handle_port;
 
-                            let is_local = validators_prelude::is_local_domain(&ascii_domain);
+                            let is_local = #handle_local_domain;
 
                             #check_at_least_two_labels
 
@@ -896,66 +916,65 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             let create_instance = {
                 match ipv4 {
                     ValidatorOption::Allow => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                match port {
-                                    ValidatorOption::Allow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_ipv4: _is_ipv4,
-                                                is_local: _is_local,
-                                                port: _port,
-                                            }
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            match port {
+                                ValidatorOption::Allow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_ipv4: _is_ipv4,
+                                            is_local: _is_local,
+                                            port: _port,
                                         }
                                     }
-                                    ValidatorOption::Must => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_ipv4: _is_ipv4,
-                                                is_local: _is_local,
-                                                port: _port.unwrap(),
-                                            }
+                                }
+                                ValidatorOption::Must => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_ipv4: _is_ipv4,
+                                            is_local: _is_local,
+                                            port: _port.unwrap(),
                                         }
                                     }
-                                    ValidatorOption::NotAllow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_ipv4: _is_ipv4,
-                                                is_local: _is_local,
-                                            }
+                                }
+                                ValidatorOption::NotAllow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_ipv4: _is_ipv4,
+                                            is_local: _is_local,
                                         }
                                     }
                                 }
                             }
-                            _ => {
-                                match port {
-                                    ValidatorOption::Allow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_ipv4: _is_ipv4,
-                                                port: _port,
-                                            }
+                        } else {
+                            match port {
+                                ValidatorOption::Allow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_ipv4: _is_ipv4,
+                                            port: _port,
                                         }
                                     }
-                                    ValidatorOption::Must => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_ipv4: _is_ipv4,
-                                                port: _port.unwrap(),
-                                            }
+                                }
+                                ValidatorOption::Must => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_ipv4: _is_ipv4,
+                                            port: _port.unwrap(),
                                         }
                                     }
-                                    ValidatorOption::NotAllow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_ipv4: _is_ipv4,
-                                            }
+                                }
+                                ValidatorOption::NotAllow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_ipv4: _is_ipv4,
                                         }
                                     }
                                 }
@@ -963,59 +982,58 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         }
                     }
                     _ => {
-                        match local {
-                            ValidatorOption::Allow => {
-                                match port {
-                                    ValidatorOption::Allow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_local: _is_local,
-                                                port: _port,
-                                            }
+                        if local == ValidatorOption::Allow
+                            && at_least_two_labels != ValidatorOption::Allow
+                        {
+                            match port {
+                                ValidatorOption::Allow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_local: _is_local,
+                                            port: _port,
                                         }
                                     }
-                                    ValidatorOption::Must => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_local: _is_local,
-                                                port: _port.unwrap(),
-                                            }
+                                }
+                                ValidatorOption::Must => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_local: _is_local,
+                                            port: _port.unwrap(),
                                         }
                                     }
-                                    ValidatorOption::NotAllow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                is_local: _is_local,
-                                            }
+                                }
+                                ValidatorOption::NotAllow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            is_local: _is_local,
                                         }
                                     }
                                 }
                             }
-                            _ => {
-                                match port {
-                                    ValidatorOption::Allow => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                port: _port,
-                                            }
+                        } else {
+                            match port {
+                                ValidatorOption::Allow => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            port: _port,
                                         }
                                     }
-                                    ValidatorOption::Must => {
-                                        quote! {
-                                            #name {
-                                                domain,
-                                                port: _port.unwrap(),
-                                            }
+                                }
+                                ValidatorOption::Must => {
+                                    quote! {
+                                        #name {
+                                            domain,
+                                            port: _port.unwrap(),
                                         }
                                     }
-                                    ValidatorOption::NotAllow => {
-                                        quote! {
-                                            #name(domain)
-                                        }
+                                }
+                                ValidatorOption::NotAllow => {
+                                    quote! {
+                                        #name(domain)
                                     }
                                 }
                             }
