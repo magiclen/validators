@@ -43,16 +43,12 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     match meta_name.as_str() {
                                         "empty" => {
-                                            if let Some(validator_option) =
-                                                ValidatorOption::from_meta(
-                                                    meta_name.as_str(),
-                                                    meta,
-                                                    &mut empty_is_set,
-                                                    &correct_usage_for_empty,
-                                                )
-                                            {
-                                                empty = validator_option;
-                                            }
+                                            empty = ValidatorOption::from_meta(
+                                                meta_name.as_str(),
+                                                meta,
+                                                &mut empty_is_set,
+                                                &correct_usage_for_empty,
+                                            );
                                         }
                                         _ => panic::unknown_parameter("text", meta_name.as_str()),
                                     }

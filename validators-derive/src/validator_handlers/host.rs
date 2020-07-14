@@ -99,34 +99,28 @@ pub fn host_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 match meta_name.as_str() {
                                     "local" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        local = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut local_is_set,
                                             &correct_usage_for_local,
-                                        ) {
-                                            local = validator_option;
-                                        }
+                                        );
                                     }
                                     "port" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        port = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut port_is_set,
                                             &correct_usage_for_port,
-                                        ) {
-                                            port = validator_option;
-                                        }
+                                        );
                                     }
                                     "at_least_two_labels" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        at_least_two_labels = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut at_least_two_labels_is_set,
                                             &correct_usage_for_at_least_two_labels,
-                                        ) {
-                                            at_least_two_labels = validator_option;
-                                        }
+                                        );
                                     }
                                     _ => panic::unknown_parameter("host", meta_name.as_str()),
                                 }

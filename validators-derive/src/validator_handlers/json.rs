@@ -1,7 +1,7 @@
 use alloc::boxed::Box;
 
 use crate::proc_macro::TokenStream;
-use crate::syn::{Data, DeriveInput, Fields, Meta, Path, Type};
+use crate::syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use crate::{panic, TypeEnum, Validator};
 
@@ -19,7 +19,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                 }
 
-                let data_type: Type = data.fields.into_iter().next().unwrap().ty;
+                let data_type = data.fields.into_iter().next().unwrap().ty;
 
                 let correct_usage_for_attribute = [stringify!(#[validator(json)])];
 

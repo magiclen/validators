@@ -30,5 +30,7 @@ pub mod json;
 pub mod line;
 #[cfg(feature = "mac_address")]
 pub mod mac_address;
+#[cfg(feature = "number")]
+pub mod number;
 #[cfg(feature = "text")]
 pub mod text;

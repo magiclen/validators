@@ -15,7 +15,7 @@ fn basic() {
                 {
                     #[derive(Validator)]
                     #[validator(base64_url_decoded($($p($v),)*))]
-                    struct Validator(Vec<u8>);
+                    pub struct Validator(pub Vec<u8>);
 
                     fn test(s: &str, is_ok: bool) {
                         let panic = match Validator::validate_str(s) {

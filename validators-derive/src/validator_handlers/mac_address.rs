@@ -55,28 +55,20 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     match meta_name.as_str() {
                                         "case" => {
-                                            if let Some(validator_case_option) =
-                                                ValidatorCaseOption::from_meta(
-                                                    meta_name.as_str(),
-                                                    meta,
-                                                    &mut case_is_set,
-                                                    &correct_usage_for_case,
-                                                )
-                                            {
-                                                case = validator_case_option;
-                                            }
+                                            case = ValidatorCaseOption::from_meta(
+                                                meta_name.as_str(),
+                                                meta,
+                                                &mut case_is_set,
+                                                &correct_usage_for_case,
+                                            );
                                         }
                                         "separator" => {
-                                            if let Some(validator_separator_option) =
-                                                ValidatorSeparatorOption::from_meta(
-                                                    meta_name.as_str(),
-                                                    meta,
-                                                    &mut separator_is_set,
-                                                    &correct_usage_for_separator,
-                                                )
-                                            {
-                                                separator = validator_separator_option;
-                                            }
+                                            separator = ValidatorSeparatorOption::from_meta(
+                                                meta_name.as_str(),
+                                                meta,
+                                                &mut separator_is_set,
+                                                &correct_usage_for_separator,
+                                            );
                                         }
                                         _ => {
                                             panic::unknown_parameter(

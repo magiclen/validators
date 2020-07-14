@@ -48,6 +48,7 @@ full = [
     "ipv6",
     "json",
     "mac_address",
+    "number",
     "line",
 ]
 
@@ -67,6 +68,7 @@ ipv6 = ["validators/ipv6"]
 json = ["validators/json"]
 line = ["validators/line"]
 mac_address = ["validators/mac_address"]
+number = ["validators/number"]
 text = ["validators/text"]
 
 serde = ["validators/serde"]

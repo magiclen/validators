@@ -179,60 +179,50 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 match meta_name.as_str() {
                                     "ipv4" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        ipv4 = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut ipv4_is_set,
                                             &correct_usage_for_ipv4,
-                                        ) {
-                                            ipv4 = validator_option;
-                                        }
+                                        );
                                     }
                                     "local" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        local = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut local_is_set,
                                             &correct_usage_for_local,
-                                        ) {
-                                            local = validator_option;
-                                        }
+                                        );
                                     }
                                     "port" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        port = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut port_is_set,
                                             &correct_usage_for_port,
-                                        ) {
-                                            port = validator_option;
-                                        }
+                                        );
                                     }
                                     "at_least_two_labels" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        at_least_two_labels = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut at_least_two_labels_is_set,
                                             &correct_usage_for_at_least_two_labels,
-                                        ) {
-                                            at_least_two_labels = validator_option;
-                                        }
+                                        );
                                     }
                                     "conflict" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        conflict = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut conflict_is_set,
                                             &correct_usage_for_conflict,
-                                        ) {
-                                            if validator_option == ValidatorOption::Must {
-                                                panic::parameter_incorrect_format(
-                                                    meta_name.as_str(),
-                                                    &correct_usage_for_conflict,
-                                                );
-                                            }
+                                        );
 
-                                            conflict = validator_option;
+                                        if conflict == ValidatorOption::Must {
+                                            panic::parameter_incorrect_format(
+                                                meta_name.as_str(),
+                                                &correct_usage_for_conflict,
+                                            );
                                         }
                                     }
                                     _ => panic::unknown_parameter("domain", meta_name.as_str()),

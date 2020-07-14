@@ -44,6 +44,7 @@ json = ["serde_json"]
 line = []
 mac_address = []
 text = []
+number = []
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

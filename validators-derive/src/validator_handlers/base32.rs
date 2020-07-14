@@ -43,16 +43,12 @@ pub fn base32_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     match meta_name.as_str() {
                                         "padding" => {
-                                            if let Some(validator_option) =
-                                                ValidatorOption::from_meta(
-                                                    meta_name.as_str(),
-                                                    meta,
-                                                    &mut padding_is_set,
-                                                    &correct_usage_for_padding,
-                                                )
-                                            {
-                                                padding = validator_option;
-                                            }
+                                            padding = ValidatorOption::from_meta(
+                                                meta_name.as_str(),
+                                                meta,
+                                                &mut padding_is_set,
+                                                &correct_usage_for_padding,
+                                            );
                                         }
                                         _ => panic::unknown_parameter("base32", meta_name.as_str()),
                                     }

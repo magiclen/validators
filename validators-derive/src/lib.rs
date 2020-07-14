@@ -29,7 +29,7 @@ When you add the `#[validator(validator_name)]` attribute for your structs, one 
 
 The struct used as a validator should have specific components according to its validator and the parameters of that validator. For example, a **base32** validator must be `struct(String)` and a **base32_decoded** validator must be `struct(Vec<u8>)`.
 
-The `#[validator(validator_name)]` attribute cannot be used for fields in any structs or enums. The reason that this crate uses a procedural macro to define a validator instead of using a struct with configuration is to make the configuration check have no overhead at runtime.
+The `#[validator(validator_name)]` attribute cannot be used on fields in any structs or enums. The reason that this crate uses a procedural macro to define a validator (i.e. a struct) instead of providing built-in structs for each configuration is to make the configurable validations have no overhead at runtime and also to insrease the compilation speed.
 
 ### No Std
 
@@ -210,7 +210,7 @@ use validators::prelude::*;
 #[derive(Validator)]
 #[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(NotAllow)))]
 pub struct DomainWithoutPort {
-    domain: String,
+    pub domain: String,
     is_ipv4: bool,
 }
 
@@ -220,7 +220,7 @@ assert_eq!("xn--fiq228c.com", DomainWithoutPort::parse_string("中文.com").unwr
 #[derive(Validator)]
 #[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(Allow)))]
 pub struct DomainAllowPort {
-    domain: String,
+    pub domain: String,
     is_ipv4: bool,
     port: Option<u16>,
 }
@@ -399,13 +399,39 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(mac_address(case(Upper), separator(Allow(colon))))]
-pub struct MacAddress(u64);
+pub struct MacAddress(pub u64);
 
 assert!(MacAddress::parse_string("080027B246C3").is_ok());
 assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 ```
 
 The default value of the `separator` option is `Allow(colon)`.
+
+### number
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(number(nan(NotAllow), range(NotLimited)))]
+pub struct Double(pub f64);
+
+assert!(Double::parse_string("123.456").is_ok());
+assert!(Double::parse_string("NaN").is_err());
+
+#[derive(Validator)]
+#[validator(number(nan(Allow), range(Limited(min = 0, max = 1.0))))]
+pub struct SinglePercentage(pub f32);
+
+assert!(SinglePercentage::parse_string("0").is_ok());
+assert!(SinglePercentage::parse_string("1").is_ok());
+assert!(SinglePercentage::parse_string("1.1").is_err());
+assert!(SinglePercentage::parse_string("NaN").is_ok());
+```
 
 ### text
 
@@ -540,6 +566,10 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         #[cfg(feature = "mac_address")]
                                         Validator::mac_address => {
                                             return mac_address::mac_address_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "number")]
+                                        Validator::number => {
+                                            return number::number_handler(ast, meta)
                                         }
                                         #[cfg(feature = "text")]
                                         Validator::text => return text::text_handler(ast, meta),

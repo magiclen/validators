@@ -15,7 +15,7 @@ fn basic() {
                 {
                     #[derive(Validator)]
                     #[validator(base32($($p($v),)*))]
-                    struct Validator(String);
+                    pub struct Validator(pub String);
 
                     fn test(s: &str, is_ok: bool) {
                         let panic = match Validator::validate_str(s) {

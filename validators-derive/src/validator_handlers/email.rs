@@ -215,77 +215,65 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 match meta_name.as_str() {
                                     "comment" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        comment = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut comment_is_set,
                                             &correct_usage_for_comment,
-                                        ) {
-                                            comment = validator_option;
-                                        }
+                                        );
                                     }
                                     "ip" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        ip = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut ip_is_set,
                                             &correct_usage_for_ip,
-                                        ) {
-                                            ip = validator_option;
-                                        }
+                                        );
                                     }
                                     "local" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        local = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut local_is_set,
                                             &correct_usage_for_local,
-                                        ) {
-                                            local = validator_option;
-                                        }
+                                        );
                                     }
                                     "at_least_two_labels" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        at_least_two_labels = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut at_least_two_labels_is_set,
                                             &correct_usage_for_at_least_two_labels,
-                                        ) {
-                                            at_least_two_labels = validator_option;
-                                        }
+                                        );
                                     }
                                     "non_ascii" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        non_ascii = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut non_ascii_is_set,
                                             &correct_usage_for_non_ascii,
-                                        ) {
-                                            if validator_option == ValidatorOption::Must {
-                                                panic::parameter_incorrect_format(
-                                                    meta_name.as_str(),
-                                                    &correct_usage_for_non_ascii,
-                                                );
-                                            }
+                                        );
 
-                                            non_ascii = validator_option;
+                                        if non_ascii == ValidatorOption::Must {
+                                            panic::parameter_incorrect_format(
+                                                meta_name.as_str(),
+                                                &correct_usage_for_non_ascii,
+                                            );
                                         }
                                     }
                                     "conflict" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        conflict = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut conflict_is_set,
                                             &correct_usage_for_conflict,
-                                        ) {
-                                            if validator_option == ValidatorOption::Must {
-                                                panic::parameter_incorrect_format(
-                                                    meta_name.as_str(),
-                                                    &correct_usage_for_conflict,
-                                                );
-                                            }
+                                        );
 
-                                            conflict = validator_option;
+                                        if conflict == ValidatorOption::Must {
+                                            panic::parameter_incorrect_format(
+                                                meta_name.as_str(),
+                                                &correct_usage_for_conflict,
+                                            );
                                         }
                                     }
                                     _ => panic::unknown_parameter("email", meta_name.as_str()),

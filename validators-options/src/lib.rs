@@ -138,3 +138,53 @@ impl ValidatorSeparatorOption {
         }
     }
 }
+
+/// A special kind of options for validators related to ranges.
+#[derive(Debug, Clone, PartialEq, Eq, Educe)]
+#[educe(Default)]
+pub enum ValidatorRangeOption<T> {
+    Limited {
+        min: Option<T>,
+        max: Option<T>,
+    },
+    #[educe(Default)]
+    NotLimited,
+}
+
+macro_rules! validator_range_option_impl {
+    ($($ty:ident),* $(,)*) => {
+        $(
+            impl ValidatorRangeOption<$ty> {
+                #[doc(hidden)]
+                #[inline]
+                pub const fn new() -> ValidatorRangeOption<$ty> {
+                    ValidatorRangeOption::NotLimited
+                }
+
+                #[inline]
+                pub fn limited(&self) -> Option<(Option<$ty>, Option<$ty>)> {
+                    if let ValidatorRangeOption::Limited {
+                        min, max
+                    } = self {
+                        Some((*min, *max))
+                    } else {
+                        None
+                    }
+                }
+
+                #[inline]
+                pub fn not_limited(&self) -> bool {
+                    if let ValidatorRangeOption::NotLimited = self {
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
+        )*
+    }
+}
+
+validator_range_option_impl!(
+    f32, f64, u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize
+);

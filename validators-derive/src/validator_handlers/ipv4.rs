@@ -64,24 +64,20 @@ pub fn ipv4_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 match meta_name.as_str() {
                                     "local" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        local = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut local_is_set,
                                             &correct_usage_for_local,
-                                        ) {
-                                            local = validator_option;
-                                        }
+                                        );
                                     }
                                     "port" => {
-                                        if let Some(validator_option) = ValidatorOption::from_meta(
+                                        port = ValidatorOption::from_meta(
                                             meta_name.as_str(),
                                             meta,
                                             &mut port_is_set,
                                             &correct_usage_for_port,
-                                        ) {
-                                            port = validator_option;
-                                        }
+                                        );
                                     }
                                     _ => panic::unknown_parameter("ipv4", meta_name.as_str()),
                                 }

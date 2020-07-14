@@ -15,7 +15,7 @@ fn basic() {
                 {
                     #[derive(Validator)]
                     #[validator(mac_address($($p($v),)*))]
-                    struct Validator(u64);
+                    pub struct Validator(pub u64);
 
                     fn test(s: &str, is_ok: bool) {
                         let panic = match Validator::validate_str(s) {
