@@ -36,3 +36,6 @@ pub mod ipv6;
 
 #[cfg(feature = "json")]
 pub mod json;
+
+#[cfg(feature = "line")]
+pub mod line;

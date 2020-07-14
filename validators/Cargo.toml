@@ -41,6 +41,7 @@ ip = ["std"]
 ipv4 = ["std"]
 ipv6 = ["std"]
 json = ["serde_json"]
+line = []
 
 serde = ["serde-dep"]
 rocket = ["rocket-dep"]

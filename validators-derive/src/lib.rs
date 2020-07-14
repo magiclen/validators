@@ -369,6 +369,25 @@ assert!(JSONNumber::parse_u64(123).is_ok());
 assert!(JSONBoolean::parse_bool(false).is_ok());
 ```
 
+### line
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(line(empty(NotAllow)))]
+pub struct LineNotAllowEmpty(pub String);
+
+assert!(LineNotAllowEmpty::parse_string("123").is_ok());
+assert!(LineNotAllowEmpty::parse_string("123\0").is_err());
+assert!(LineNotAllowEmpty::parse_string("123\n456").is_err());
+assert!(LineNotAllowEmpty::parse_string("   ").is_err());
+```
+
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -465,6 +484,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             Validator::ipv6 => return ipv6::ipv6_handler(ast, meta),
                                             #[cfg(feature = "json")]
                                             Validator::json => return json::json_handler(ast, meta),
+                                            #[cfg(feature = "line")]
+                                            Validator::line => return line::line_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),

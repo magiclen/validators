@@ -47,6 +47,7 @@ full = [
     "ipv4",
     "ipv6",
     "json",
+    "line",
 ]
 
 base32 = ["validators/base32"]
@@ -63,6 +64,7 @@ ip = ["validators/ip"]
 ipv4 = ["validators/ipv4"]
 ipv6 = ["validators/ipv6"]
 json = ["validators/json"]
+line = ["validators/line"]
 
 serde = ["validators/serde"]
 rocket = ["validators/rocket"]

@@ -13,6 +13,7 @@
     feature = "ipv4",
     feature = "ipv6",
     feature = "json",
+    feature = "line",
 )))]
 compile_error!("at least one of the validator features must be enabled");
 
@@ -47,6 +48,8 @@ pub enum Validator {
     ipv6,
     #[cfg(feature = "json")]
     json,
+    #[cfg(feature = "line")]
+    line,
 }
 
 impl Validator {
@@ -83,6 +86,8 @@ impl Validator {
             "ipv6" => Validator::ipv6,
             #[cfg(feature = "json")]
             "json" => Validator::json,
+            #[cfg(feature = "line")]
+            "line" => Validator::line,
             _ => {
                 panic!(
                     "Unsupported validator `{}`. Available validators are {:?}",
