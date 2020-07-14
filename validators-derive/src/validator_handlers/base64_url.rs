@@ -86,7 +86,7 @@ pub fn base64_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let error_path: Path =
                     syn::parse2(quote! { validators_prelude::base64_url::Base64UrlError }).unwrap();
 
-                let padding_path = padding.to_path();
+                let padding_path = padding.to_expr();
 
                 let parameters_impl = quote! {
                     impl #name {

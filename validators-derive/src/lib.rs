@@ -388,6 +388,23 @@ assert!(LineNotAllowEmpty::parse_string("123\n456").is_err());
 assert!(LineNotAllowEmpty::parse_string("   ").is_err());
 ```
 
+### mac_address
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(mac_address(case(Upper), separator(Allow(colon))))]
+pub struct MacAddress(u64);
+
+assert!(MacAddress::parse_string("080027B246C3").is_ok());
+assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
+```
+
 ### text
 
 ```rust
@@ -459,58 +476,74 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                 match attr_meta {
                     Meta::List(list) => {
                         if list.nested.len() == 1 {
-                            for p in list.nested {
-                                match p {
-                                    NestedMeta::Meta(meta) => {
-                                        let meta_name = meta.path().into_token_stream().to_string();
+                            let p = list.nested.into_iter().next().unwrap();
 
-                                        match Validator::from_str(meta_name) {
-                                            #[cfg(feature = "base32")]
-                                            Validator::base32 => return base32::base32_handler(ast, meta),
-                                            #[cfg(feature = "base32_decoded")]
-                                            Validator::base32_decoded => {
-                                                return base32_decoded::base32_decoded_handler(ast, meta)
-                                            }
-                                            #[cfg(feature = "base64")]
-                                            Validator::base64 => return base64::base64_handler(ast, meta),
-                                            #[cfg(feature = "base64_decoded")]
-                                            Validator::base64_decoded => {
-                                                return base64_decoded::base64_decoded_handler(ast, meta)
-                                            }
-                                            #[cfg(feature = "base64_url")]
-                                            Validator::base64_url => {
-                                                return base64_url::base64_url_handler(ast, meta)
-                                            }
-                                            #[cfg(feature = "base64_url_decoded")]
-                                            Validator::base64_url_decoded => {
-                                                return base64_url_decoded::base64_url_decoded_handler(ast, meta)
-                                            }
-                                            #[cfg(feature = "boolean")]
-                                            Validator::boolean => {
-                                                return boolean::boolean_handler(ast, meta)
-                                            }
-                                            #[cfg(feature = "domain")]
-                                            Validator::domain => return domain::domain_handler(ast, meta),
-                                            #[cfg(feature = "email")]
-                                            Validator::email => return email::email_handler(ast, meta),
-                                            #[cfg(feature = "host")]
-                                            Validator::host => return host::host_handler(ast, meta),
-                                            #[cfg(feature = "ip")]
-                                            Validator::ip => return ip::ip_handler(ast, meta),
-                                            #[cfg(feature = "ipv4")]
-                                            Validator::ipv4 => return ipv4::ipv4_handler(ast, meta),
-                                            #[cfg(feature = "ipv6")]
-                                            Validator::ipv6 => return ipv6::ipv6_handler(ast, meta),
-                                            #[cfg(feature = "json")]
-                                            Validator::json => return json::json_handler(ast, meta),
-                                            #[cfg(feature = "line")]
-                                            Validator::line => return line::line_handler(ast, meta),
-                                            #[cfg(feature = "text")]
-                                            Validator::text => return text::text_handler(ast, meta),
+                            match p {
+                                NestedMeta::Meta(meta) => {
+                                    let meta_name = meta.path().into_token_stream().to_string();
+
+                                    match Validator::from_str(meta_name) {
+                                        #[cfg(feature = "base32")]
+                                        Validator::base32 => {
+                                            return base32::base32_handler(ast, meta)
                                         }
+                                        #[cfg(feature = "base32_decoded")]
+                                        Validator::base32_decoded => {
+                                            return base32_decoded::base32_decoded_handler(
+                                                ast, meta,
+                                            )
+                                        }
+                                        #[cfg(feature = "base64")]
+                                        Validator::base64 => {
+                                            return base64::base64_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "base64_decoded")]
+                                        Validator::base64_decoded => {
+                                            return base64_decoded::base64_decoded_handler(
+                                                ast, meta,
+                                            )
+                                        }
+                                        #[cfg(feature = "base64_url")]
+                                        Validator::base64_url => {
+                                            return base64_url::base64_url_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "base64_url_decoded")]
+                                        Validator::base64_url_decoded => {
+                                            return base64_url_decoded::base64_url_decoded_handler(
+                                                ast, meta,
+                                            )
+                                        }
+                                        #[cfg(feature = "boolean")]
+                                        Validator::boolean => {
+                                            return boolean::boolean_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "domain")]
+                                        Validator::domain => {
+                                            return domain::domain_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "email")]
+                                        Validator::email => return email::email_handler(ast, meta),
+                                        #[cfg(feature = "host")]
+                                        Validator::host => return host::host_handler(ast, meta),
+                                        #[cfg(feature = "ip")]
+                                        Validator::ip => return ip::ip_handler(ast, meta),
+                                        #[cfg(feature = "ipv4")]
+                                        Validator::ipv4 => return ipv4::ipv4_handler(ast, meta),
+                                        #[cfg(feature = "ipv6")]
+                                        Validator::ipv6 => return ipv6::ipv6_handler(ast, meta),
+                                        #[cfg(feature = "json")]
+                                        Validator::json => return json::json_handler(ast, meta),
+                                        #[cfg(feature = "line")]
+                                        Validator::line => return line::line_handler(ast, meta),
+                                        #[cfg(feature = "mac_address")]
+                                        Validator::mac_address => {
+                                            return mac_address::mac_address_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "text")]
+                                        Validator::text => return text::text_handler(ast, meta),
                                     }
-                                    NestedMeta::Lit(_) => panic::validator_format_incorrect(),
                                 }
+                                NestedMeta::Lit(_) => panic::validator_format_incorrect(),
                             }
                         } else {
                             panic::validator_format_incorrect()

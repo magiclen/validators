@@ -42,6 +42,7 @@ ipv4 = ["std"]
 ipv6 = ["std"]
 json = ["serde_json"]
 line = []
+mac_address = []
 text = []
 
 serde = ["serde-dep"]

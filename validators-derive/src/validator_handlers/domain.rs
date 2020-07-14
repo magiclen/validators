@@ -620,10 +620,10 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             let error_path: Path =
                 syn::parse2(quote! { validators_prelude::domain::DomainError }).unwrap();
 
-            let ipv4_path = ipv4.to_path();
-            let local_path = local.to_path();
-            let port_path = port.to_path();
-            let at_least_two_labels_path = at_least_two_labels.to_path();
+            let ipv4_path = ipv4.to_expr();
+            let local_path = local.to_expr();
+            let port_path = port.to_expr();
+            let at_least_two_labels_path = at_least_two_labels.to_expr();
 
             let parameters_impl = quote! {
                 impl #name {

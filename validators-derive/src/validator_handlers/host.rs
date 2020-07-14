@@ -299,9 +299,9 @@ pub fn host_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             let error_path: Path =
                 syn::parse2(quote! { validators_prelude::host::HostError }).unwrap();
 
-            let local_path = local.to_path();
-            let port_path = port.to_path();
-            let at_least_two_labels_path = at_least_two_labels.to_path();
+            let local_path = local.to_expr();
+            let port_path = port.to_expr();
+            let at_least_two_labels_path = at_least_two_labels.to_expr();
 
             let parameters_impl = quote! {
                 impl #name {

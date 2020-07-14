@@ -88,7 +88,7 @@ pub fn base64_url_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 )
                 .unwrap();
 
-                let padding_path = padding.to_path();
+                let padding_path = padding.to_expr();
 
                 let parameters_impl = quote! {
                     impl #name {

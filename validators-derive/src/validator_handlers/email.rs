@@ -710,11 +710,11 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             let error_path: Path =
                 syn::parse2(quote! { validators_prelude::email::EmailError }).unwrap();
 
-            let comment_path = comment.to_path();
-            let ip_path = ip.to_path();
-            let local_path = local.to_path();
-            let at_least_two_labels_path = at_least_two_labels.to_path();
-            let non_ascii_path = non_ascii.to_path();
+            let comment_path = comment.to_expr();
+            let ip_path = ip.to_expr();
+            let local_path = local.to_expr();
+            let at_least_two_labels_path = at_least_two_labels.to_expr();
+            let non_ascii_path = non_ascii.to_expr();
 
             let parameters_impl = quote! {
                 impl #name {

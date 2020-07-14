@@ -28,5 +28,7 @@ pub mod ipv6;
 pub mod json;
 #[cfg(feature = "line")]
 pub mod line;
+#[cfg(feature = "mac_address")]
+pub mod mac_address;
 #[cfg(feature = "text")]
 pub mod text;

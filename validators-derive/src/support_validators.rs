@@ -14,6 +14,7 @@
     feature = "ipv6",
     feature = "json",
     feature = "line",
+    feature = "mac_address",
     feature = "text",
 )))]
 compile_error!("at least one of the validator features must be enabled");
@@ -51,6 +52,8 @@ pub enum Validator {
     json,
     #[cfg(feature = "line")]
     line,
+    #[cfg(feature = "mac_address")]
+    mac_address,
     #[cfg(feature = "text")]
     text,
 }
@@ -91,6 +94,8 @@ impl Validator {
             "json" => Validator::json,
             #[cfg(feature = "line")]
             "line" => Validator::line,
+            #[cfg(feature = "mac_address")]
+            "mac_address" => Validator::mac_address,
             #[cfg(feature = "text")]
             "text" => Validator::text,
             _ => {
