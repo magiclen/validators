@@ -1,4 +1,4 @@
-#![cfg(feature = "line")]
+#![cfg(feature = "text")]
 
 #[macro_use]
 extern crate validators_derive;
@@ -14,7 +14,7 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(line($($p($v),)*))]
+                    #[validator(text($($p($v),)*))]
                     struct Validator(String);
 
                     fn test(s: &str, is_ok: bool) {
@@ -37,11 +37,11 @@ fn basic() {
                         }
                     }
 
-                    test("123\n456", false);
                     test("", Validator::V_EMPTY.allow());
                     test("   ", Validator::V_EMPTY.allow());
                     test("　　　", Validator::V_EMPTY.allow());
                     test("123", !Validator::V_EMPTY.must());
+                    test("123\n456", !Validator::V_EMPTY.must());
                 }
             )*
         }

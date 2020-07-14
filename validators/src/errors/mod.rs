@@ -39,3 +39,6 @@ pub mod json;
 
 #[cfg(feature = "line")]
 pub mod line;
+
+#[cfg(feature = "text")]
+pub mod text;

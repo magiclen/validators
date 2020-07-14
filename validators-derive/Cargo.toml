@@ -65,6 +65,7 @@ ipv4 = ["validators/ipv4"]
 ipv6 = ["validators/ipv6"]
 json = ["validators/json"]
 line = ["validators/line"]
+text = ["validators/text"]
 
 serde = ["validators/serde"]
 rocket = ["validators/rocket"]

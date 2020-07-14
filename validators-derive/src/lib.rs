@@ -27,7 +27,7 @@ DEFINE_YOUR_STRUCT_HERE
 
 When you add the `#[validator(validator_name)]` attribute for your structs, one or more traits in the `validators::traits` are implemented. They can be used for validation and deserialization.
 
-The struct used as a validator should have specific components according to its validator. For example, a **base32** validator must be `struct(String)` and a **base32_decoded** validator must be `struct(Vec<u8>)`.
+The struct used as a validator should have specific components according to its validator and the parameters of that validator. For example, a **base32** validator must be `struct(String)` and a **base32_decoded** validator must be `struct(Vec<u8>)`.
 
 The `#[validator(validator_name)]` attribute cannot be used for fields in any structs or enums. The reason that this crate uses a procedural macro to define a validator instead of using a struct with configuration is to make the configuration check have no overhead at runtime.
 
@@ -388,6 +388,25 @@ assert!(LineNotAllowEmpty::parse_string("123\n456").is_err());
 assert!(LineNotAllowEmpty::parse_string("   ").is_err());
 ```
 
+### text
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(text(empty(NotAllow)))]
+pub struct TextNotAllowEmpty(pub String);
+
+assert!(TextNotAllowEmpty::parse_string("123").is_ok());
+assert!(TextNotAllowEmpty::parse_string("123\0").is_err());
+assert!(TextNotAllowEmpty::parse_string("123\n456").is_ok());
+assert!(TextNotAllowEmpty::parse_string("   ").is_err());
+```
+
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -486,6 +505,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             Validator::json => return json::json_handler(ast, meta),
                                             #[cfg(feature = "line")]
                                             Validator::line => return line::line_handler(ast, meta),
+                                            #[cfg(feature = "text")]
+                                            Validator::text => return text::text_handler(ast, meta),
                                         }
                                     }
                                     NestedMeta::Lit(_) => panic::validator_format_incorrect(),
