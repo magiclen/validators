@@ -405,6 +405,8 @@ assert!(MacAddress::parse_string("080027B246C3").is_ok());
 assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 ```
 
+The default value of the `separator` option is `Allow(colon)`.
+
 ### text
 
 ```rust
