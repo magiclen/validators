@@ -36,5 +36,7 @@ pub mod number;
 pub mod semver;
 #[cfg(feature = "semver_req")]
 pub mod semver_req;
+#[cfg(feature = "signed_integer")]
+pub mod signed_integer;
 #[cfg(feature = "text")]
 pub mod text;

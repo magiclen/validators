@@ -58,14 +58,14 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 ];
 
                 let correct_usage_for_range = [
-                    stringify!(#[validator(range(Limited(max = 100.0)))]),
-                    stringify!(#[validator(range(Limited(min = 0.0)))]),
-                    stringify!(#[validator(range(Limited(min = 5.1, max = 200)))]),
+                    stringify!(#[validator(number(range(Limited(max = 100.0))))]),
+                    stringify!(#[validator(number(range(Limited(min = 0.0))))]),
+                    stringify!(#[validator(number(range(Limited(min = 5.1, max = 200))))]),
                 ];
 
                 let correct_usage_for_conflict = [
-                    stringify!(#[validator(domain(conflict(Allow)))]),
-                    stringify!(#[validator(domain(conflict(NotAllow)))]),
+                    stringify!(#[validator(number(conflict(Allow)))]),
+                    stringify!(#[validator(number(conflict(NotAllow)))]),
                 ];
 
                 match meta {

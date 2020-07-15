@@ -23,9 +23,7 @@ pub fn semver_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 match meta {
                     Meta::Path(_) => (),
-                    _ => {
-                        panic::attribute_incorrect_format("semver", &correct_usage_for_attribute)
-                    }
+                    _ => panic::attribute_incorrect_format("semver", &correct_usage_for_attribute),
                 }
 
                 let name = ast.ident;
@@ -35,9 +33,7 @@ pub fn semver_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let error_path: Path =
                     syn::parse2(quote! { validators_prelude::semver::SemVerError }).unwrap();
 
-                let parameters_impl = quote! {
-
-                };
+                let parameters_impl = quote! {};
 
                 let v_parse_str = quote! {
                     #[inline]

@@ -422,6 +422,7 @@ pub struct Double(pub f64);
 
 assert!(Double::parse_string("123.456").is_ok());
 assert!(Double::parse_string("NaN").is_err());
+assert!(Double::parse_f32(123.4).is_ok());
 
 #[derive(Validator)]
 #[validator(number(nan(Allow), range(Limited(min = 0, max = 1.0))))]
@@ -467,6 +468,24 @@ pub struct SemVerReq(semver::VersionReq);
 
 assert!(SemVerReq::parse_string("0.0.0").is_ok());
 assert!(SemVerReq::parse_string(">= 0.4").is_ok());
+```
+
+### signed_integer
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(signed_integer(range(Limited(min = -1, max = 100))))]
+pub struct Score(i8);
+
+assert!(Score::parse_string("0").is_ok());
+assert!(Score::parse_string("-2").is_err());
+assert!(Score::parse_i8(4).is_ok());
 ```
 
 ### text
@@ -614,6 +633,12 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         #[cfg(feature = "semver_req")]
                                         Validator::semver_req => {
                                             return semver_req::semver_req_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "signed_integer")]
+                                        Validator::signed_integer => {
+                                            return signed_integer::signed_integer_handler(
+                                                ast, meta,
+                                            )
                                         }
                                         #[cfg(feature = "text")]
                                         Validator::text => return text::text_handler(ast, meta),

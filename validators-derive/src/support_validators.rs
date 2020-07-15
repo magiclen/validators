@@ -18,6 +18,7 @@
     feature = "number",
     feature = "semver",
     feature = "semver_req",
+    feature = "signed_integer",
     feature = "text",
 )))]
 compile_error!("at least one of the validator features must be enabled");
@@ -63,6 +64,8 @@ pub enum Validator {
     semver,
     #[cfg(feature = "semver_req")]
     semver_req,
+    #[cfg(feature = "signed_integer")]
+    signed_integer,
     #[cfg(feature = "text")]
     text,
 }
@@ -111,6 +114,8 @@ impl Validator {
             "semver" => Validator::semver,
             #[cfg(feature = "semver_req")]
             "semver_req" => Validator::semver_req,
+            #[cfg(feature = "signed_integer")]
+            "signed_integer" => Validator::signed_integer,
             #[cfg(feature = "text")]
             "text" => Validator::text,
             _ => {
