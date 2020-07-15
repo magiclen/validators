@@ -425,7 +425,7 @@ assert!(Double::parse_string("NaN").is_err());
 assert!(Double::parse_f32(123.4).is_ok());
 
 #[derive(Validator)]
-#[validator(number(nan(Allow), range(Limited(min = 0, max = 1.0))))]
+#[validator(number(nan(Allow), range(Inside(min = 0, max = 1.0))))]
 pub struct SinglePercentage(pub f32);
 
 assert!(SinglePercentage::parse_string("0").is_ok());
@@ -480,7 +480,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(signed_integer(range(Limited(min = -1, max = 100))))]
+#[validator(signed_integer(range(Inside(min = -1, max = 100))))]
 pub struct Score(i8);
 
 assert!(Score::parse_string("0").is_ok());
@@ -517,7 +517,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(unsigned_integer(range(Limited(min = 1, max = 100))))]
+#[validator(unsigned_integer(range(Inside(min = 1, max = 100))))]
 pub struct Count(u8);
 
 assert!(Count::parse_string("5").is_ok());

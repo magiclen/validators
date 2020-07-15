@@ -10,7 +10,7 @@ use validators::validators_options::ValidatorRangeOption;
 
 fn check_range<T: PartialOrd>(v: T, range: ValidatorRangeOption<T>) -> bool {
     match range {
-        ValidatorRangeOption::Limited {
+        ValidatorRangeOption::Inside {
             max,
             min,
         } => {
@@ -147,13 +147,13 @@ fn basic() {
             range => NotLimited,
         },
         {
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
     }
 
@@ -162,13 +162,13 @@ fn basic() {
             range => NotLimited,
         },
         {
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
     }
 
@@ -177,13 +177,13 @@ fn basic() {
             range => NotLimited,
         },
         {
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
     }
 }

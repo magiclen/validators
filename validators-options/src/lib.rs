@@ -143,7 +143,7 @@ impl ValidatorSeparatorOption {
 #[derive(Debug, Clone, PartialEq, Eq, Educe)]
 #[educe(Default)]
 pub enum ValidatorRangeOption<T> {
-    Limited {
+    Inside {
         min: Option<T>,
         max: Option<T>,
     },
@@ -162,8 +162,8 @@ macro_rules! validator_range_option_impl {
                 }
 
                 #[inline]
-                pub fn limited(&self) -> Option<(Option<$ty>, Option<$ty>)> {
-                    if let ValidatorRangeOption::Limited {
+                pub fn inside(&self) -> Option<(Option<$ty>, Option<$ty>)> {
+                    if let ValidatorRangeOption::Inside {
                         min, max
                     } = self {
                         Some((*min, *max))

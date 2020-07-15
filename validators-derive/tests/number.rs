@@ -10,7 +10,7 @@ use validators::validators_options::ValidatorRangeOption;
 
 fn check_range<T: PartialOrd>(v: T, range: ValidatorRangeOption<T>) -> bool {
     match range {
-        ValidatorRangeOption::Limited {
+        ValidatorRangeOption::Inside {
             max,
             min,
         } => {
@@ -137,39 +137,39 @@ fn basic() {
         },
         {
             nan => Allow,
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
             nan => Must,
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
             nan => NotAllow,
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
             nan => Allow,
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
             nan => Must,
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
             nan => NotAllow,
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
             nan => Allow,
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
         {
             nan => Must,
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
         {
             nan => NotAllow,
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
     }
 
@@ -188,39 +188,39 @@ fn basic() {
         },
         {
             nan => Allow,
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
             nan => Must,
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
             nan => NotAllow,
-            range => Limited(min = 0),
+            range => Inside(min = 0),
         },
         {
             nan => Allow,
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
             nan => Must,
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
             nan => NotAllow,
-            range => Limited(max = 0),
+            range => Inside(max = 0),
         },
         {
             nan => Allow,
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
         {
             nan => Must,
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
         {
             nan => NotAllow,
-            range => Limited(min = 0, max = 0),
+            range => Inside(min = 0, max = 0),
         },
     }
 }

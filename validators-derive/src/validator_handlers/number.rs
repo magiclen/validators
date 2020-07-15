@@ -58,9 +58,9 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 ];
 
                 let correct_usage_for_range = [
-                    stringify!(#[validator(number(range(Limited(max = 100.0))))]),
-                    stringify!(#[validator(number(range(Limited(min = 0.0))))]),
-                    stringify!(#[validator(number(range(Limited(min = 5.1, max = 200))))]),
+                    stringify!(#[validator(number(range(Inside(max = 100.0))))]),
+                    stringify!(#[validator(number(range(Inside(min = 0.0))))]),
+                    stringify!(#[validator(number(range(Inside(min = 5.1, max = 200))))]),
                 ];
 
                 let correct_usage_for_conflict = [
@@ -146,12 +146,12 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     NumberType::F32 => {
                         let expr = range_f32.to_expr();
 
-                        if let ValidatorRangeOption::Limited {
+                        if let ValidatorRangeOption::Inside {
                             min,
                             max,
                         } = range_f32
                         {
-                            range = ValidatorRangeOption::Limited {
+                            range = ValidatorRangeOption::Inside {
                                 min: min.map(|f| f as f64),
                                 max: max.map(|f| f as f64),
                             }
@@ -164,9 +164,9 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let mut _meta_is_conflict = false;
 
-                if nan.must() && range.limited().is_some() {
+                if nan.must() && range.inside().is_some() {
                     if conflict.not_allow() {
-                        panic!("`nan(Must)` and `range(Limited)` cannot be used together.");
+                        panic!("`nan(Must)` and `range(Inside)` cannot be used together.");
                     }
 
                     _meta_is_conflict = true;
@@ -201,7 +201,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let handle_range = {
                     match range {
-                        ValidatorRangeOption::Limited {
+                        ValidatorRangeOption::Inside {
                             min,
                             max,
                         } => {
@@ -356,7 +356,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         let mut s = String::from("a number");
 
                         match range {
-                            ValidatorRangeOption::Limited {
+                            ValidatorRangeOption::Inside {
                                 min,
                                 max,
                             } => {

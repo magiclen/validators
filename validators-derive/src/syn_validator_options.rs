@@ -255,7 +255,7 @@ macro_rules! validator_range_option_impl {
 
                         if let NestedMeta::Meta(meta) = p {
                             if let Some(ident) = meta.path().get_ident() {
-                                if ident == "Limited" {
+                                if ident == "Inside" {
                                     if let Meta::List(list) = meta {
                                         let length = list.nested.len();
 
@@ -368,7 +368,7 @@ macro_rules! validator_range_option_impl {
                                                 }
                                             }
 
-                                            ValidatorRangeOption::Limited {
+                                            ValidatorRangeOption::Inside {
                                                 min,
                                                 max,
                                             }
@@ -397,25 +397,25 @@ macro_rules! validator_range_option_impl {
                 #[inline]
                 fn to_expr(&self) -> Expr {
                     match self {
-                        ValidatorRangeOption::Limited { min, max } => {
+                        ValidatorRangeOption::Inside { min, max } => {
                             match min {
                                 Some(min) => {
                                     match max {
                                         Some(max) => {
-                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Limited { min: Some(#min), max: Some(#max) } }).unwrap()
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Inside { min: Some(#min), max: Some(#max) } }).unwrap()
                                         }
                                         None => {
-                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Limited { min: Some(#min), max: None } }).unwrap()
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Inside { min: Some(#min), max: None } }).unwrap()
                                         }
                                     }
                                 }
                                 None => {
                                     match max {
                                         Some(max) => {
-                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Limited { min: None, max: Some(#max) } }).unwrap()
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Inside { min: None, max: Some(#max) } }).unwrap()
                                         }
                                         None => {
-                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Limited { min: None, max: None } }).unwrap()
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Inside { min: None, max: None } }).unwrap()
                                         }
                                     }
                                 }
