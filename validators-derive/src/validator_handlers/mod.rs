@@ -40,3 +40,5 @@ pub mod semver_req;
 pub mod signed_integer;
 #[cfg(feature = "text")]
 pub mod text;
+#[cfg(feature = "unsigned_integer")]
+pub mod unsigned_integer;

@@ -53,6 +53,7 @@ full = [
     "semver",
     "semver_req",
     "signed_integer",
+    "unsigned_integer",
     "text",
 ]
 
@@ -77,6 +78,7 @@ semver = ["validators/semver"]
 semver_req = ["validators/semver_req"]
 signed_integer = ["validators/signed_integer"]
 text = ["validators/text"]
+unsigned_integer = ["validators/unsigned_integer"]
 
 serde = ["validators/serde"]
 rocket = ["validators/rocket"]

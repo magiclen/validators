@@ -507,6 +507,24 @@ assert!(TextNotAllowEmpty::parse_string("123\n456").is_ok());
 assert!(TextNotAllowEmpty::parse_string("   ").is_err());
 ```
 
+### unsigned_integer
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(unsigned_integer(range(Limited(min = 1, max = 100))))]
+pub struct Count(u8);
+
+assert!(Count::parse_string("5").is_ok());
+assert!(Count::parse_string("0").is_err());
+assert!(Count::parse_u8(4).is_ok());
+```
+
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -642,6 +660,12 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         }
                                         #[cfg(feature = "text")]
                                         Validator::text => return text::text_handler(ast, meta),
+                                        #[cfg(feature = "unsigned_integer")]
+                                        Validator::unsigned_integer => {
+                                            return unsigned_integer::unsigned_integer_handler(
+                                                ast, meta,
+                                            )
+                                        }
                                     }
                                 }
                                 NestedMeta::Lit(_) => panic::validator_format_incorrect(),

@@ -48,6 +48,7 @@ number = []
 semver = ["semver-dep"]
 semver_req = ["semver-dep"]
 signed_integer = []
+unsigned_integer = []
 text = []
 
 serde = ["serde-dep", "semver-dep/serde"]
