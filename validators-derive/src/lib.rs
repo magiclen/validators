@@ -460,7 +460,7 @@ static RE_POKER: Lazy<regex::Regex> = Lazy::new(|| {
 
 #[derive(Validator)]
 #[validator(regex("^[0-9a-fA-F]+$"))]
-pub struct Hex(pub String); // compile the regex every time
+pub struct Hex(pub String); // this compiles the regex every time
 
 #[derive(Validator)]
 #[validator(regex(RE_NON_ZERO_NUMBERS))]
@@ -534,6 +534,14 @@ pub struct Score(i8);
 assert!(Score::parse_string("0").is_ok());
 assert!(Score::parse_string("-2").is_err());
 assert!(Score::parse_i8(4).is_ok());
+
+#[derive(Validator)]
+#[validator(signed_integer(range(Outside(min = 0, max = 0))))]
+pub struct NonZeroShort(i16);
+
+assert!(NonZeroShort::parse_i8(4).is_ok());
+assert!(NonZeroShort::parse_i8(-4).is_ok());
+assert!(NonZeroShort::parse_i8(0).is_err());
 ```
 
 ### text
@@ -571,13 +579,6 @@ pub struct Count(u8);
 assert!(Count::parse_string("5").is_ok());
 assert!(Count::parse_string("0").is_err());
 assert!(Count::parse_u8(4).is_ok());
-
-#[derive(Validator)]
-#[validator(unsigned_integer(range(Outside(min = 0, max = 0))))]
-pub struct NonZeroUnsignedShort(u16);
-
-assert!(NonZeroUnsignedShort::parse_u8(4).is_ok());
-assert!(NonZeroUnsignedShort::parse_u8(0).is_err());
 ```
 
 ### uuid
