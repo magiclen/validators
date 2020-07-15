@@ -19,7 +19,7 @@ pub extern crate idna;
 #[cfg(feature = "serde_json")]
 pub extern crate serde_json;
 
-#[cfg(feature = "semver")]
+#[cfg(feature = "semver-dep")]
 pub extern crate semver_dep as semver;
 
 #[cfg(feature = "serde")]
@@ -65,7 +65,7 @@ pub mod prelude {
         #[cfg(feature = "serde_json")]
         pub use crate::serde_json;
 
-        #[cfg(feature = "semver")]
+        #[cfg(feature = "semver-dep")]
         pub use crate::semver;
 
         #[cfg(feature = "serde")]

@@ -51,6 +51,7 @@ full = [
     "mac_address",
     "number",
     "semver",
+    "semver_req",
     "text",
 ]
 
@@ -72,6 +73,7 @@ line = ["validators/line"]
 mac_address = ["validators/mac_address"]
 number = ["validators/number"]
 semver = ["validators/semver"]
+semver_req = ["validators/semver_req"]
 text = ["validators/text"]
 
 serde = ["validators/serde"]

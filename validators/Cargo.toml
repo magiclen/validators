@@ -46,6 +46,7 @@ line = []
 mac_address = []
 number = []
 semver = ["semver-dep"]
+semver_req = ["semver-dep"]
 text = []
 
 serde = ["serde-dep", "semver-dep/serde"]

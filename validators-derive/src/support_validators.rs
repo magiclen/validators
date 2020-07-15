@@ -17,6 +17,7 @@
     feature = "mac_address",
     feature = "number",
     feature = "semver",
+    feature = "semver_req",
     feature = "text",
 )))]
 compile_error!("at least one of the validator features must be enabled");
@@ -60,6 +61,8 @@ pub enum Validator {
     number,
     #[cfg(feature = "semver")]
     semver,
+    #[cfg(feature = "semver_req")]
+    semver_req,
     #[cfg(feature = "text")]
     text,
 }
@@ -106,6 +109,8 @@ impl Validator {
             "number" => Validator::number,
             #[cfg(feature = "semver")]
             "semver" => Validator::semver,
+            #[cfg(feature = "semver_req")]
+            "semver_req" => Validator::semver_req,
             #[cfg(feature = "text")]
             "text" => Validator::text,
             _ => {

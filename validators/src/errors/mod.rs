@@ -34,5 +34,7 @@ pub mod mac_address;
 pub mod number;
 #[cfg(feature = "semver")]
 pub mod semver;
+#[cfg(feature = "semver_req")]
+pub mod semver_req;
 #[cfg(feature = "text")]
 pub mod text;
