@@ -1,7 +1,7 @@
 /*!
 # Validators
 
-This crate provides models, function traits, errors and other dependencies used with the [`validators-derive`](https://crates.io/crates/validators-derive) crate.
+This crate provides models, function, traits, errors and other dependencies used with the [`validators-derive`](https://crates.io/crates/validators-derive) crate.
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
