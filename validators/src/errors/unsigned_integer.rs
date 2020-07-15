@@ -9,6 +9,7 @@ pub enum UnsignedIntegerError {
     ParseIntError(ParseIntError),
     TooLarge,
     TooSmall,
+    Forbidden,
 }
 
 impl From<ParseIntError> for UnsignedIntegerError {
@@ -25,6 +26,7 @@ impl Display for UnsignedIntegerError {
             UnsignedIntegerError::ParseIntError(error) => Display::fmt(error, f),
             UnsignedIntegerError::TooLarge => f.write_str("integer is too large"),
             UnsignedIntegerError::TooSmall => f.write_str("integer is too small"),
+            UnsignedIntegerError::Forbidden => f.write_str("integer is forbidden"),
         }
     }
 }

@@ -146,15 +146,26 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     NumberType::F32 => {
                         let expr = range_f32.to_expr();
 
-                        if let ValidatorRangeOption::Inside {
-                            min,
-                            max,
-                        } = range_f32
-                        {
-                            range = ValidatorRangeOption::Inside {
-                                min: min.map(|f| f as f64),
-                                max: max.map(|f| f as f64),
+                        match range_f32 {
+                            ValidatorRangeOption::Inside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Inside {
+                                    min: min.map(|f| f as f64),
+                                    max: max.map(|f| f as f64),
+                                }
                             }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Outside {
+                                    min: min.map(|f| f as f64),
+                                    max: max.map(|f| f as f64),
+                                }
+                            }
+                            ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as f32}))
@@ -224,6 +235,53 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
 
                             token_stream
+                        }
+                        ValidatorRangeOption::Outside {
+                            min,
+                            max,
+                        } => {
+                            match min {
+                                Some(min) => {
+                                    match max {
+                                        Some(max) => {
+                                            if (min - max).abs() < 1e-10 {
+                                                quote! {
+                                                    if (f - #min #cast).abs() < 1e-10 {
+                                                        return Err(#error_path::Forbidden);
+                                                    }
+                                                }
+                                            } else {
+                                                quote! {
+                                                    if f >= #min #cast && f <= #max #cast {
+                                                        return Err(#error_path::Forbidden);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        None => {
+                                            quote! {
+                                                if f >= #min #cast {
+                                                    return Err(#error_path::Forbidden);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                None => {
+                                    match max {
+                                        Some(max) => {
+                                            quote! {
+                                                if f <= #max #cast {
+                                                    return Err(#error_path::Forbidden);
+                                                }
+                                            }
+                                        }
+                                        None => {
+                                            quote! {}
+                                        }
+                                    }
+                                }
+                            }
                         }
                         ValidatorRangeOption::NotLimited => quote! {},
                     }
@@ -363,13 +421,29 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 s.push_str(" in ");
 
                                 if let Some(min) = min {
-                                    s.write_fmt(format_args!("{:.1}", min)).unwrap();
+                                    s.write_fmt(format_args!("{:.6}", min)).unwrap();
                                 }
 
                                 s.push_str("..");
 
                                 if let Some(max) = max {
-                                    s.write_fmt(format_args!("{:.1}", max)).unwrap();
+                                    s.write_fmt(format_args!("={:.6}", max)).unwrap();
+                                }
+                            }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                s.push_str(" not in ");
+
+                                if let Some(min) = min {
+                                    s.write_fmt(format_args!("{:.6}", min)).unwrap();
+                                }
+
+                                s.push_str("..");
+
+                                if let Some(max) = max {
+                                    s.write_fmt(format_args!("={:.6}", max)).unwrap();
                                 }
                             }
                             ValidatorRangeOption::NotLimited => (),

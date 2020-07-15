@@ -235,6 +235,123 @@ fn fetch_separator(meta_name: &str, meta: &Meta, correct_usage: &[&str]) -> u8 {
     }
 }
 
+macro_rules! fetch_range {
+    ($variant:ident, $meta_name:expr, $meta:expr, $correct_usage:expr) => {
+        if let Meta::List(list) = $meta {
+            let length = list.nested.len();
+
+            if length >= 1 && length <= 2 {
+                let mut min = None;
+                let mut max = None;
+
+                let mut min_is_set = false;
+                let mut max_is_set = false;
+
+                for p in list.nested.iter() {
+                    match p {
+                        NestedMeta::Meta(meta) => {
+                            if let Meta::NameValue(name_value) = meta {
+                                match &name_value.lit {
+                                    Lit::Float(f) => {
+                                        if let Some(ident) = meta.path().get_ident() {
+                                            if ident == "min" {
+                                                if min_is_set {
+                                                    panic::reset_parameter("min");
+                                                }
+
+                                                min_is_set = true;
+
+                                                min = Some(f.base10_digits().parse().unwrap());
+                                            } else if ident == "max" {
+                                                if max_is_set {
+                                                    panic::reset_parameter("max");
+                                                }
+
+                                                max_is_set = true;
+
+                                                max = Some(f.base10_digits().parse().unwrap());
+                                            } else {
+                                                panic::parameter_incorrect_format(
+                                                    $meta_name,
+                                                    &$correct_usage,
+                                                );
+                                            }
+                                        } else {
+                                            panic::parameter_incorrect_format(
+                                                $meta_name,
+                                                &$correct_usage,
+                                            );
+                                        }
+                                    }
+                                    Lit::Int(i) => {
+                                        if let Some(ident) = meta.path().get_ident() {
+                                            if ident == "min" {
+                                                if min_is_set {
+                                                    panic::reset_parameter("min");
+                                                }
+
+                                                min_is_set = true;
+
+                                                min = Some(i.base10_digits().parse().unwrap());
+                                            } else if ident == "max" {
+                                                if max_is_set {
+                                                    panic::reset_parameter("max");
+                                                }
+
+                                                max_is_set = true;
+
+                                                max = Some(i.base10_digits().parse().unwrap());
+                                            } else {
+                                                panic::parameter_incorrect_format(
+                                                    $meta_name,
+                                                    &$correct_usage,
+                                                );
+                                            }
+                                        } else {
+                                            panic::parameter_incorrect_format(
+                                                $meta_name,
+                                                &$correct_usage,
+                                            );
+                                        }
+                                    }
+                                    _ => {
+                                        panic::parameter_incorrect_format(
+                                            $meta_name,
+                                            &$correct_usage,
+                                        );
+                                    }
+                                }
+                            } else {
+                                panic::parameter_incorrect_format($meta_name, &$correct_usage);
+                            }
+                        }
+                        NestedMeta::Lit(_) => {
+                            panic::parameter_incorrect_format($meta_name, &$correct_usage);
+                        }
+                    }
+                }
+
+                if let Some(min) = min {
+                    if let Some(max) = max {
+                        if min > max {
+                            panic!("{} > {} (min > max)", min, max);
+                        }
+                    }
+                }
+
+                ValidatorRangeOption::$variant {
+                    min,
+                    max,
+                }
+            } else {
+                panic::parameter_incorrect_format($meta_name, &$correct_usage);
+            }
+        } else {
+            panic::parameter_incorrect_format($meta_name, &$correct_usage);
+        }
+    };
+}
+
 macro_rules! validator_range_option_impl {
     ($($ty:ident),* $(,)*) => {
         $(
@@ -256,128 +373,9 @@ macro_rules! validator_range_option_impl {
                         if let NestedMeta::Meta(meta) = p {
                             if let Some(ident) = meta.path().get_ident() {
                                 if ident == "Inside" {
-                                    if let Meta::List(list) = meta {
-                                        let length = list.nested.len();
-
-                                        if length >= 1 && length <= 2 {
-                                            let mut min = None;
-                                            let mut max = None;
-
-                                            let mut min_is_set = false;
-                                            let mut max_is_set = false;
-
-                                            for p in list.nested.iter() {
-                                                match p {
-                                                    NestedMeta::Meta(meta) => {
-                                                        if let Meta::NameValue(name_value) = meta {
-                                                            match &name_value.lit {
-                                                                Lit::Float(f) => {
-                                                                    if let Some(ident) = meta.path().get_ident() {
-                                                                        if ident == "min" {
-                                                                            if min_is_set {
-                                                                                panic::reset_parameter("min");
-                                                                            }
-
-                                                                            min_is_set = true;
-
-                                                                            min = Some(
-                                                                                f.base10_digits().parse().unwrap(),
-                                                                            );
-                                                                        } else if ident == "max" {
-                                                                            if max_is_set {
-                                                                                panic::reset_parameter("max");
-                                                                            }
-
-                                                                            max_is_set = true;
-
-                                                                            max = Some(f.base10_digits().parse().unwrap());
-                                                                        } else {
-                                                                            panic::parameter_incorrect_format(
-                                                                                meta_name,
-                                                                                &correct_usage,
-                                                                            );
-                                                                        }
-                                                                    } else {
-                                                                        panic::parameter_incorrect_format(
-                                                                            meta_name,
-                                                                            &correct_usage,
-                                                                        );
-                                                                    }
-                                                                }
-                                                                Lit::Int(i) => {
-                                                                    if let Some(ident) = meta.path().get_ident() {
-                                                                        if ident == "min" {
-                                                                            if min_is_set {
-                                                                                panic::reset_parameter("min");
-                                                                            }
-
-                                                                            min_is_set = true;
-
-                                                                            min = Some(
-                                                                                i.base10_digits().parse().unwrap(),
-                                                                            );
-                                                                        } else if ident == "max" {
-                                                                            if max_is_set {
-                                                                                panic::reset_parameter("max");
-                                                                            }
-
-                                                                            max_is_set = true;
-
-                                                                            max = Some(i.base10_digits().parse().unwrap());
-                                                                        } else {
-                                                                            panic::parameter_incorrect_format(
-                                                                                meta_name,
-                                                                                &correct_usage,
-                                                                            );
-                                                                        }
-                                                                    } else {
-                                                                        panic::parameter_incorrect_format(
-                                                                            meta_name,
-                                                                            &correct_usage,
-                                                                        );
-                                                                    }
-                                                                }
-                                                                _ => {
-                                                                    panic::parameter_incorrect_format(
-                                                                        meta_name,
-                                                                        &correct_usage,
-                                                                    );
-                                                                }
-                                                            }
-                                                        } else {
-                                                            panic::parameter_incorrect_format(
-                                                                meta_name,
-                                                                &correct_usage,
-                                                            );
-                                                        }
-                                                    }
-                                                    NestedMeta::Lit(_) => {
-                                                        panic::parameter_incorrect_format(
-                                                            meta_name,
-                                                            &correct_usage,
-                                                        );
-                                                    }
-                                                }
-                                            }
-
-                                            if let Some(min) = min {
-                                                if let Some(max) = max {
-                                                    if min > max {
-                                                        panic!("{} > {} (min > max)", min, max);
-                                                    }
-                                                }
-                                            }
-
-                                            ValidatorRangeOption::Inside {
-                                                min,
-                                                max,
-                                            }
-                                        } else {
-                                            panic::parameter_incorrect_format(meta_name, &correct_usage);
-                                        }
-                                    } else {
-                                        panic::parameter_incorrect_format(meta_name, &correct_usage);
-                                    }
+                                    fetch_range!(Inside, meta_name, meta, correct_usage)
+                                } else if ident == "Outside" {
+                                    fetch_range!(Outside, meta_name, meta, correct_usage)
                                 } else if ident == "NotLimited" {
                                     ValidatorRangeOption::NotLimited
                                 } else {
@@ -416,6 +414,30 @@ macro_rules! validator_range_option_impl {
                                         }
                                         None => {
                                             syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Inside { min: None, max: None } }).unwrap()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ValidatorRangeOption::Outside { min, max } => {
+                            match min {
+                                Some(min) => {
+                                    match max {
+                                        Some(max) => {
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Outside { min: Some(#min), max: Some(#max) } }).unwrap()
+                                        }
+                                        None => {
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Outside { min: Some(#min), max: None } }).unwrap()
+                                        }
+                                    }
+                                }
+                                None => {
+                                    match max {
+                                        Some(max) => {
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Outside { min: None, max: Some(#max) } }).unwrap()
+                                        }
+                                        None => {
+                                            syn::parse2(quote! { validators_prelude::ValidatorRangeOption::<$ty>::Outside { min: None, max: None } }).unwrap()
                                         }
                                     }
                                 }

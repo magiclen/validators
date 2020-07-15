@@ -523,6 +523,13 @@ pub struct Count(u8);
 assert!(Count::parse_string("5").is_ok());
 assert!(Count::parse_string("0").is_err());
 assert!(Count::parse_u8(4).is_ok());
+
+#[derive(Validator)]
+#[validator(unsigned_integer(range(Outside(min = 0, max = 0))))]
+pub struct NonZeroUnsignedShort(u16);
+
+assert!(NonZeroUnsignedShort::parse_u8(4).is_ok());
+assert!(NonZeroUnsignedShort::parse_u8(0).is_err());
 ```
 
 */

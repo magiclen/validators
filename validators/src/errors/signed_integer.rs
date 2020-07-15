@@ -9,6 +9,7 @@ pub enum SignedIntegerError {
     ParseIntError(ParseIntError),
     TooLarge,
     TooSmall,
+    Forbidden,
 }
 
 impl From<ParseIntError> for SignedIntegerError {
@@ -25,6 +26,7 @@ impl Display for SignedIntegerError {
             SignedIntegerError::ParseIntError(error) => Display::fmt(error, f),
             SignedIntegerError::TooLarge => f.write_str("integer is too large"),
             SignedIntegerError::TooSmall => f.write_str("integer is too small"),
+            SignedIntegerError::Forbidden => f.write_str("integer is forbidden"),
         }
     }
 }

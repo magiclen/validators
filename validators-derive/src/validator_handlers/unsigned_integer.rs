@@ -160,15 +160,26 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     UnsignedIntegerType::Usize => {
                         let expr = range_usize.to_expr();
 
-                        if let ValidatorRangeOption::Inside {
-                            min,
-                            max,
-                        } = range_usize
-                        {
-                            range = ValidatorRangeOption::Inside {
-                                min: min.map(|u| u as u128),
-                                max: max.map(|u| u as u128),
+                        match range_usize {
+                            ValidatorRangeOption::Inside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Inside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
                             }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Outside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
+                            }
+                            ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as usize}))
@@ -176,15 +187,26 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     UnsignedIntegerType::U8 => {
                         let expr = range_u8.to_expr();
 
-                        if let ValidatorRangeOption::Inside {
-                            min,
-                            max,
-                        } = range_u8
-                        {
-                            range = ValidatorRangeOption::Inside {
-                                min: min.map(|u| u as u128),
-                                max: max.map(|u| u as u128),
+                        match range_u8 {
+                            ValidatorRangeOption::Inside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Inside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
                             }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Outside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
+                            }
+                            ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u8}))
@@ -192,15 +214,26 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     UnsignedIntegerType::U16 => {
                         let expr = range_u16.to_expr();
 
-                        if let ValidatorRangeOption::Inside {
-                            min,
-                            max,
-                        } = range_u16
-                        {
-                            range = ValidatorRangeOption::Inside {
-                                min: min.map(|u| u as u128),
-                                max: max.map(|u| u as u128),
+                        match range_u16 {
+                            ValidatorRangeOption::Inside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Inside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
                             }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Outside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
+                            }
+                            ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u16}))
@@ -208,15 +241,26 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     UnsignedIntegerType::U32 => {
                         let expr = range_u32.to_expr();
 
-                        if let ValidatorRangeOption::Inside {
-                            min,
-                            max,
-                        } = range_u32
-                        {
-                            range = ValidatorRangeOption::Inside {
-                                min: min.map(|u| u as u128),
-                                max: max.map(|u| u as u128),
+                        match range_u32 {
+                            ValidatorRangeOption::Inside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Inside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
                             }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Outside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
+                            }
+                            ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u32}))
@@ -224,15 +268,26 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     UnsignedIntegerType::U64 => {
                         let expr = range_u64.to_expr();
 
-                        if let ValidatorRangeOption::Inside {
-                            min,
-                            max,
-                        } = range_u64
-                        {
-                            range = ValidatorRangeOption::Inside {
-                                min: min.map(|u| u as u128),
-                                max: max.map(|u| u as u128),
+                        match range_u64 {
+                            ValidatorRangeOption::Inside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Inside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
                             }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                range = ValidatorRangeOption::Outside {
+                                    min: min.map(|u| u as u128),
+                                    max: max.map(|u| u as u128),
+                                }
+                            }
+                            ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u64}))
@@ -291,6 +346,53 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
 
                             token_stream
+                        }
+                        ValidatorRangeOption::Outside {
+                            min,
+                            max,
+                        } => {
+                            match min {
+                                Some(min) => {
+                                    match max {
+                                        Some(max) => {
+                                            if min == max {
+                                                quote! {
+                                                    if u == #min #cast {
+                                                        return Err(#error_path::Forbidden);
+                                                    }
+                                                }
+                                            } else {
+                                                quote! {
+                                                    if u >= #min #cast && u <= #max #cast {
+                                                        return Err(#error_path::Forbidden);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        None => {
+                                            quote! {
+                                                if u >= #min #cast {
+                                                    return Err(#error_path::Forbidden);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                None => {
+                                    match max {
+                                        Some(max) => {
+                                            quote! {
+                                                if u <= #max #cast {
+                                                    return Err(#error_path::Forbidden);
+                                                }
+                                            }
+                                        }
+                                        None => {
+                                            quote! {}
+                                        }
+                                    }
+                                }
+                            }
                         }
                         ValidatorRangeOption::NotLimited => quote! {},
                     }
@@ -599,7 +701,23 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 s.push_str("..");
 
                                 if let Some(max) = max {
-                                    s.write_fmt(format_args!("{}", max)).unwrap();
+                                    s.write_fmt(format_args!("={}", max)).unwrap();
+                                }
+                            }
+                            ValidatorRangeOption::Outside {
+                                min,
+                                max,
+                            } => {
+                                s.push_str(" not in ");
+
+                                if let Some(min) = min {
+                                    s.write_fmt(format_args!("{}", min)).unwrap();
+                                }
+
+                                s.push_str("..");
+
+                                if let Some(max) = max {
+                                    s.write_fmt(format_args!("={}", max)).unwrap();
                                 }
                             }
                             ValidatorRangeOption::NotLimited => (),

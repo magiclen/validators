@@ -28,6 +28,25 @@ fn check_range<T: PartialOrd>(v: T, range: ValidatorRangeOption<T>) -> bool {
 
             true
         }
+        ValidatorRangeOption::Outside {
+            max,
+            min,
+        } => {
+            match min {
+                Some(min) => {
+                    match max {
+                        Some(max) => !(v >= min && v <= max),
+                        None => v < min,
+                    }
+                }
+                None => {
+                    match max {
+                        Some(max) => v > max,
+                        None => true,
+                    }
+                }
+            }
+        }
         ValidatorRangeOption::NotLimited => true,
     }
 }
@@ -154,6 +173,9 @@ fn basic() {
         {
             range => Inside(min = 0, max = 0),
         },
+        {
+            range => Outside(min = 0, max = 0),
+        },
     }
 
     test2! {
@@ -169,6 +191,9 @@ fn basic() {
         {
             range => Inside(min = 0, max = 0),
         },
+        {
+            range => Outside(min = 0, max = 0),
+        },
     }
 
     test3! {
@@ -183,6 +208,9 @@ fn basic() {
         },
         {
             range => Inside(min = 0, max = 0),
+        },
+        {
+            range => Outside(min = 0, max = 0),
         },
     }
 }

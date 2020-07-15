@@ -9,6 +9,7 @@ pub enum NumberError {
     ParseFloatError(ParseFloatError),
     TooLarge,
     TooSmall,
+    Forbidden,
     NaNMust,
     NaNNotAllow,
 }
@@ -27,6 +28,7 @@ impl Display for NumberError {
             NumberError::ParseFloatError(error) => Display::fmt(error, f),
             NumberError::TooLarge => f.write_str("number is too large"),
             NumberError::TooSmall => f.write_str("number is too small"),
+            NumberError::Forbidden => f.write_str("number is forbidden"),
             NumberError::NaNMust => f.write_str("must be NaN"),
             NumberError::NaNNotAllow => f.write_str("must not be NaN"),
         }

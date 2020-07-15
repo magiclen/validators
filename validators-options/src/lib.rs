@@ -147,6 +147,10 @@ pub enum ValidatorRangeOption<T> {
         min: Option<T>,
         max: Option<T>,
     },
+    Outside {
+        min: Option<T>,
+        max: Option<T>,
+    },
     #[educe(Default)]
     NotLimited,
 }
@@ -164,6 +168,17 @@ macro_rules! validator_range_option_impl {
                 #[inline]
                 pub fn inside(&self) -> Option<(Option<$ty>, Option<$ty>)> {
                     if let ValidatorRangeOption::Inside {
+                        min, max
+                    } = self {
+                        Some((*min, *max))
+                    } else {
+                        None
+                    }
+                }
+
+                #[inline]
+                pub fn outside(&self) -> Option<(Option<$ty>, Option<$ty>)> {
+                    if let ValidatorRangeOption::Outside {
                         min, max
                     } = self {
                         Some((*min, *max))
