@@ -3,19 +3,19 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
-use crate::serde_json;
+use crate::semver;
 
 #[derive(Debug)]
-pub struct JSONError(pub serde_json::Error);
+pub struct SemVerError(pub semver::SemVerError);
 
-impl From<serde_json::Error> for JSONError {
+impl From<semver::SemVerError> for SemVerError {
     #[inline]
-    fn from(error: serde_json::Error) -> Self {
-        JSONError(error)
+    fn from(error: semver::SemVerError) -> Self {
+        SemVerError(error)
     }
 }
 
-impl Display for JSONError {
+impl Display for SemVerError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         Display::fmt(&self.0, f)
@@ -23,4 +23,4 @@ impl Display for JSONError {
 }
 
 #[cfg(feature = "std")]
-impl Error for JSONError {}
+impl Error for SemVerError {}

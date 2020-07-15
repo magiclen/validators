@@ -47,9 +47,11 @@ full = [
     "ipv4",
     "ipv6",
     "json",
+    "line",
     "mac_address",
     "number",
-    "line",
+    "semver",
+    "text",
 ]
 
 base32 = ["validators/base32"]
@@ -69,6 +71,7 @@ json = ["validators/json"]
 line = ["validators/line"]
 mac_address = ["validators/mac_address"]
 number = ["validators/number"]
+semver = ["validators/semver"]
 text = ["validators/text"]
 
 serde = ["validators/serde"]

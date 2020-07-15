@@ -9,7 +9,7 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(boolean)]
-struct Validator(bool);
+pub struct Validator(pub bool);
 
 #[test]
 fn basic() {

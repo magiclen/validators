@@ -433,6 +433,24 @@ assert!(SinglePercentage::parse_string("1.1").is_err());
 assert!(SinglePercentage::parse_string("NaN").is_ok());
 ```
 
+### semver
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+use validators_prelude::semver;
+
+#[derive(Validator)]
+#[validator(semver)]
+pub struct SemVer(semver::Version);
+
+assert!(SemVer::parse_string("0.0.0").is_ok());
+assert!(SemVer::parse_string("0.0.0-beta.1").is_ok());
+```
+
 ### text
 
 ```rust
@@ -570,6 +588,10 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         #[cfg(feature = "number")]
                                         Validator::number => {
                                             return number::number_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "semver")]
+                                        Validator::semver => {
+                                            return semver::semver_handler(ast, meta)
                                         }
                                         #[cfg(feature = "text")]
                                         Validator::text => return text::text_handler(ast, meta),

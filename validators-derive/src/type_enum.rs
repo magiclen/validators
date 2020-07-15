@@ -17,6 +17,8 @@ pub enum TypeEnum {
     Ipv6Addr,
     Host,
     Serde,
+    Version,
+    VersionReq,
 }
 
 impl TypeEnum {
@@ -36,6 +38,8 @@ impl TypeEnum {
             TypeEnum::Ipv6Addr => "std::net::Ipv6Addr",
             TypeEnum::Host => "crate::validators::models::Host",
             TypeEnum::Serde => "T: crate::serde::se::Serialize + crate::serde::de::Deserialize",
+            TypeEnum::Version => "semver::Version",
+            TypeEnum::VersionReq => "semver::VersionReq",
         }
     }
 }

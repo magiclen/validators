@@ -32,5 +32,7 @@ pub mod line;
 pub mod mac_address;
 #[cfg(feature = "number")]
 pub mod number;
+#[cfg(feature = "semver")]
+pub mod semver;
 #[cfg(feature = "text")]
 pub mod text;
