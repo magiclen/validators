@@ -72,7 +72,7 @@ pub fn base32_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::base32::Base32Error }).unwrap();
+                    syn::parse2(quote! { validators_prelude::Base32Error }).unwrap();
 
                 let padding_path = padding.to_expr();
 

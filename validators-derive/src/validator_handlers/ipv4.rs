@@ -162,7 +162,7 @@ pub fn ipv4_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             // TODO impl
 
             let error_path: Path =
-                syn::parse2(quote! { validators_prelude::ipv4::IPv4Error }).unwrap();
+                syn::parse2(quote! { validators_prelude::IPv4Error }).unwrap();
 
             let local_path = local.to_expr();
             let port_path = port.to_expr();

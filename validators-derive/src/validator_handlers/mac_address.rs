@@ -100,7 +100,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::mac_address::MacAddressError })
+                    syn::parse2(quote! { validators_prelude::MacAddressError })
                         .unwrap();
 
                 let case_path = case.to_expr();

@@ -1,19 +1,25 @@
+extern crate regex_dep;
+
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{String};
 
 use crate::proc_macro::TokenStream;
-use crate::quote::ToTokens;
-use crate::syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path};
+use crate::syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path, Lit};
 
-use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption};
+use crate::{panic, TypeEnum, Validator};
 
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
 const ITEM: Struct = Struct(TypeEnum::String);
-const VALIDATOR: Validator = Validator::text;
+const VALIDATOR: Validator = Validator::regex;
 
-pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
+enum Regex {
+    String(String),
+    Ref(Box<Path>),
+}
+
+pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
     match ast.data {
         Data::Struct(data) => {
             if let Fields::Unnamed(_) = &data.fields {
@@ -21,49 +27,44 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                 }
 
-                let mut empty = ValidatorOption::new();
+                let regex ;
 
-                let correct_usage_for_attribute = [stringify!(#[validator(text)])];
-
-                let correct_usage_for_empty = [
-                    stringify!(#[validator(text(empty(Must)))]),
-                    stringify!(#[validator(text(empty(Allow)))]),
-                    stringify!(#[validator(text(empty(NotAllow)))]),
+                let correct_usage_for_attribute = [
+                    stringify!(#[validator(regex("[0-9a-fA-F]"))]),
+                    stringify!(#[validator(regex(REGEX_VARIABLE))]),
                 ];
 
                 match meta {
-                    Meta::Path(_) => (),
                     Meta::List(list) => {
-                        let mut empty_is_set = false;
+                        if list.nested.len() != 1 {
+                            panic::attribute_incorrect_format("regex", &correct_usage_for_attribute);
+                        }
 
-                        for p in list.nested.iter() {
-                            match p {
-                                NestedMeta::Meta(meta) => {
-                                    let meta_name = meta.path().into_token_stream().to_string();
+                        let p = list.nested.into_iter().next().unwrap();
 
-                                    match meta_name.as_str() {
-                                        "empty" => {
-                                            empty = ValidatorOption::from_meta(
-                                                meta_name.as_str(),
-                                                meta,
-                                                &mut empty_is_set,
-                                                &correct_usage_for_empty,
-                                            );
-                                        }
-                                        _ => panic::unknown_parameter("text", meta_name.as_str()),
-                                    }
+                        match p {
+                            NestedMeta::Meta(meta) => {
+                                if let Meta::Path(path) = meta {
+                                    regex = Regex::Ref(Box::new(path));
+                                } else {
+                                    panic::attribute_incorrect_format("regex", &correct_usage_for_attribute);
                                 }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "text",
-                                        &correct_usage_for_attribute,
-                                    )
+                            }
+                            NestedMeta::Lit(lit) => {
+                                if let Lit::Str(lit) = lit{
+                                    let s = lit.value();
+
+                                    regex_dep::Regex::new(&s).unwrap();
+
+                                    regex = Regex::String(s);
+                                } else {
+                                    panic::attribute_incorrect_format("regex", &correct_usage_for_attribute);
                                 }
                             }
                         }
                     }
-                    Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format("text", &correct_usage_for_attribute)
+                    _ => {
+                        panic::attribute_incorrect_format("regex", &correct_usage_for_attribute)
                     }
                 }
 
@@ -72,70 +73,24 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::TextError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::RegexError }).unwrap();
 
-                let empty_path = empty.to_expr();
 
                 let parameters_impl = quote! {
                     impl #name {
-                        pub(crate) const V_EMPTY: validators_prelude::ValidatorOption = #empty_path;
-                    }
+                   }
                 };
 
-                let handle_str = {
-                    match empty {
-                        ValidatorOption::Allow => {
+                let get_regex = {
+                    match &regex {
+                        Regex::String(regex) => {
                             quote! {
-                                for e in s.bytes() {
-                                    match e {
-                                        b'\x00'..=b'\x08' | b'\x0C' | b'\x0E'..=b'\x1F' | b'\x7F' => {
-                                            return Err(#error_path::Invalid);
-                                        }
-                                        _ => (),
-                                    }
-                                }
-
-                                Ok(())
+                                validators_prelude::regex::Regex::new(#regex).unwrap()
                             }
                         }
-                        ValidatorOption::Must => {
+                        Regex::Ref(path) => {
                             quote! {
-                                for c in s.chars() {
-                                    if !c.is_whitespace() {
-                                        return Err(#error_path::EmptyMust);
-                                    }
-                                }
-
-                                Ok(())
-                            }
-                        }
-                        ValidatorOption::NotAllow => {
-                            quote! {
-                                let mut chars = s.chars();
-
-                                while let Some(c) = chars.next() {
-                                    if !c.is_whitespace() {
-                                        match c {
-                                            '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                return Err(#error_path::Invalid);
-                                            }
-                                            _ => (),
-                                        }
-
-                                        while let Some(c) = chars.next() {
-                                            match c {
-                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                    return Err(#error_path::Invalid);
-                                                }
-                                                _ => (),
-                                            }
-                                        }
-
-                                        return Ok(());
-                                    }
-                                }
-
-                                Err(#error_path::EmptyNotAllow)
+                                #path
                             }
                         }
                     }
@@ -144,7 +99,11 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let v_parse_str = quote! {
                     #[inline]
                     fn v_parse_str(s: &str) -> Result<(), #error_path> {
-                        #handle_str
+                        if !#get_regex.is_match(s) {
+                            return Err(#error_path);
+                        }
+
+                        Ok(())
                     }
                 };
 
@@ -187,11 +146,21 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let serde_impl = if cfg!(feature = "serde") {
-                    let expect = match empty {
-                        ValidatorOption::Allow => "a text",
-                        ValidatorOption::Must => "a text which must be empty after trimming",
-                        ValidatorOption::NotAllow => {
-                            "a text which must not be empty after trimming"
+                    let expect = {
+                        match &regex {
+                            Regex::String(regex) => {
+                                let regex = alloc::format!("a string matched by a regular expression: {}", regex);
+
+                                quote! {
+                                    f.write_str(#regex)
+                                }
+                            }
+                            Regex::Ref(path) => {
+                                quote! {
+                                    f.write_str("a string matched by a regular expression: ")?;
+                                    f.write_fmt(format_args!("{}", #path.to_string()))
+                                }
+                            }
                         }
                     };
 
@@ -217,7 +186,7 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn expecting(&self, f: &mut validators_prelude::Formatter) -> Result<(), validators_prelude::fmt::Error> {
-                                        f.write_str(#expect)
+                                        #expect
                                     }
 
                                     #[inline]
@@ -267,7 +236,7 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     quote! {}
                 };
 
-                let text_impl = quote! {
+                let regex_impl = quote! {
                     #parameters_impl
 
                     #parse_impl
@@ -279,7 +248,7 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #rocket_impl
                 };
 
-                text_impl.into()
+                regex_impl.into()
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }

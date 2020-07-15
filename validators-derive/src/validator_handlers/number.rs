@@ -188,7 +188,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::number::NumberError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::NumberError }).unwrap();
 
                 let nan_path = nan.to_expr();
 

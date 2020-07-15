@@ -19,6 +19,9 @@ pub extern crate idna;
 #[cfg(feature = "serde_json")]
 pub extern crate serde_json;
 
+#[cfg(feature = "regex-dep")]
+pub extern crate regex_dep as regex;
+
 #[cfg(feature = "semver-dep")]
 pub extern crate semver_dep as semver;
 
@@ -64,6 +67,9 @@ pub mod prelude {
 
         #[cfg(feature = "serde_json")]
         pub use crate::serde_json;
+
+        #[cfg(feature = "regex-dep")]
+        pub use crate::regex;
 
         #[cfg(feature = "semver-dep")]
         pub use crate::semver;

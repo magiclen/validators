@@ -434,6 +434,54 @@ assert!(SinglePercentage::parse_string("1.1").is_err());
 assert!(SinglePercentage::parse_string("NaN").is_ok());
 ```
 
+### regex
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+#[macro_use] extern crate lazy_static;
+
+extern crate once_cell;
+
+use validators::prelude::*;
+use validators_prelude::regex;
+
+use once_cell::sync::Lazy;
+
+lazy_static! {
+    static ref RE_NON_ZERO_NUMBERS: regex::Regex = regex::Regex::new("^[1-9]+$").unwrap();
+}
+
+static RE_POKER: Lazy<regex::Regex> = Lazy::new(|| {
+    regex::Regex::new("^([AJQK1-9]|10)$").unwrap()
+});
+
+#[derive(Validator)]
+#[validator(regex("^[0-9a-fA-F]+$"))]
+pub struct Hex(pub String); // compile the regex every time
+
+#[derive(Validator)]
+#[validator(regex(RE_NON_ZERO_NUMBERS))]
+pub struct NonZeroNumbers(pub String);
+
+#[derive(Validator)]
+#[validator(regex(RE_POKER))]
+pub struct Poker(pub String);
+
+assert!(Hex::parse_string("1Ab").is_ok());
+assert!(Hex::parse_string("1AG").is_err());
+
+assert!(NonZeroNumbers::parse_string("12345").is_ok());
+assert!(NonZeroNumbers::parse_string("012345").is_err());
+
+assert!(Poker::parse_string("1").is_ok());
+assert!(Poker::parse_string("10").is_ok());
+assert!(Poker::parse_string("J").is_ok());
+assert!(Poker::parse_string("0").is_err());
+```
+
 ### semver
 
 ```rust
@@ -669,6 +717,10 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         #[cfg(feature = "number")]
                                         Validator::number => {
                                             return number::number_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "regex")]
+                                        Validator::regex => {
+                                            return regex::regex_handler(ast, meta)
                                         }
                                         #[cfg(feature = "semver")]
                                         Validator::semver => {

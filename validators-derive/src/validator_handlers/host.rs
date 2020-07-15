@@ -291,7 +291,7 @@ pub fn host_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             // TODO impl
 
             let error_path: Path =
-                syn::parse2(quote! { validators_prelude::host::HostError }).unwrap();
+                syn::parse2(quote! { validators_prelude::HostError }).unwrap();
 
             let local_path = local.to_expr();
             let port_path = port.to_expr();

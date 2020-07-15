@@ -72,7 +72,7 @@ pub fn line_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::line::LineError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::LineError }).unwrap();
 
                 let empty_path = empty.to_expr();
 

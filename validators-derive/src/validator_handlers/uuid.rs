@@ -90,7 +90,7 @@ pub fn uuid_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::uuid::UUIDError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::UUIDError }).unwrap();
 
                 let case_path = case.to_expr();
                 let separator_expr = separator.to_expr();

@@ -161,7 +161,7 @@ pub fn ip_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             // TODO impl
 
-            let error_path: Path = syn::parse2(quote! { validators_prelude::ip::IPError }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::IPError }).unwrap();
 
             let local_path = local.to_expr();
             let port_path = port.to_expr();

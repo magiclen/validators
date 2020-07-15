@@ -300,7 +300,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::signed_integer::SignedIntegerError })
+                    syn::parse2(quote! { validators_prelude::SignedIntegerError })
                         .unwrap();
 
                 let parameters_impl = quote! {

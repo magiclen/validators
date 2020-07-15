@@ -31,7 +31,7 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::boolean::BooleanError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::BooleanError }).unwrap();
 
                 let parameters_impl = quote! {};
 

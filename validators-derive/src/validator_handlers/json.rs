@@ -33,7 +33,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::json::JSONError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::JSONError }).unwrap();
 
                 let parameters_impl = quote! {};
 
