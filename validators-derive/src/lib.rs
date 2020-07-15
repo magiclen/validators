@@ -532,6 +532,25 @@ assert!(NonZeroUnsignedShort::parse_u8(4).is_ok());
 assert!(NonZeroUnsignedShort::parse_u8(0).is_err());
 ```
 
+### uuid
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(uuid(case(Upper), separator(Allow(hyphen))))]
+pub struct UUID(pub u128);
+
+assert!(UUID::parse_string("A866664AF9D34DDE89CB182015FA4F41").is_ok());
+assert!(UUID::parse_string("A866664A-F9D3-4DDE-89CB-182015FA4F41").is_ok());
+```
+
+The default value of the `separator` option is `Allow(hyphen)`.
+
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -673,6 +692,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                                 ast, meta,
                                             )
                                         }
+                                        #[cfg(feature = "uuid")]
+                                        Validator::uuid => return uuid::uuid_handler(ast, meta),
                                     }
                                 }
                                 NestedMeta::Lit(_) => panic::validator_format_incorrect(),

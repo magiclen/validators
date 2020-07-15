@@ -53,8 +53,9 @@ full = [
     "semver",
     "semver_req",
     "signed_integer",
-    "unsigned_integer",
     "text",
+    "unsigned_integer",
+    "uuid",
 ]
 
 base32 = ["validators/base32"]
@@ -79,6 +80,7 @@ semver_req = ["validators/semver_req"]
 signed_integer = ["validators/signed_integer"]
 text = ["validators/text"]
 unsigned_integer = ["validators/unsigned_integer"]
+uuid = ["validators/uuid"]
 
 serde = ["validators/serde"]
 rocket = ["validators/rocket"]

@@ -4,7 +4,7 @@ use core::fmt::{self, Display, Formatter};
 use std::error::Error;
 
 #[derive(Debug, Clone)]
-pub enum MacAddressError {
+pub enum UUIDError {
     /// including the violation of the case rule
     Invalid,
     /// may not be valid but missing separators is guaranteed
@@ -13,16 +13,16 @@ pub enum MacAddressError {
     SeparatorNotAllow,
 }
 
-impl Display for MacAddressError {
+impl Display for UUIDError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            MacAddressError::Invalid => f.write_str("invalid mac address"),
-            MacAddressError::SeparatorMust => f.write_str("separators not found"),
-            MacAddressError::SeparatorNotAllow => f.write_str("separators not allowed"),
+            UUIDError::Invalid => f.write_str("invalid uuid"),
+            UUIDError::SeparatorMust => f.write_str("separators not found"),
+            UUIDError::SeparatorNotAllow => f.write_str("separators not allowed"),
         }
     }
 }
 
 #[cfg(feature = "std")]
-impl Error for MacAddressError {}
+impl Error for UUIDError {}

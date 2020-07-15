@@ -12,10 +12,10 @@ use crate::{panic, SynOption, TypeEnum, Validator, ValidatorCaseOption, Validato
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
-const ITEM: Struct = Struct(TypeEnum::U64);
-const VALIDATOR: Validator = Validator::mac_address;
+const ITEM: Struct = Struct(TypeEnum::U128);
+const VALIDATOR: Validator = Validator::uuid;
 
-pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
+pub fn uuid_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
     match ast.data {
         Data::Struct(data) => {
             if let Fields::Unnamed(_) = &data.fields {
@@ -24,22 +24,20 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
 
                 let mut case = ValidatorCaseOption::new();
-                let mut separator = ValidatorSeparatorOption::Allow(b':');
+                let mut separator = ValidatorSeparatorOption::Allow(b'-');
 
-                let correct_usage_for_attribute = [stringify!(#[validator(mac_address)])];
+                let correct_usage_for_attribute = [stringify!(#[validator(uuid)])];
 
                 let correct_usage_for_case = [
-                    stringify!(#[validator(mac_address(case(Any)))]),
-                    stringify!(#[validator(mac_address(case(Upper)))]),
-                    stringify!(#[validator(mac_address(case(Lower)))]),
+                    stringify!(#[validator(uuid(case(Any)))]),
+                    stringify!(#[validator(uuid(case(Upper)))]),
+                    stringify!(#[validator(uuid(case(Lower)))]),
                 ];
 
                 let correct_usage_for_separator = [
-                    stringify!(#[validator(mac_address(separator(Must(colon))))]),
-                    stringify!(#[validator(mac_address(separator(Must(hyphen))))]),
-                    stringify!(#[validator(mac_address(separator(Allow(colon))))]),
-                    stringify!(#[validator(mac_address(separator(Allow(hyphen))))]),
-                    stringify!(#[validator(mac_address(separator(NotAllow)))]),
+                    stringify!(#[validator(uuid(separator(Must(hyphen))))]),
+                    stringify!(#[validator(uuid(separator(Allow(hyphen))))]),
+                    stringify!(#[validator(uuid(separator(NotAllow)))]),
                 ];
 
                 match meta {
@@ -70,17 +68,12 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &correct_usage_for_separator,
                                             );
                                         }
-                                        _ => {
-                                            panic::unknown_parameter(
-                                                "mac_address",
-                                                meta_name.as_str(),
-                                            )
-                                        }
+                                        _ => panic::unknown_parameter("uuid", meta_name.as_str()),
                                     }
                                 }
                                 NestedMeta::Lit(_) => {
                                     panic::attribute_incorrect_format(
-                                        "mac_address",
+                                        "uuid",
                                         &correct_usage_for_attribute,
                                     )
                                 }
@@ -88,10 +81,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         }
                     }
                     Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format(
-                            "mac_address",
-                            &correct_usage_for_attribute,
-                        )
+                        panic::attribute_incorrect_format("uuid", &correct_usage_for_attribute)
                     }
                 }
 
@@ -100,8 +90,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::mac_address::MacAddressError })
-                        .unwrap();
+                    syn::parse2(quote! { validators_prelude::uuid::UUIDError }).unwrap();
 
                 let case_path = case.to_expr();
                 let separator_expr = separator.to_expr();
@@ -117,79 +106,68 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     match separator {
                         ValidatorSeparatorOption::Allow(separator) => {
                             quote! {
-                                if length < 12 || length > 17 {
+                                if length < 32 || length > 36 {
                                     return Err(#error_path::Invalid);
                                 }
 
-                                let first = &bytes[0..2];
+                                let time_low = &bytes[0..8];
 
-                                let mut no_colon_counter = if bytes[2] != #separator {
+                                let mut no_hyphen_counter = if bytes[8] != #separator {
                                     1
                                 } else {
                                     0
                                 };
 
-                                let second = &bytes[(3 - no_colon_counter)..(5 - no_colon_counter)];
+                                let time_mid = &bytes[(9 - no_hyphen_counter)..(13 - no_hyphen_counter)];
 
-                                if bytes[5 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
+                                if bytes[13 - no_hyphen_counter] != #separator {
+                                    no_hyphen_counter += 1;
                                 }
 
-                                let third = &bytes[(6 - no_colon_counter)..(8 - no_colon_counter)];
+                                let time_high_and_version =
+                                    &bytes[(14 - no_hyphen_counter)..(18 - no_hyphen_counter)];
 
-                                if bytes[8 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
+                                if bytes[18 - no_hyphen_counter] != #separator {
+                                    no_hyphen_counter += 1;
                                 }
 
-                                let forth = &bytes[(9 - no_colon_counter)..(11 - no_colon_counter)];
+                                let clock_seq = &bytes[(19 - no_hyphen_counter)..(23 - no_hyphen_counter)];
 
-                                if bytes[11 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
+                                if bytes[23 - no_hyphen_counter] != #separator {
+                                    no_hyphen_counter += 1;
                                 }
 
-                                let fifth = &bytes[(12 - no_colon_counter)..(14 - no_colon_counter)];
+                                let node = &bytes[(24 - no_hyphen_counter)..];
 
-                                if bytes[14 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
-                                }
-
-                                let sixth = &bytes[(15 - no_colon_counter)..];
-
-                                if sixth.len() != 2 {
+                                if node.len() != 12 {
                                     return Err(#error_path::Invalid);
                                 }
 
-                                first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
+                                time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
                             }
                         }
                         ValidatorSeparatorOption::Must(separator) => {
                             quote! {
-                                if length != 17 {
+                                if length != 36 {
                                     return Err(#error_path::SeparatorMust);
                                 }
 
-                                if bytes[2] != #separator
-                                    || bytes[5] != #separator
-                                    || bytes[8] != #separator
-                                    || bytes[11] != #separator
-                                    || bytes[14] != #separator
-                                {
+                                if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
                                     return Err(#error_path::Invalid);
                                 }
 
-                                let first = &bytes[0..2];
-                                let second = &bytes[3..5];
-                                let third = &bytes[6..8];
-                                let forth = &bytes[9..11];
-                                let fifth = &bytes[12..14];
-                                let sixth = &bytes[15..];
+                                let time_low = &bytes[0..8];
+                                let time_mid = &bytes[9..13];
+                                let time_high_and_version = &bytes[14..18];
+                                let clock_seq = &bytes[19..23];
+                                let node = &bytes[24..];
 
-                                first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
+                                time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
                             }
                         }
                         ValidatorSeparatorOption::NotAllow => {
                             quote! {
-                                if length != 12 {
+                                if length != 32 {
                                     return Err(#error_path::SeparatorNotAllow);
                                 }
 
@@ -204,17 +182,17 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         ValidatorCaseOption::Any => {
                             quote! {
                                 for e in iter {
-                                    mac_address_decoded <<= 4;
+                                    uuid_decoded <<= 4;
 
                                     match e {
                                         b'0'..=b'9' => {
-                                            mac_address_decoded |= u64::from(e - b'0');
+                                            uuid_decoded |= u128::from(e - b'0');
                                         }
                                         b'a'..=b'f' => {
-                                            mac_address_decoded |= u64::from(e - (b'a' - 10));
+                                            uuid_decoded |= u128::from(e - (b'a' - 10));
                                         }
                                         b'A'..=b'F' => {
-                                            mac_address_decoded |= u64::from(e - (b'A' - 10));
+                                            uuid_decoded |= u128::from(e - (b'A' - 10));
                                         }
                                         _ => return Err(#error_path::Invalid),
                                     }
@@ -224,14 +202,14 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         ValidatorCaseOption::Upper => {
                             quote! {
                                 for e in iter {
-                                    mac_address_decoded <<= 4;
+                                    uuid_decoded <<= 4;
 
                                     match e {
                                         b'0'..=b'9' => {
-                                            mac_address_decoded |= u64::from(e - b'0');
+                                            uuid_decoded |= u128::from(e - b'0');
                                         }
                                         b'A'..=b'F' => {
-                                            mac_address_decoded |= u64::from(e - (b'A' - 10));
+                                            uuid_decoded |= u128::from(e - (b'A' - 10));
                                         }
                                         _ => return Err(#error_path::Invalid),
                                     }
@@ -241,14 +219,14 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         ValidatorCaseOption::Lower => {
                             quote! {
                                 for e in iter {
-                                    mac_address_decoded <<= 4;
+                                    uuid_decoded <<= 4;
 
                                     match e {
                                         b'0'..=b'9' => {
-                                            mac_address_decoded |= u64::from(e - b'0');
+                                            uuid_decoded |= u128::from(e - b'0');
                                         }
                                         b'a'..=b'f' => {
-                                            mac_address_decoded |= u64::from(e - (b'a' - 10));
+                                            uuid_decoded |= u128::from(e - (b'a' - 10));
                                         }
                                         _ => return Err(#error_path::Invalid),
                                     }
@@ -260,7 +238,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let v_parse_str = quote! {
                     #[inline]
-                    fn v_parse_str(s: &str) -> Result<u64, #error_path> {
+                    fn v_parse_str(s: &str) -> Result<u128, #error_path> {
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
@@ -268,11 +246,11 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             #handle_iter
                         };
 
-                        let mut mac_address_decoded = 0u64;
+                        let mut uuid_decoded = 0u128;
 
                         #handle_decode
 
-                        Ok(mac_address_decoded)
+                        Ok(uuid_decoded)
                     }
                 };
 
@@ -282,7 +260,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
-                let to_mac_address_string = {
+                let to_uuid_string = {
                     match case {
                         ValidatorCaseOption::Lower => {
                             match separator {
@@ -292,12 +270,28 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     quote! {
                                         #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            let bytes: [u8; 8] = self.0.to_le_bytes();
+                                        pub fn to_uuid_string(&self) -> validators_prelude::String {
+                                            let bytes: [u8; 16] = self.0.to_le_bytes();
 
                                             validators_prelude::format!(
-                                                "{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}",
-                                                bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator
+                                                "{:02x}{:02x}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+                                                bytes[15],
+                                                bytes[14],
+                                                bytes[13],
+                                                bytes[12],
+                                                bytes[11],
+                                                bytes[10],
+                                                bytes[9],
+                                                bytes[8],
+                                                bytes[7],
+                                                bytes[6],
+                                                bytes[5],
+                                                bytes[4],
+                                                bytes[3],
+                                                bytes[2],
+                                                bytes[1],
+                                                bytes[0],
+                                                separator = #separator
                                             )
                                         }
                                     }
@@ -305,8 +299,8 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorSeparatorOption::NotAllow => {
                                     quote! {
                                         #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            validators_prelude::format!("{:012x}", self.0)
+                                        pub fn to_uuid_string(&self) -> validators_prelude::String {
+                                            validators_prelude::format!("{:032x}", self.0)
                                         }
                                     }
                                 }
@@ -320,12 +314,28 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     quote! {
                                         #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            let bytes: [u8; 8] = self.0.to_le_bytes();
+                                        pub fn to_uuid_string(&self) -> validators_prelude::String {
+                                            let bytes: [u8; 16] = self.0.to_le_bytes();
 
                                             validators_prelude::format!(
-                                                "{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}",
-                                                bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator
+                                                "{:02X}{:02X}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
+                                                bytes[15],
+                                                bytes[14],
+                                                bytes[13],
+                                                bytes[12],
+                                                bytes[11],
+                                                bytes[10],
+                                                bytes[9],
+                                                bytes[8],
+                                                bytes[7],
+                                                bytes[6],
+                                                bytes[5],
+                                                bytes[4],
+                                                bytes[3],
+                                                bytes[2],
+                                                bytes[1],
+                                                bytes[0],
+                                                separator = #separator
                                             )
                                         }
                                     }
@@ -333,8 +343,8 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorSeparatorOption::NotAllow => {
                                     quote! {
                                         #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            validators_prelude::format!("{:012X}", self.0)
+                                        pub fn to_uuid_string(&self) -> validators_prelude::String {
+                                            validators_prelude::format!("{:032X}", self.0)
                                         }
                                     }
                                 }
@@ -345,7 +355,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let other_functions = quote! {
                     impl #name {
-                        #to_mac_address_string
+                        #to_uuid_string
                     }
                 };
 
@@ -387,7 +397,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
                         }
 
-                        s.push_str("MacAddress string");
+                        s.push_str("UUID string");
 
                         match separator {
                             ValidatorSeparatorOption::Must(e) => {
@@ -413,7 +423,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::Serializer, {
-                                serializer.serialize_str(&self.to_mac_address_string())
+                                serializer.serialize_str(&self.to_uuid_string())
                             }
                         }
 
@@ -479,7 +489,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     quote! {}
                 };
 
-                let mac_address_impl = quote! {
+                let uuid_impl = quote! {
                     #parameters_impl
 
                     #parse_impl
@@ -493,7 +503,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #rocket_impl
                 };
 
-                mac_address_impl.into()
+                uuid_impl.into()
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }

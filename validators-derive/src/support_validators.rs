@@ -21,6 +21,7 @@
     feature = "signed_integer",
     feature = "text",
     feature = "unsigned_integer",
+    feature = "uuid",
 )))]
 compile_error!("at least one of the validator features must be enabled");
 
@@ -71,6 +72,8 @@ pub enum Validator {
     text,
     #[cfg(feature = "unsigned_integer")]
     unsigned_integer,
+    #[cfg(feature = "uuid")]
+    uuid,
 }
 
 impl Validator {
@@ -123,6 +126,8 @@ impl Validator {
             "text" => Validator::text,
             #[cfg(feature = "unsigned_integer")]
             "unsigned_integer" => Validator::unsigned_integer,
+            #[cfg(feature = "uuid")]
+            "uuid" => Validator::uuid,
             _ => {
                 panic!(
                     "Unsupported validator `{}`. Available validators are {:?}",
