@@ -257,6 +257,41 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
+                let handle_check = {
+                    match case {
+                        ValidatorCaseOption::Any => {
+                            quote! {
+                                for e in iter {
+                                    match e {
+                                        b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
+                                        _ => return Err(#error_path::Invalid),
+                                    }
+                                }
+                            }
+                        }
+                        ValidatorCaseOption::Upper => {
+                            quote! {
+                                for e in iter {
+                                    match e {
+                                        b'0'..=b'9' | b'A'..=b'F' => (),
+                                        _ => return Err(#error_path::Invalid),
+                                    }
+                                }
+                            }
+                        }
+                        ValidatorCaseOption::Lower => {
+                            quote! {
+                                for e in iter {
+                                    match e {
+                                        b'0'..=b'9' | b'a'..=b'f' => (),
+                                        _ => return Err(#error_path::Invalid),
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
                 let v_parse_str = quote! {
                     #[inline]
                     fn v_parse_str(s: &str) -> Result<u64, #error_path> {
@@ -275,9 +310,27 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
+                let v_validate_str = quote! {
+                    #[inline]
+                    fn v_validate_str(s: &str) -> Result<(), #error_path> {
+                        let bytes = s.as_bytes();
+                        let length = bytes.len();
+
+                        let iter = {
+                            #handle_iter
+                        };
+
+                        #handle_check
+
+                        Ok(())
+                    }
+                };
+
                 let parse_impl = quote! {
                     impl #name {
                         #v_parse_str
+
+                        #v_validate_str
                     }
                 };
 
@@ -365,7 +418,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                         #[inline]
                         fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
-                            Self::v_parse_str(s.as_ref())?;
+                            Self::v_validate_str(s.as_ref())?;
 
                             Ok(())
                         }

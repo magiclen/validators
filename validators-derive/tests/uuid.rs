@@ -35,6 +35,24 @@ fn basic() {
                                 )*
                             }, is_ok);
                         }
+
+                        let panic = match Validator::parse_str(s) {
+                            Ok(_) => !is_ok,
+                            Err(_) if !is_ok => false,
+                            Err(err) => {
+                                eprintln!("{}", err);
+
+                                true
+                            }
+                        };
+
+                        if panic {
+                            panic!("{:?}: {} expect {}", s, stringify! {
+                                $(
+                                    $p = $v,
+                                )*
+                            }, is_ok);
+                        }
                     }
 
                     test("", false);
