@@ -77,6 +77,8 @@ features = ["rocket"]
 
 ### base32
 
+traits: `ValidateString`, `ValidateBytes`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -94,6 +96,8 @@ assert!(Base32WithPadding::parse_string("GEZDGNBVGY3TQOI").is_err());
 
 ### base32_decoded
 
+traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -109,6 +113,8 @@ assert_eq!(b"123456789", Base32WithPaddingDecoded::parse_string("GEZDGNBVGY3TQOI
 ```
 
 ### base64
+
+traits: `ValidateString`, `ValidateBytes`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -127,6 +133,8 @@ assert!(Base64WithPadding::parse_string("MTIzNDU2Nzg5MA").is_err());
 
 ### base64_decoded
 
+traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -142,6 +150,8 @@ assert_eq!(b"1234567890", Base64WithPaddingDecoded::parse_string("MTIzNDU2Nzg5MA
 ```
 
 ### base64_url
+
+traits: `ValidateString`, `ValidateBytes`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -159,6 +169,8 @@ assert!(Base64WithoutPaddingUrl::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1G
 
 ### base64_url_decoded
 
+traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -174,6 +186,8 @@ assert_eq!([62, 100, 124, 132, 152, 99, 129, 83, 92, 7, 173, 115, 170, 23, 63, 7
 ```
 
 ### boolean
+
+traits: `ValidateString`, `ValidateChar`, `ValidateSignedInteger`, `ValidateUnignedInteger`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -202,6 +216,10 @@ assert_eq!(true, Boolean::parse_isize(1).unwrap().0);
 
 ### domain
 
+traits: `ValidateString`
+
+additional methods: `is_fully_qualified`, `get_domain_non_fully_qualified`, `to_uri_authority_string`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -227,6 +245,10 @@ assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap(
 ```
 
 ### email
+
+traits: `ValidateString`
+
+additional methods: `to_email_string`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -262,6 +284,10 @@ assert!(EmailNotAllowComment::parse_string("(john)joke@example.com").is_err());
 
 ### host
 
+traits: `ValidateString`
+
+additional methods: `to_uri_authority_string`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -282,6 +308,8 @@ assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example").is_err());
 ```
 
 ### http_url
+
+traits: `ValidateString`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -305,6 +333,8 @@ assert!(HttpURL::parse_string("ftp://example.org/").is_err());
 
 ### http_ftp_url
 
+traits: `ValidateString`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -326,6 +356,10 @@ assert!(HttpFtpURL::parse_string("ftp://example.org/").is_ok());
 ```
 
 ### ip
+
+traits: `ValidateString`
+
+additional methods: `to_uri_authority_string`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -349,6 +383,10 @@ assert!(IPAllowPort::parse_string("[::ffff:c000:0280]:8000").is_ok());
 
 ### ipv4
 
+traits: `ValidateString`
+
+additional methods: `to_uri_authority_string`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -366,6 +404,10 @@ assert!(IPv4WithoutPort::parse_string("127.0.0.1").is_ok());
 ```
 
 ### ipv6
+
+traits: `ValidateString`
+
+additional methods: `to_uri_authority_string`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -385,6 +427,10 @@ assert!(IPv6WithoutPort::parse_string("[::ffff:c000:0280]").is_ok());
 ```
 
 ### json
+
+traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateNumber`, `ValidateBoolean`
+
+additional methods: `to_minfied_json_string`, `to_beautified_json_string`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -413,6 +459,8 @@ assert!(JSONBoolean::parse_bool(false).is_ok());
 
 ### length
 
+traits: `ValidateLength`, `CollectionLength`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -430,6 +478,8 @@ assert!(NonEmptyNotTooLongVec::parse_collection(vec![0, 1, 2, 3]).is_err());
 ```
 
 ### line
+
+traits: `ValidateString`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -450,6 +500,10 @@ assert!(LineNotAllowEmpty::parse_string("   ").is_err());
 
 ### mac_address
 
+traits: `ValidateString`
+
+additional methods: `to_mac_address_string`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -468,6 +522,8 @@ assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 The default value of the `separator` option is `Allow(colon)`.
 
 ### number
+
+traits: `ValidateString`, `ValidateNumber`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -495,6 +551,8 @@ assert!(SinglePercentage::parse_string("NaN").is_ok());
 ```
 
 ### phone
+
+traits: `ValidateString`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -534,6 +592,8 @@ assert!(TWorUSPhone::parse_string("+14155552671").is_ok());
 ```
 
 ### regex
+
+traits: `ValidateString`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -583,6 +643,8 @@ assert!(Poker::parse_string("0").is_err());
 
 ### semver
 
+traits: `ValidateString`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -601,6 +663,8 @@ assert!(SemVer::parse_string("0.0.0-beta.1").is_ok());
 
 ### semver_req
 
+traits: `ValidateString`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -618,6 +682,8 @@ assert!(SemVerReq::parse_string(">= 0.4").is_ok());
 ```
 
 ### signed_integer
+
+traits: `ValidateString`, `ValidateSignedInteger`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -645,6 +711,8 @@ assert!(NonZeroShort::parse_i8(0).is_err());
 
 ### text
 
+traits: `ValidateString`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -664,6 +732,8 @@ assert!(TextNotAllowEmpty::parse_string("   ").is_err());
 
 ### unsigned_integer
 
+traits: `ValidateString`, `ValidateUnignedInteger`
+
 ```rust
 #[macro_use] extern crate validators_derive;
 
@@ -681,6 +751,8 @@ assert!(Count::parse_u8(4).is_ok());
 ```
 
 ### url
+
+traits: `ValidateString`
 
 ```rust
 #[macro_use] extern crate validators_derive;
@@ -700,6 +772,10 @@ assert!(URL::parse_string("example:").is_ok());
 ```
 
 ### uuid
+
+traits: `ValidateString`
+
+additional methods: `to_uuid_string`
 
 ```rust
 #[macro_use] extern crate validators_derive;
