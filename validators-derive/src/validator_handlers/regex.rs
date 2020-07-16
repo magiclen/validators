@@ -82,10 +82,8 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let error_path: Path =
                     syn::parse2(quote! { validators_prelude::RegexError }).unwrap();
 
-                let parameters_impl = quote! {
-                    impl #name {
-                   }
-                };
+                // TODO PUT REGEX
+                let parameters_impl = quote! {};
 
                 let get_regex = {
                     match &regex {

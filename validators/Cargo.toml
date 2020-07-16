@@ -20,6 +20,8 @@ validators-options = { version = "0.21", path = "../validators-options" }
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }
 serde_json = { version = "1", optional = true }
+phonenumber = { version = "0.2", optional = true }
+failure = { version = "0.1", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
 semver-dep = { package = "semver", version = "0.10", optional = true }
 url-dep = { package = "url", version = "2", optional = true }
@@ -51,6 +53,7 @@ length = []
 line = []
 mac_address = []
 number = []
+phone = ["std", "phonenumber", "failure"]
 regex = ["regex-dep"]
 semver = ["semver-dep"]
 semver_req = ["semver-dep"]

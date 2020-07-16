@@ -19,6 +19,12 @@ pub extern crate idna;
 #[cfg(feature = "serde_json")]
 pub extern crate serde_json;
 
+#[cfg(feature = "phonenumber")]
+pub extern crate phonenumber;
+
+#[cfg(feature = "failure")]
+pub extern crate failure;
+
 #[cfg(feature = "regex-dep")]
 pub extern crate regex_dep as regex;
 
@@ -73,6 +79,12 @@ pub mod prelude {
 
         #[cfg(feature = "serde_json")]
         pub use crate::serde_json;
+
+        #[cfg(feature = "phonenumber")]
+        pub use crate::phonenumber;
+
+        #[cfg(feature = "failure")]
+        pub use crate::failure;
 
         #[cfg(feature = "regex-dep")]
         pub use crate::regex;

@@ -38,6 +38,8 @@ pub mod line;
 pub mod mac_address;
 #[cfg(feature = "number")]
 pub mod number;
+#[cfg(feature = "phone")]
+pub mod phone;
 #[cfg(feature = "regex")]
 pub mod regex;
 #[cfg(feature = "semver")]

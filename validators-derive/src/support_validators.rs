@@ -19,6 +19,7 @@
     feature = "line",
     feature = "mac_address",
     feature = "number",
+    feature = "phone",
     feature = "regex",
     feature = "semver",
     feature = "semver_req",
@@ -73,6 +74,8 @@ pub enum Validator {
     mac_address,
     #[cfg(feature = "number")]
     number,
+    #[cfg(feature = "phone")]
+    phone,
     #[cfg(feature = "regex")]
     regex,
     #[cfg(feature = "semver")]
@@ -137,6 +140,8 @@ impl Validator {
             "mac_address" => Validator::mac_address,
             #[cfg(feature = "number")]
             "number" => Validator::number,
+            #[cfg(feature = "phone")]
+            "phone" => Validator::phone,
             #[cfg(feature = "regex")]
             "regex" => Validator::regex,
             #[cfg(feature = "semver")]

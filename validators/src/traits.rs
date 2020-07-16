@@ -308,6 +308,7 @@ pub trait ValidateBoolean {
 }
 
 /// For types which should have the a `len` method.
+#[allow(clippy::len_without_is_empty)]
 pub trait CollectionLength {
     fn len(&self) -> usize;
 }

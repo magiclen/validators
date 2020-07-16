@@ -39,7 +39,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let v_parse_str = quote! {
                     #[inline]
-                    pub(crate) fn v_parse_str(s: &str) -> Result<#data_type, #error_path> {
+                    fn v_parse_str(s: &str) -> Result<#data_type, #error_path> {
                         Ok(validators_prelude::serde_json::from_str(s)?)
                     }
                 };

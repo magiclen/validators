@@ -98,6 +98,11 @@ mod number;
 #[cfg(feature = "number")]
 pub use number::NumberError;
 
+#[cfg(feature = "phone")]
+mod phone;
+#[cfg(feature = "phone")]
+pub use phone::PhoneError;
+
 #[cfg(feature = "regex")]
 mod regex;
 #[cfg(feature = "regex")]

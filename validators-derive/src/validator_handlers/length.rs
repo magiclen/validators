@@ -199,6 +199,7 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let v_parse_v = quote! {
+                    #[allow(clippy::ptr_arg)]
                     #[inline]
                     fn v_parse_v(v: &#data_type) -> Result<(), #error_path> {
                         #handle_range
@@ -225,6 +226,7 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             Ok(#name(v))
                         }
 
+                        #[allow(clippy::ptr_arg)]
                         #[inline]
                         fn validate_collection(v: &#data_type) -> Result<(), Self::Error> {
                             Self::v_parse_v(v)?;

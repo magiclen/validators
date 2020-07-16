@@ -492,6 +492,45 @@ assert!(SinglePercentage::parse_string("1.1").is_err());
 assert!(SinglePercentage::parse_string("NaN").is_ok());
 ```
 
+### phone
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+use validators_prelude::phonenumber;
+
+use std::collections::HashMap;
+
+#[derive(Validator)]
+#[validator(phone)]
+pub struct InternationalPhone(pub phonenumber::PhoneNumber);
+
+#[derive(Validator)]
+#[validator(phone(TW))]
+pub struct TWPhone(pub phonenumber::PhoneNumber);
+
+#[derive(Validator)]
+#[validator(phone(TW, US))]
+pub struct TWorUSPhone(
+    pub HashMap<phonenumber::country::Id, phonenumber::PhoneNumber>,
+);
+
+assert!(InternationalPhone::parse_string("+886912345678").is_ok());
+assert!(InternationalPhone::parse_string("0912345678").is_err());
+assert!(InternationalPhone::parse_string("+14155552671").is_ok());
+
+assert!(TWPhone::parse_string("+886912345678").is_ok());
+assert!(TWPhone::parse_string("0912345678").is_ok());
+assert!(TWPhone::parse_string("+14155552671").is_err());
+
+assert!(TWorUSPhone::parse_string("+886912345678").is_ok());
+assert!(TWorUSPhone::parse_string("0912345678").is_ok());
+assert!(TWorUSPhone::parse_string("+14155552671").is_ok());
+```
+
 ### regex
 
 ```rust
@@ -808,6 +847,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         Validator::number => {
                                             return number::number_handler(ast, meta)
                                         }
+                                        #[cfg(feature = "phone")]
+                                        Validator::phone => return phone::phone_handler(ast, meta),
                                         #[cfg(feature = "regex")]
                                         Validator::regex => return regex::regex_handler(ast, meta),
                                         #[cfg(feature = "semver")]
