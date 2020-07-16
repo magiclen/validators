@@ -1,7 +1,7 @@
 /*!
 # Validators Derive
 
-This crate provides a procedural macro to define validators with optional parameters.
+This is a library for validating and modeling user input and this crate provides a procedural macro to define validators with optional parameters.
 
 ## Basic Usage
 
