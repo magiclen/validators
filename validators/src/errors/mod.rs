@@ -48,6 +48,11 @@ mod host;
 #[cfg(feature = "host")]
 pub use host::HostError;
 
+#[cfg(feature = "http_url")]
+mod http_url;
+#[cfg(feature = "http_url")]
+pub use http_url::HttpURLError;
+
 #[cfg(feature = "ip")]
 mod ip;
 #[cfg(feature = "ip")]

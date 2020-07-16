@@ -68,7 +68,6 @@ pub fn is_local_ipv6(addr: Ipv6Addr) -> bool {
     }
 }
 
-#[cfg(feature = "std")]
 #[inline]
 pub fn is_local_domain<S: AsRef<str>>(s: S) -> bool {
     let bytes = s.as_ref().as_bytes();
@@ -86,7 +85,6 @@ pub fn is_local_domain<S: AsRef<str>>(s: S) -> bool {
     bytes.eq_ignore_ascii_case(b"localhost")
 }
 
-#[cfg(feature = "std")]
 #[inline]
 pub fn is_at_least_two_labels_domain<S: AsRef<str>>(s: S) -> bool {
     let s = s.as_ref();

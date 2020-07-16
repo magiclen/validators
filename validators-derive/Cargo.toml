@@ -49,6 +49,7 @@ full = [
     "domain",
     "email",
     "host",
+    "http_url",
     "ip",
     "ipv4",
     "ipv6",
@@ -76,6 +77,7 @@ boolean = ["validators/boolean"]
 domain = ["validators/domain"]
 email = ["validators/email"]
 host = ["validators/host"]
+http_url = ["validators/http_url"]
 ip = ["validators/ip"]
 ipv4 = ["validators/ipv4"]
 ipv6 = ["validators/ipv6"]

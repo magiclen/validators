@@ -9,6 +9,7 @@
     feature = "domain",
     feature = "email",
     feature = "host",
+    feature = "http_url",
     feature = "ip",
     feature = "ipv4",
     feature = "ipv6",
@@ -50,6 +51,8 @@ pub enum Validator {
     email,
     #[cfg(feature = "host")]
     host,
+    #[cfg(feature = "http_url")]
+    http_url,
     #[cfg(feature = "ip")]
     ip,
     #[cfg(feature = "ipv4")]
@@ -108,6 +111,8 @@ impl Validator {
             "email" => Validator::email,
             #[cfg(feature = "host")]
             "host" => Validator::host,
+            #[cfg(feature = "http_url")]
+            "http_url" => Validator::http_url,
             #[cfg(feature = "ip")]
             "ip" => Validator::ip,
             #[cfg(feature = "ipv4")]

@@ -23,6 +23,7 @@ serde_json = { version = "1", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
 semver-dep = { package = "semver", version = "0.10", optional = true }
 url-dep = { package = "url", version = "2", optional = true }
+starts-ends-with-caseless = { version = "0.6", optional = true }
 
 serde-dep = { package = "serde", version = "1", optional = true }
 rocket-dep = { package = "rocket", version = "0.4", optional = true }
@@ -40,6 +41,7 @@ boolean = []
 domain = ["std", "idna"]
 email = ["std", "idna"]
 host = ["std", "idna"]
+http_url = ["std", "url-dep", "starts-ends-with-caseless"]
 ip = ["std"]
 ipv4 = ["std"]
 ipv6 = ["std"]
@@ -53,10 +55,10 @@ semver_req = ["semver-dep"]
 signed_integer = []
 text = []
 unsigned_integer = []
-url = ["url-dep/serde"]
+url = ["url-dep"]
 uuid = []
 
-serde = ["serde-dep", "semver-dep/serde"]
+serde = ["serde-dep", "semver-dep/serde", "url-dep/serde"]
 rocket = ["rocket-dep"]
 
 [package.metadata.docs.rs]
