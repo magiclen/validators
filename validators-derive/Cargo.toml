@@ -50,6 +50,7 @@ full = [
     "email",
     "host",
     "http_url",
+    "http_ftp_url",
     "ip",
     "ipv4",
     "ipv6",
@@ -78,6 +79,7 @@ domain = ["validators/domain"]
 email = ["validators/email"]
 host = ["validators/host"]
 http_url = ["validators/http_url"]
+http_ftp_url = ["validators/http_ftp_url"]
 ip = ["validators/ip"]
 ipv4 = ["validators/ipv4"]
 ipv6 = ["validators/ipv6"]

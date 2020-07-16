@@ -10,16 +10,16 @@ use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption};
 #[derive(Debug)]
 pub struct Struct {
     url: TypeEnum,
-    is_https: TypeEnum,
+    protocol: TypeEnum,
 }
 
 const ITEM: Struct = Struct {
     url: TypeEnum::Url,
-    is_https: TypeEnum::Boolean,
+    protocol: TypeEnum::Protocol,
 };
-const VALIDATOR: Validator = Validator::http_url;
+const VALIDATOR: Validator = Validator::http_ftp_url;
 
-pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
+pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
     match ast.data {
         Data::Struct(data) => {
             if let Fields::Named(_) = &data.fields {
@@ -30,19 +30,19 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 for field in data.fields.iter() {
                     let ident = field.ident.as_ref().unwrap();
 
-                    if ident != "url" && ident != "is_https" {
+                    if ident != "url" && ident != "protocol" {
                         panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                     }
                 }
 
                 let mut local = ValidatorOption::new();
 
-                let correct_usage_for_attribute = [stringify!(#[validator(http_url)])];
+                let correct_usage_for_attribute = [stringify!(#[validator(http_ftp_url)])];
 
                 let correct_usage_for_local = [
-                    stringify!(#[validator(http_url(local(Must)))]),
-                    stringify!(#[validator(http_url(local(Allow)))]),
-                    stringify!(#[validator(http_url(local(NotAllow)))]),
+                    stringify!(#[validator(http_ftp_url(local(Must)))]),
+                    stringify!(#[validator(http_ftp_url(local(Allow)))]),
+                    stringify!(#[validator(http_ftp_url(local(NotAllow)))]),
                 ];
 
                 match meta {
@@ -65,13 +65,13 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             );
                                         }
                                         _ => {
-                                            panic::unknown_parameter("http_url", meta_name.as_str())
+                                            panic::unknown_parameter("http_ftp_url", meta_name.as_str())
                                         }
                                     }
                                 }
                                 NestedMeta::Lit(_) => {
                                     panic::attribute_incorrect_format(
-                                        "http_url",
+                                        "http_ftp_url",
                                         &correct_usage_for_attribute,
                                     )
                                 }
@@ -79,7 +79,7 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         }
                     }
                     Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format("http_url", &correct_usage_for_attribute)
+                        panic::attribute_incorrect_format("http_ftp_url", &correct_usage_for_attribute)
                     }
                 }
 
@@ -88,7 +88,7 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::HttpURLError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::HttpFtpURLError }).unwrap();
 
                 let local_path = local.to_expr();
 
@@ -135,14 +135,15 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let v_parse_str = quote! {
                     #[inline]
-                    fn v_parse_str(s: &str) -> Result<(validators_prelude::url::Url, bool), #error_path> {
-                        let is_https = {
+                    fn v_parse_str(s: &str) -> Result<(validators_prelude::url::Url, validators_prelude::Protocol), #error_path> {
+                        let protocol = {
                             use validators_prelude::starts_ends_with_caseless::StartsWithCaselessMultiple;
 
-                            if let Some(index) = s.starts_with_caseless_ascii_multiple(&["http:", "https:"]) {
+                            if let Some(index) = s.starts_with_caseless_ascii_multiple(&["http:", "https:", "ftp:"]) {
                                 match index {
-                                    0 => false,
-                                    1 => true,
+                                    0 => validators_prelude::Protocol::HTTP,
+                                    1 => validators_prelude::Protocol::HTTPS,
+                                    2 => validators_prelude::Protocol::FTP,
                                     _ => unreachable!()
                                 }
                             } else {
@@ -154,7 +155,7 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                         #handle_local
 
-                        Ok((url, is_https))
+                        Ok((url, protocol))
                     }
                 };
 
@@ -171,21 +172,21 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                         #[inline]
                         fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self::Output, Self::Error> {
-                            let (url, is_https) = Self::v_parse_str(s.into().as_str())?;
+                            let (url, protocol) = Self::v_parse_str(s.into().as_str())?;
 
                             Ok(#name {
                                 url,
-                                is_https,
+                                protocol,
                             })
                         }
 
                         #[inline]
                         fn parse_str<S: AsRef<str>>(s: S) -> Result<Self::Output, Self::Error> {
-                            let (url, is_https) = Self::v_parse_str(s.as_ref())?;
+                            let (url, protocol) = Self::v_parse_str(s.as_ref())?;
 
                             Ok(#name {
                                 url,
-                                is_https,
+                                protocol,
                             })
                         }
 
@@ -200,7 +201,7 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let serde_impl = if cfg!(feature = "serde") {
                     let expect = {
-                        let mut s = String::from("a http/https url");
+                        let mut s = String::from("a http/https/ftp url");
 
                         match local {
                             ValidatorOption::Allow => (),
@@ -280,7 +281,7 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     quote! {}
                 };
 
-                let http_url_impl = quote! {
+                let http_ftp_url_impl = quote! {
                     #parameters_impl
 
                     #parse_impl
@@ -292,7 +293,7 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #rocket_impl
                 };
 
-                http_url_impl.into()
+                http_ftp_url_impl.into()
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }

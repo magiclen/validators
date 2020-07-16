@@ -1,4 +1,4 @@
-#![cfg(feature = "http_url")]
+#![cfg(feature = "http_ftp_url")]
 
 #[macro_use]
 extern crate validators_derive;
@@ -15,10 +15,10 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(http_url($($p($v),)*))]
+                    #[validator(http_ftp_url($($p($v),)*))]
                     pub struct Validator {
                         pub url: url::Url,
-                        pub is_https: bool,
+                        pub protocol: validators::models::Protocol,
                     }
 
                     fn test(s: &str, is_ok: bool) {
@@ -43,10 +43,10 @@ fn basic() {
 
                     test("", false);
                     test("example:", false);
-                    test("ftp://example.org/", false);
                     test("https://example.org/", !Validator::V_LOCAL.must());
                     test("http://localhost:3000/", Validator::V_LOCAL.allow());
                     test("http://127.0.0.1:3000/", Validator::V_LOCAL.allow());
+                    test("ftp://example.org/", !Validator::V_LOCAL.must());
                 }
             )*
         }

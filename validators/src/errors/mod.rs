@@ -53,6 +53,11 @@ mod http_url;
 #[cfg(feature = "http_url")]
 pub use http_url::HttpURLError;
 
+#[cfg(feature = "http_ftp_url")]
+mod http_ftp_url;
+#[cfg(feature = "http_ftp_url")]
+pub use http_ftp_url::HttpFtpURLError;
+
 #[cfg(feature = "ip")]
 mod ip;
 #[cfg(feature = "ip")]

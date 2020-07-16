@@ -10,6 +10,7 @@
     feature = "email",
     feature = "host",
     feature = "http_url",
+    feature = "http_ftp_url",
     feature = "ip",
     feature = "ipv4",
     feature = "ipv6",
@@ -53,6 +54,8 @@ pub enum Validator {
     host,
     #[cfg(feature = "http_url")]
     http_url,
+    #[cfg(feature = "http_ftp_url")]
+    http_ftp_url,
     #[cfg(feature = "ip")]
     ip,
     #[cfg(feature = "ipv4")]
@@ -113,6 +116,8 @@ impl Validator {
             "host" => Validator::host,
             #[cfg(feature = "http_url")]
             "http_url" => Validator::http_url,
+            #[cfg(feature = "http_ftp_url")]
+            "http_ftp_url" => Validator::http_ftp_url,
             #[cfg(feature = "ip")]
             "ip" => Validator::ip,
             #[cfg(feature = "ipv4")]

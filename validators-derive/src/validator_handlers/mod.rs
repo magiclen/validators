@@ -20,6 +20,8 @@ pub mod email;
 pub mod host;
 #[cfg(feature = "http_url")]
 pub mod http_url;
+#[cfg(feature = "http_ftp_url")]
+pub mod http_ftp_url;
 #[cfg(feature = "ip")]
 pub mod ip;
 #[cfg(feature = "ipv4")]

@@ -293,12 +293,34 @@ use validators_prelude::url;
 #[validator(http_url(local(Allow)))]
 pub struct HttpURL {
     url: url::Url,
-    protocol: validators::models::Protocol,
+    is_https: bool,
 }
 
 assert!(HttpURL::parse_string("https://example.org/").is_ok());
 assert!(HttpURL::parse_string("http://example.org/").is_ok());
 assert!(HttpURL::parse_string("ftp://example.org/").is_err());
+```
+
+### http_ftp_url
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+use validators_prelude::url;
+
+#[derive(Validator)]
+#[validator(http_ftp_url(local(Allow)))]
+pub struct HttpFtpURL {
+    url: url::Url,
+    protocol: validators::models::Protocol,
+}
+
+assert!(HttpFtpURL::parse_string("https://example.org/").is_ok());
+assert!(HttpFtpURL::parse_string("http://example.org/").is_ok());
+assert!(HttpFtpURL::parse_string("ftp://example.org/").is_ok());
 ```
 
 ### ip
@@ -741,6 +763,10 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         #[cfg(feature = "http_url")]
                                         Validator::http_url => {
                                             return http_url::http_url_handler(ast, meta)
+                                        }
+                                        #[cfg(feature = "http_ftp_url")]
+                                        Validator::http_ftp_url => {
+                                            return http_ftp_url::http_ftp_url_handler(ast, meta)
                                         }
                                         #[cfg(feature = "ip")]
                                         Validator::ip => return ip::ip_handler(ast, meta),
