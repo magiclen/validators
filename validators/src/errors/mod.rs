@@ -113,6 +113,11 @@ mod unsigned_integer;
 #[cfg(feature = "unsigned_integer")]
 pub use unsigned_integer::UnsignedIntegerError;
 
+#[cfg(feature = "url")]
+mod url;
+#[cfg(feature = "url")]
+pub use self::url::URLError;
+
 #[cfg(feature = "uuid")]
 mod uuid;
 #[cfg(feature = "uuid")]

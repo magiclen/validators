@@ -577,6 +577,25 @@ assert!(Count::parse_string("0").is_err());
 assert!(Count::parse_u8(4).is_ok());
 ```
 
+### url
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+use validators_prelude::url;
+
+#[derive(Validator)]
+#[validator(url)]
+pub struct URL(pub url::Url);
+
+assert!(URL::parse_string("https://example.org/").is_ok());
+assert!(URL::parse_string("https:example.org").is_ok());
+assert!(URL::parse_string("example:").is_ok());
+```
+
 ### uuid
 
 ```rust
@@ -739,6 +758,8 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                                 ast, meta,
                                             )
                                         }
+                                        #[cfg(feature = "url")]
+                                        Validator::url => return url::url_handler(ast, meta),
                                         #[cfg(feature = "uuid")]
                                         Validator::uuid => return uuid::uuid_handler(ast, meta),
                                     }

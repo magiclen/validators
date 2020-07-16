@@ -22,6 +22,7 @@ pub enum TypeEnum {
     Serde,
     Version,
     VersionReq,
+    Url,
 }
 
 impl TypeEnum {
@@ -46,6 +47,7 @@ impl TypeEnum {
             TypeEnum::Serde => "T: crate::serde::se::Serialize + crate::serde::de::Deserialize",
             TypeEnum::Version => "semver::Version",
             TypeEnum::VersionReq => "semver::VersionReq",
+            TypeEnum::Url => "url::Url",
         }
     }
 }

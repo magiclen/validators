@@ -25,6 +25,9 @@ pub extern crate regex_dep as regex;
 #[cfg(feature = "semver-dep")]
 pub extern crate semver_dep as semver;
 
+#[cfg(feature = "url-dep")]
+pub extern crate url_dep as url;
+
 #[cfg(feature = "serde")]
 #[allow(unused_imports)]
 #[macro_use]
@@ -73,6 +76,9 @@ pub mod prelude {
 
         #[cfg(feature = "semver-dep")]
         pub use crate::semver;
+
+        #[cfg(feature = "url-dep")]
+        pub use crate::url;
 
         #[cfg(feature = "serde")]
         pub use crate::serde::serde_if_integer128;

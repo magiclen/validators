@@ -22,6 +22,7 @@ idna = { version = "0.2", optional = true }
 serde_json = { version = "1", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
 semver-dep = { package = "semver", version = "0.10", optional = true }
+url-dep = { package = "url", version = "2", optional = true }
 
 serde-dep = { package = "serde", version = "1", optional = true }
 rocket-dep = { package = "rocket", version = "0.4", optional = true }
@@ -52,6 +53,7 @@ semver_req = ["semver-dep"]
 signed_integer = []
 text = []
 unsigned_integer = []
+url = ["url-dep/serde"]
 uuid = []
 
 serde = ["serde-dep", "semver-dep/serde"]

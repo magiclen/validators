@@ -44,5 +44,7 @@ pub mod signed_integer;
 pub mod text;
 #[cfg(feature = "unsigned_integer")]
 pub mod unsigned_integer;
+#[cfg(feature = "url")]
+pub mod url;
 #[cfg(feature = "uuid")]
 pub mod uuid;
