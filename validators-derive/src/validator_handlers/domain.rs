@@ -87,24 +87,10 @@ const ITEM_ALLOW_LOCAL_WITH_PORT: StructAllowPortAllowLocal = StructAllowPortAll
     is_local: TypeEnum::Boolean,
     port: TypeEnum::U16,
 };
-const ITEM_ALLOW_IPV4: StructAllowIPv4 = StructAllowIPv4 {
-    domain: TypeEnum::String,
-    is_ipv4: TypeEnum::Boolean,
-};
 const ITEM_ALLOW_IPV4_ALLOW_LOCAL: StructAllowIPv4AllowLocal = StructAllowIPv4AllowLocal {
     domain: TypeEnum::String,
     is_ipv4: TypeEnum::Boolean,
     is_local: TypeEnum::Boolean,
-};
-const ITEM_ALLOW_IPV4_ALLOW_PORT: StructAllowIPv4AllowPort = StructAllowIPv4AllowPort {
-    domain: TypeEnum::String,
-    is_ipv4: TypeEnum::Boolean,
-    port: TypeEnum::OptionU16,
-};
-const ITEM_ALLOW_IPV4_WITH_PORT: StructAllowIPv4AllowPort = StructAllowIPv4AllowPort {
-    domain: TypeEnum::String,
-    is_ipv4: TypeEnum::Boolean,
-    port: TypeEnum::U16,
 };
 const ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT: StructAllowIPv4AllowPortAllowLocal =
     StructAllowIPv4AllowPortAllowLocal {
@@ -354,85 +340,68 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         match port {
                             ValidatorOption::Allow => {
                                 if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
+                                    if data.fields.len() != 2 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
+                                            Box::new(ITEM_ALLOW_PORT),
                                         );
                                     }
 
                                     for field in data.fields.iter() {
                                         let ident = field.ident.as_ref().unwrap();
 
-                                        if ident != "domain"
-                                            && ident != "is_ipv4"
-                                            && ident != "port"
-                                        {
+                                        if ident != "domain" && ident != "port" {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
+                                                Box::new(ITEM_ALLOW_PORT),
                                             );
                                         }
                                     }
                                 } else {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
-                                        Box::new(ITEM_ALLOW_IPV4_ALLOW_PORT),
+                                        Box::new(ITEM_ALLOW_PORT),
                                     );
                                 }
                             }
                             ValidatorOption::Must => {
                                 if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
+                                    if data.fields.len() != 2 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
+                                            Box::new(ITEM_WITH_PORT),
                                         );
                                     }
 
                                     for field in data.fields.iter() {
                                         let ident = field.ident.as_ref().unwrap();
 
-                                        if ident != "domain"
-                                            && ident != "is_ipv4"
-                                            && ident != "port"
-                                        {
+                                        if ident != "domain" && ident != "port" {
                                             panic::validator_only_support_for_item(
                                                 VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
+                                                Box::new(ITEM_WITH_PORT),
                                             );
                                         }
                                     }
                                 } else {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
-                                        Box::new(ITEM_ALLOW_IPV4_WITH_PORT),
+                                        Box::new(ITEM_WITH_PORT),
                                     );
                                 }
                             }
                             ValidatorOption::NotAllow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 2 {
+                                if let Fields::Unnamed(_) = &data.fields {
+                                    if data.fields.len() != 1 {
                                         panic::validator_only_support_for_item(
                                             VALIDATOR,
-                                            Box::new(ITEM_ALLOW_IPV4),
+                                            Box::new(ITEM),
                                         );
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident = field.ident.as_ref().unwrap();
-
-                                        if ident != "domain" && ident != "is_ipv4" {
-                                            panic::validator_only_support_for_item(
-                                                VALIDATOR,
-                                                Box::new(ITEM_ALLOW_IPV4),
-                                            );
-                                        }
                                     }
                                 } else {
                                     panic::validator_only_support_for_item(
                                         VALIDATOR,
-                                        Box::new(ITEM_ALLOW_IPV4),
+                                        Box::new(ITEM),
                                     );
                                 }
                             }
@@ -607,8 +576,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             // TODO impl
 
-            let error_path: Path =
-                syn::parse2(quote! { validators_prelude::DomainError }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::DomainError }).unwrap();
 
             let ipv4_path = ipv4.to_expr();
             let local_path = local.to_expr();
@@ -689,100 +657,132 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
             };
 
-            let handle_ipv4 = if ipv4.not_allow() {
-                quote! {
-                    Ok(_) => {
-                        return Err(#error_path::IPv4NotAllow);
-                    }
-                }
-            } else if at_least_two_labels.not_allow() {
-                quote! {
-                    Ok(_) => {
-                        return Err(#error_path::AtLeastTwoLabelsNotAllow);
-                    }
-                }
-            } else {
-                let handle_local_ipv4 = if at_least_two_labels == ValidatorOption::Allow
+            let handle_domain_str_and_port_str = {
+                if ipv4 == ValidatorOption::Allow
                     && local == ValidatorOption::Allow
+                    && at_least_two_labels == ValidatorOption::Allow
                 {
                     quote! {
-                        false
+                        match validators_prelude::idna::Config::default()
+                            .use_std3_ascii_rules(true)
+                            .verify_dns_length(true)
+                            .check_hyphens(true)
+                            .to_ascii(domain_str)
+                        {
+                            Ok(ascii_domain) => {
+                                let port = #handle_port;
+
+                                (ascii_domain, port, false, false)
+                            }
+                            Err(_) => return Err(#error_path::Invalid),
+                        }
                     }
                 } else {
-                    quote! {
-                        validators_prelude::is_local_ipv4(ip)
-                    }
-                };
-
-                quote! {
-                    Ok(ip) => {
-                        let port = #handle_port;
-
-                        let is_local = #handle_local_ipv4;
-
-                        #check_local
-
-                        (s.into_owned(), port, true, is_local)
-                    }
-                }
-            };
-
-            let handle_none_ipv4 = if ipv4.must() {
-                quote! {
-                    return Err(#error_path::IPv4Must);
-                }
-            } else {
-                let handle_local_domain = if at_least_two_labels == ValidatorOption::Allow
-                    && local == ValidatorOption::Allow
-                {
-                    quote! {
-                        false
-                    }
-                } else {
-                    quote! {
-                        validators_prelude::is_local_domain(&ascii_domain)
-                    }
-                };
-
-                let check_at_least_two_labels = {
-                    match at_least_two_labels {
-                        ValidatorOption::Allow => quote! {},
-                        ValidatorOption::Must => {
-                            quote! {
-                                if !is_local && !validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
-                                    return Err(#error_path::AtLeastTwoLabelsMust);
-                                }
+                    let handle_ipv4 = if ipv4.not_allow() {
+                        quote! {
+                            Ok(_) => {
+                                return Err(#error_path::IPv4NotAllow);
                             }
                         }
-                        ValidatorOption::NotAllow => {
-                            quote! {
-                                if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
-                                    return Err(#error_path::AtLeastTwoLabelsNotAllow);
-                                }
+                    } else if at_least_two_labels.not_allow() {
+                        quote! {
+                            Ok(_) => {
+                                return Err(#error_path::AtLeastTwoLabelsNotAllow);
                             }
                         }
-                    }
-                };
+                    } else {
+                        let handle_local_ipv4 = if local == ValidatorOption::Allow
+                            && at_least_two_labels == ValidatorOption::Allow
+                        {
+                            quote! {
+                                false
+                            }
+                        } else {
+                            quote! {
+                                validators_prelude::is_local_ipv4(ip)
+                            }
+                        };
 
-                quote! {
-                    match validators_prelude::idna::Config::default()
-                        .use_std3_ascii_rules(true)
-                        .verify_dns_length(true)
-                        .check_hyphens(true)
-                        .to_ascii(domain_str)
-                    {
-                        Ok(ascii_domain) => {
-                            let port = #handle_port;
+                        quote! {
+                            Ok(ip) => {
+                                let port = #handle_port;
 
-                            let is_local = #handle_local_domain;
+                                let is_local = #handle_local_ipv4;
 
-                            #check_at_least_two_labels
+                                #check_local
 
-                            #check_local
-
-                            (ascii_domain, port, false, is_local)
+                                (s.into_owned(), port, true, is_local)
+                            }
                         }
-                        Err(_) => return Err(#error_path::Invalid),
+                    };
+
+                    let handle_none_ipv4 = if ipv4.must() {
+                        quote! {
+                            return Err(#error_path::IPv4Must);
+                        }
+                    } else {
+                        let handle_local_domain = if local == ValidatorOption::Allow
+                            && at_least_two_labels == ValidatorOption::Allow
+                        {
+                            quote! {
+                                false
+                            }
+                        } else {
+                            quote! {
+                                validators_prelude::is_local_domain(&ascii_domain)
+                            }
+                        };
+
+                        let check_at_least_two_labels = {
+                            match at_least_two_labels {
+                                ValidatorOption::Allow => quote! {},
+                                ValidatorOption::Must => {
+                                    quote! {
+                                        if !is_local && !validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                            return Err(#error_path::AtLeastTwoLabelsMust);
+                                        }
+                                    }
+                                }
+                                ValidatorOption::NotAllow => {
+                                    quote! {
+                                        if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                            return Err(#error_path::AtLeastTwoLabelsNotAllow);
+                                        }
+                                    }
+                                }
+                            }
+                        };
+
+                        quote! {
+                            match validators_prelude::idna::Config::default()
+                                .use_std3_ascii_rules(true)
+                                .verify_dns_length(true)
+                                .check_hyphens(true)
+                                .to_ascii(domain_str)
+                            {
+                                Ok(ascii_domain) => {
+                                    let port = #handle_port;
+
+                                    let is_local = #handle_local_domain;
+
+                                    #check_at_least_two_labels
+
+                                    #check_local
+
+                                    (ascii_domain, port, false, is_local)
+                                }
+                                Err(_) => return Err(#error_path::Invalid),
+                            }
+                        }
+                    };
+
+                    quote! {
+                        match validators_prelude::parse_ipv4_allow_an_ended_dot(domain_str) {
+                            #handle_ipv4
+                            Err(_) => {
+                                #handle_none_ipv4
+                            }
+                        }
                     }
                 }
             };
@@ -811,12 +811,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         }
                     };
 
-                    Ok(match validators_prelude::parse_ipv4_allow_an_ended_dot(domain_str) {
-                        #handle_ipv4
-                        Err(_) => {
-                            #handle_none_ipv4
-                        }
-                    })
+                    Ok(#handle_domain_str_and_port_str)
                 }
             };
 
@@ -826,9 +821,9 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
             };
 
-            let fully_qualified = if ipv4 != ValidatorOption::Allow
-                && local != ValidatorOption::Allow
-                && port.not_allow()
+            let fully_qualified = if port == ValidatorOption::NotAllow
+                && (local != ValidatorOption::Allow
+                    || at_least_two_labels == ValidatorOption::Allow)
             {
                 quote! {
                     #[inline]
@@ -946,7 +941,6 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     quote! {
                                         #name {
                                             domain,
-                                            is_ipv4: _is_ipv4,
                                             port: _port,
                                         }
                                     }
@@ -955,17 +949,13 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     quote! {
                                         #name {
                                             domain,
-                                            is_ipv4: _is_ipv4,
                                             port: _port.unwrap(),
                                         }
                                     }
                                 }
                                 ValidatorOption::NotAllow => {
                                     quote! {
-                                        #name {
-                                            domain,
-                                            is_ipv4: _is_ipv4,
-                                        }
+                                        #name(domain)
                                     }
                                 }
                             }

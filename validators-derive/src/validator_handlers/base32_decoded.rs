@@ -80,8 +80,7 @@ pub fn base32_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::Base32DecodedError })
-                        .unwrap();
+                    syn::parse2(quote! { validators_prelude::Base32DecodedError }).unwrap();
 
                 let padding_path = padding.to_expr();
 

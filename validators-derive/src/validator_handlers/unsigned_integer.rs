@@ -299,10 +299,8 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 // TODO impl
 
-                let error_path: Path = syn::parse2(
-                    quote! { validators_prelude::UnsignedIntegerError },
-                )
-                .unwrap();
+                let error_path: Path =
+                    syn::parse2(quote! { validators_prelude::UnsignedIntegerError }).unwrap();
 
                 let parameters_impl = quote! {
                     impl #name {

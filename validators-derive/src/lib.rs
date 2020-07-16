@@ -209,19 +209,15 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(NotAllow)))]
-pub struct DomainWithoutPort {
-    pub domain: String,
-    is_ipv4: bool,
-}
+pub struct DomainWithoutPort(pub String);
 
 assert!(DomainWithoutPort::parse_string("example.com").is_ok());
-assert_eq!("xn--fiq228c.com", DomainWithoutPort::parse_string("中文.com").unwrap().domain);
+assert_eq!("xn--fiq228c.com", DomainWithoutPort::parse_string("中文.com").unwrap().0);
 
 #[derive(Validator)]
 #[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(Allow)))]
 pub struct DomainAllowPort {
     pub domain: String,
-    is_ipv4: bool,
     port: Option<u16>,
 }
 
@@ -720,9 +716,7 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                             return number::number_handler(ast, meta)
                                         }
                                         #[cfg(feature = "regex")]
-                                        Validator::regex => {
-                                            return regex::regex_handler(ast, meta)
-                                        }
+                                        Validator::regex => return regex::regex_handler(ast, meta),
                                         #[cfg(feature = "semver")]
                                         Validator::semver => {
                                             return semver::semver_handler(ast, meta)

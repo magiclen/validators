@@ -695,8 +695,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
             // TODO impl
 
-            let error_path: Path =
-                syn::parse2(quote! { validators_prelude::EmailError }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::EmailError }).unwrap();
 
             let comment_path = comment.to_expr();
             let ip_path = ip.to_expr();

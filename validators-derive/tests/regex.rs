@@ -19,9 +19,7 @@ lazy_static! {
     static ref RE_NON_ZERO_NUMBERS: regex::Regex = regex::Regex::new("^[1-9]+$").unwrap();
 }
 
-static RE_POKER: Lazy<regex::Regex> = Lazy::new(|| {
-    regex::Regex::new("^([AJQK1-9]|10)$").unwrap()
-});
+static RE_POKER: Lazy<regex::Regex> = Lazy::new(|| regex::Regex::new("^([AJQK1-9]|10)$").unwrap());
 
 #[derive(Validator)]
 #[validator(regex("^[0-9a-fA-F]+$"))]

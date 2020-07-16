@@ -1,10 +1,10 @@
 extern crate regex_dep;
 
 use alloc::boxed::Box;
-use alloc::string::{String};
+use alloc::string::String;
 
 use crate::proc_macro::TokenStream;
-use crate::syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path, Lit};
+use crate::syn::{Data, DeriveInput, Fields, Lit, Meta, NestedMeta, Path};
 
 use crate::{panic, TypeEnum, Validator};
 
@@ -27,7 +27,7 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                 }
 
-                let regex ;
+                let regex;
 
                 let correct_usage_for_attribute = [
                     stringify!(#[validator(regex("[0-9a-fA-F]"))]),
@@ -37,7 +37,10 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 match meta {
                     Meta::List(list) => {
                         if list.nested.len() != 1 {
-                            panic::attribute_incorrect_format("regex", &correct_usage_for_attribute);
+                            panic::attribute_incorrect_format(
+                                "regex",
+                                &correct_usage_for_attribute,
+                            );
                         }
 
                         let p = list.nested.into_iter().next().unwrap();
@@ -47,25 +50,29 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Meta::Path(path) = meta {
                                     regex = Regex::Ref(Box::new(path));
                                 } else {
-                                    panic::attribute_incorrect_format("regex", &correct_usage_for_attribute);
+                                    panic::attribute_incorrect_format(
+                                        "regex",
+                                        &correct_usage_for_attribute,
+                                    );
                                 }
                             }
                             NestedMeta::Lit(lit) => {
-                                if let Lit::Str(lit) = lit{
+                                if let Lit::Str(lit) = lit {
                                     let s = lit.value();
 
                                     regex_dep::Regex::new(&s).unwrap();
 
                                     regex = Regex::String(s);
                                 } else {
-                                    panic::attribute_incorrect_format("regex", &correct_usage_for_attribute);
+                                    panic::attribute_incorrect_format(
+                                        "regex",
+                                        &correct_usage_for_attribute,
+                                    );
                                 }
                             }
                         }
                     }
-                    _ => {
-                        panic::attribute_incorrect_format("regex", &correct_usage_for_attribute)
-                    }
+                    _ => panic::attribute_incorrect_format("regex", &correct_usage_for_attribute),
                 }
 
                 let name = ast.ident;
@@ -74,7 +81,6 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let error_path: Path =
                     syn::parse2(quote! { validators_prelude::RegexError }).unwrap();
-
 
                 let parameters_impl = quote! {
                     impl #name {
@@ -149,7 +155,10 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     let expect = {
                         match &regex {
                             Regex::String(regex) => {
-                                let regex = alloc::format!("a string matched by a regular expression: {}", regex);
+                                let regex = alloc::format!(
+                                    "a string matched by a regular expression: {}",
+                                    regex
+                                );
 
                                 quote! {
                                     f.write_str(#regex)
