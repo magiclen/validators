@@ -15,6 +15,7 @@
     feature = "ipv4",
     feature = "ipv6",
     feature = "json",
+    feature = "length",
     feature = "line",
     feature = "mac_address",
     feature = "number",
@@ -64,6 +65,8 @@ pub enum Validator {
     ipv6,
     #[cfg(feature = "json")]
     json,
+    #[cfg(feature = "length")]
+    length,
     #[cfg(feature = "line")]
     line,
     #[cfg(feature = "mac_address")]
@@ -126,6 +129,8 @@ impl Validator {
             "ipv6" => Validator::ipv6,
             #[cfg(feature = "json")]
             "json" => Validator::json,
+            #[cfg(feature = "length")]
+            "length" => Validator::length,
             #[cfg(feature = "line")]
             "line" => Validator::line,
             #[cfg(feature = "mac_address")]

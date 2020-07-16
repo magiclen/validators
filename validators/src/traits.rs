@@ -1,5 +1,12 @@
+use alloc::collections::{BTreeMap, BTreeSet, BinaryHeap};
 use alloc::string::String;
 use alloc::vec::Vec;
+
+#[cfg(feature = "std")]
+use std::collections::{HashMap, HashSet};
+
+#[cfg(feature = "serde_json")]
+use crate::serde_json::{Map, Value};
 
 /// Validate and deserialize strings.
 pub trait ValidateString {
@@ -290,7 +297,7 @@ pub trait ValidateNumber {
     }
 }
 
-/// Validate and deserialize boolean.
+/// Validate and deserialize booleans.
 pub trait ValidateBoolean {
     type Error;
     type Output;
@@ -298,4 +305,71 @@ pub trait ValidateBoolean {
     fn parse_bool(b: bool) -> Result<Self::Output, Self::Error>;
 
     fn validate_bool(b: bool) -> Result<(), Self::Error>;
+}
+
+/// For types which should have the a `len` method.
+pub trait CollectionLength {
+    fn len(&self) -> usize;
+}
+
+impl<T> CollectionLength for Vec<T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T> CollectionLength for BinaryHeap<T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T> CollectionLength for BTreeSet<T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<K, T> CollectionLength for BTreeMap<K, T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+#[cfg(feature = "std")]
+impl<T> CollectionLength for HashSet<T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+#[cfg(feature = "std")]
+impl<K, T> CollectionLength for HashMap<K, T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+#[cfg(feature = "serde_json")]
+impl CollectionLength for Map<String, Value> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+/// Validate the length of collections.
+pub trait ValidateLength<T: CollectionLength> {
+    type Error;
+    type Output;
+
+    fn parse_collection(v: T) -> Result<Self::Output, Self::Error>;
+
+    fn validate_collection(v: &T) -> Result<(), Self::Error>;
 }

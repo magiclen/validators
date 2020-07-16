@@ -65,7 +65,10 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             );
                                         }
                                         _ => {
-                                            panic::unknown_parameter("http_ftp_url", meta_name.as_str())
+                                            panic::unknown_parameter(
+                                                "http_ftp_url",
+                                                meta_name.as_str(),
+                                            )
                                         }
                                     }
                                 }
@@ -79,7 +82,10 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         }
                     }
                     Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format("http_ftp_url", &correct_usage_for_attribute)
+                        panic::attribute_incorrect_format(
+                            "http_ftp_url",
+                            &correct_usage_for_attribute,
+                        )
                     }
                 }
 

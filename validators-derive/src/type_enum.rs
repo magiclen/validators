@@ -24,6 +24,7 @@ pub enum TypeEnum {
     Version,
     VersionReq,
     Url,
+    CollectionLength,
 }
 
 impl TypeEnum {
@@ -47,9 +48,13 @@ impl TypeEnum {
             TypeEnum::Host => "crate::validators::models::Host",
             TypeEnum::Protocol => "crate::validators::models::Protocol",
             TypeEnum::Serde => "T: crate::serde::se::Serialize + crate::serde::de::Deserialize",
-            TypeEnum::Version => "semver::Version",
-            TypeEnum::VersionReq => "semver::VersionReq",
+            TypeEnum::Version => "crate::semver::Version",
+            TypeEnum::VersionReq => "crate::semver::VersionReq",
             TypeEnum::Url => "url::Url",
+            #[cfg(feature = "serde")]
+            TypeEnum::CollectionLength => "T: crate::validators::traits::CollectionLength + crate::serde::se::Serialize + crate::serde::de::Deserialize",
+            #[cfg(not(feature = "serde"))]
+            TypeEnum::CollectionLength => "T: crate::validators::traits::CollectionLength",
         }
     }
 }

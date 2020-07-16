@@ -409,6 +409,24 @@ assert!(JSONNumber::parse_u64(123).is_ok());
 assert!(JSONBoolean::parse_bool(false).is_ok());
 ```
 
+### length
+
+```rust
+#[macro_use] extern crate validators_derive;
+
+extern crate validators;
+
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(length(min = 1, max = 3))]
+pub struct NonEmptyNotTooLongVec(pub Vec<u8>);
+
+assert!(NonEmptyNotTooLongVec::parse_collection(vec![]).is_err());
+assert!(NonEmptyNotTooLongVec::parse_collection(vec![0]).is_ok());
+assert!(NonEmptyNotTooLongVec::parse_collection(vec![0, 1, 2, 3]).is_err());
+```
+
 ### line
 
 ```rust
@@ -776,6 +794,10 @@ fn derive_input_handler(ast: DeriveInput) -> TokenStream {
                                         Validator::ipv6 => return ipv6::ipv6_handler(ast, meta),
                                         #[cfg(feature = "json")]
                                         Validator::json => return json::json_handler(ast, meta),
+                                        #[cfg(feature = "length")]
+                                        Validator::length => {
+                                            return length::length_handler(ast, meta)
+                                        }
                                         #[cfg(feature = "line")]
                                         Validator::line => return line::line_handler(ast, meta),
                                         #[cfg(feature = "mac_address")]

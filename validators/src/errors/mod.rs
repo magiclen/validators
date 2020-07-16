@@ -78,6 +78,11 @@ mod json;
 #[cfg(feature = "json")]
 pub use json::JSONError;
 
+#[cfg(feature = "length")]
+mod length;
+#[cfg(feature = "length")]
+pub use length::LengthError;
+
 #[cfg(feature = "line")]
 mod line;
 #[cfg(feature = "line")]

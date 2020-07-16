@@ -18,10 +18,10 @@ pub mod domain;
 pub mod email;
 #[cfg(feature = "host")]
 pub mod host;
-#[cfg(feature = "http_url")]
-pub mod http_url;
 #[cfg(feature = "http_ftp_url")]
 pub mod http_ftp_url;
+#[cfg(feature = "http_url")]
+pub mod http_url;
 #[cfg(feature = "ip")]
 pub mod ip;
 #[cfg(feature = "ipv4")]
@@ -30,6 +30,8 @@ pub mod ipv4;
 pub mod ipv6;
 #[cfg(feature = "json")]
 pub mod json;
+#[cfg(feature = "length")]
+pub mod length;
 #[cfg(feature = "line")]
 pub mod line;
 #[cfg(feature = "mac_address")]

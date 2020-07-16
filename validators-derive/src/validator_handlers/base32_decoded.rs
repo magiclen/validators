@@ -287,6 +287,15 @@ pub fn base32_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
+                let collection_length_impl = quote! {
+                    impl CollectionLength for #name {
+                         #[inline]
+                        fn len(&self) -> usize {
+                            self.0.len()
+                        }
+                    }
+                };
+
                 let serde_impl = if cfg!(feature = "serde") {
                     let expect = match padding {
                         ValidatorOption::Allow => "a Base32 string or data",
@@ -388,6 +397,8 @@ pub fn base32_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #validate_string_impl
 
                     #validate_bytes_impl
+
+                    #collection_length_impl
 
                     #serde_impl
 
