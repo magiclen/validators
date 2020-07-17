@@ -31,7 +31,7 @@ When you add the `#[validator(validator_name)]` attribute for your structs, one 
 
 The struct used as a validator should have specific components according to its validator and the parameters of that validator. For example, a **base32** validator must be `struct(String)` and a **base32_decoded** validator must be `struct(Vec<u8>)`.
 
-The `#[validator(validator_name)]` attribute cannot be used on fields in any structs or enums. The reason that this crate uses a procedural macro to define a validator (i.e. a struct) instead of providing built-in structs for each configuration is to make the configurable validations have no overhead at runtime and also to insrease the compilation speed.
+The `#[validator(validator_name)]` attribute cannot be used on fields in any structs or enums. The reason that this crate uses a procedural macro to define a validator (i.e. a struct) instead of providing built-in structs for each configuration is to make the configurable validations have no overhead at runtime and also to increase the compilation speed.
 
 ### No Std
 
