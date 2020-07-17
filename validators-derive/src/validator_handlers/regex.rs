@@ -93,9 +93,7 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         }
                         Regex::Ref(_) => {
                             // unable to be used as a const
-                            quote! {
-
-                            }
+                            quote! {}
                         }
                     }
                 };
