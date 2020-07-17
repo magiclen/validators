@@ -258,7 +258,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(email(comment(Allow), ip(Allow), local(Allow), at_least_two_labels(Allow)))]
+#[validator(email(comment(Allow), ip(Allow), local(Allow), at_least_two_labels(Allow), non_ascii(Allow)))]
 pub struct EmailAllowComment {
     pub local_part: String,
     pub need_quoted: bool,
@@ -272,7 +272,7 @@ pub struct EmailAllowComment {
 assert!(EmailAllowComment::parse_string("(john)joke@example.com").is_ok());
 
 #[derive(Validator)]
-#[validator(email(comment(NotAllow), ip(Allow), local(Allow), at_least_two_labels(Allow)))]
+#[validator(email(comment(NotAllow), ip(Allow), local(Allow), at_least_two_labels(Allow), non_ascii(Allow)))]
 pub struct EmailNotAllowComment {
     pub local_part: String,
     pub need_quoted: bool,
