@@ -364,6 +364,16 @@ fn basic() {
 
     test! {
         {
+            local => Allow,
+            at_least_two_labels => Allow,
+            non_ascii => Allow,
+        },
+        {
+            local => Allow,
+            at_least_two_labels => Allow,
+            non_ascii => NotAllow,
+        },
+        {
             local => Must,
             at_least_two_labels => Allow,
             non_ascii => Allow,

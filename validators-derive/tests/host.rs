@@ -210,6 +210,10 @@ fn basic() {
 
     test! {
         {
+            local => Allow,
+            at_least_two_labels => Allow,
+        },
+        {
             local => Must,
             at_least_two_labels => Allow,
         },

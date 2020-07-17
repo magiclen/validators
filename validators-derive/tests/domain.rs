@@ -324,6 +324,11 @@ fn basic() {
     test! {
         {
             ipv4 => Allow,
+            local => Allow,
+            at_least_two_labels => Allow,
+        },
+        {
+            ipv4 => Allow,
             local => Must,
             at_least_two_labels => Allow,
         },

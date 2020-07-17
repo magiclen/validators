@@ -612,7 +612,7 @@ pub fn host_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 }
             };
 
-            let to_uri_authority_string = if local != ValidatorOption::Allow && port.not_allow() {
+            let to_uri_authority_string = if (local != ValidatorOption::Allow || at_least_two_labels == ValidatorOption::Allow) && port.not_allow() {
                 quote! {
                     #[inline]
                     pub fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
