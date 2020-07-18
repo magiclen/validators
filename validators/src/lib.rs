@@ -34,8 +34,8 @@ pub extern crate semver_dep as semver;
 #[cfg(feature = "url-dep")]
 pub extern crate url_dep as url;
 
-#[cfg(feature = "starts-ends-with-caseless")]
-pub extern crate starts_ends_with_caseless;
+#[cfg(feature = "str-utils")]
+pub extern crate str_utils;
 
 #[cfg(feature = "serde")]
 #[allow(unused_imports)]
@@ -95,8 +95,8 @@ pub mod prelude {
         #[cfg(feature = "url-dep")]
         pub use crate::url;
 
-        #[cfg(feature = "starts-ends-with-caseless")]
-        pub use crate::starts_ends_with_caseless;
+        #[cfg(feature = "str-utils")]
+        pub use crate::str_utils;
 
         #[cfg(feature = "serde")]
         pub use crate::serde::serde_if_integer128;

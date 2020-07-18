@@ -137,9 +137,9 @@ pub fn http_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #[inline]
                     fn v_parse_str(s: &str) -> Result<(validators_prelude::url::Url, bool), #error_path> {
                         let is_https = {
-                            use validators_prelude::starts_ends_with_caseless::StartsWithCaselessMultiple;
+                            use validators_prelude::str_utils::StartsWithIgnoreAsciiCaseMultiple;
 
-                            if let Some(index) = s.starts_with_caseless_ascii_multiple(&["http:", "https:"]) {
+                            if let Some(index) = s.starts_with_ignore_ascii_case_with_lowercase_multiple(&["http:", "https:"]) {
                                 match index {
                                     0 => false,
                                     1 => true,

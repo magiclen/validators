@@ -143,9 +143,9 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #[inline]
                     fn v_parse_str(s: &str) -> Result<(validators_prelude::url::Url, validators_prelude::Protocol), #error_path> {
                         let protocol = {
-                            use validators_prelude::starts_ends_with_caseless::StartsWithCaselessMultiple;
+                            use validators_prelude::str_utils::StartsWithIgnoreAsciiCaseMultiple;
 
-                            if let Some(index) = s.starts_with_caseless_ascii_multiple(&["http:", "https:", "ftp:"]) {
+                            if let Some(index) = s.starts_with_ignore_ascii_case_with_lowercase_multiple(&["http:", "https:", "ftp:"]) {
                                 match index {
                                     0 => validators_prelude::Protocol::HTTP,
                                     1 => validators_prelude::Protocol::HTTPS,

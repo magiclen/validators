@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.21.2"
+version = "0.21.3"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -27,7 +27,7 @@ failure = { version = "0.1", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
 semver-dep = { package = "semver", version = "0.10", optional = true }
 url-dep = { package = "url", version = "2", optional = true }
-starts-ends-with-caseless = { version = "0.6", optional = true }
+str-utils = { version = "0.1", optional = true }
 
 serde-dep = { package = "serde", version = "1", optional = true }
 rocket-dep = { package = "rocket", version = "0.4", optional = true }
@@ -45,8 +45,8 @@ boolean = []
 domain = ["std", "idna"]
 email = ["std", "idna"]
 host = ["std", "idna"]
-http_url = ["std", "url-dep", "starts-ends-with-caseless"]
-http_ftp_url = ["std", "url-dep", "starts-ends-with-caseless"]
+http_url = ["std", "url-dep"]
+http_ftp_url = ["std", "url-dep"]
 ip = ["std"]
 ipv4 = ["std"]
 ipv6 = ["std"]
