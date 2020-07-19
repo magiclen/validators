@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.21.3"
+version = "0.21.4"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -45,8 +45,8 @@ boolean = []
 domain = ["std", "idna"]
 email = ["std", "idna"]
 host = ["std", "idna"]
-http_url = ["std", "url-dep"]
-http_ftp_url = ["std", "url-dep"]
+http_url = ["std", "url-dep", "str-utils"]
+http_ftp_url = ["std", "url-dep", "str-utils"]
 ip = ["std"]
 ipv4 = ["std"]
 ipv6 = ["std"]
