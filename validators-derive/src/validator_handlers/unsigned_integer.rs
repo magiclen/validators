@@ -448,13 +448,21 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     #[cfg(not(target_pointer_width = "128"))]
                                     #[inline]
                                     fn parse_u128(u: u128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_usize`");
+                                        if u > usize::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::parse_usize(u as usize)
+                                        }
                                     }
 
                                     #[cfg(not(target_pointer_width = "128"))]
                                     #[inline]
                                     fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_usize`");
+                                        if u > usize::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::validate_usize(u as usize)
+                                        }
                                     }
 
                                     #[inline]
@@ -536,12 +544,20 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_u128(u: u128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_u8`");
+                                        if u > u8::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::parse_u8(u as u8)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_u8`");
+                                        if u > u8::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::validate_u8(u as u8)
+                                        }
                                     }
 
                                     #[inline]
@@ -568,12 +584,20 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_u128(u: u128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_u16`");
+                                        if u > u16::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::parse_u16(u as u16)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_u16`");
+                                        if u > u16::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::validate_u16(u as u16)
+                                        }
                                     }
 
                                     #[inline]
@@ -600,12 +624,20 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_u128(u: u128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_u32`");
+                                        if u > u32::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::parse_u32(u as u32)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_u32`");
+                                        if u > u32::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::validate_u32(u as u32)
+                                        }
                                     }
 
                                     #[inline]
@@ -632,12 +664,20 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_u128(u: u128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_u64`");
+                                        if u > u64::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::parse_u64(u as u64)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_u64`");
+                                        if u > u64::max_value() as u128 {
+                                            Err(#error_path::TooLarge)
+                                        } else {
+                                            Self::validate_u64(u as u64)
+                                        }
                                     }
 
                                     #[inline]

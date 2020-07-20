@@ -360,12 +360,12 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_f64(f: f64) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_f32`");
+                                        Self::parse_f32(f as f32)
                                     }
 
                                     #[inline]
                                     fn validate_f64(f: f64) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_f32`");
+                                        Self::validate_f32(f as f32)
                                     }
 
                                     #[inline]

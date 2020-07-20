@@ -448,13 +448,25 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     #[cfg(not(target_pointer_width = "128"))]
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_isize`");
+                                        if i > isize::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < isize::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::parse_isize(i as isize)
+                                        }
                                     }
 
                                     #[cfg(not(target_pointer_width = "128"))]
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_isize`");
+                                        if i > isize::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < isize::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::validate_isize(i as isize)
+                                        }
                                     }
 
                                     #[inline]
@@ -536,12 +548,24 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_i8`");
+                                        if i > i8::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i8::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::parse_i8(i as i8)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_i8`");
+                                        if i > i8::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i8::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::validate_i8(i as i8)
+                                        }
                                     }
 
                                     #[inline]
@@ -568,12 +592,24 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_i16`");
+                                        if i > i16::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i16::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::parse_i16(i as i16)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_i16`");
+                                        if i > i16::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i16::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::validate_i16(i as i16)
+                                        }
                                     }
 
                                     #[inline]
@@ -600,12 +636,24 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_i32`");
+                                        if i > i32::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i32::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::parse_i32(i as i32)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_i32`");
+                                        if i > i32::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i32::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::validate_i32(i as i32)
+                                        }
                                     }
 
                                     #[inline]
@@ -632,12 +680,24 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        unimplemented!("should use `parse_i64`");
+                                        if i > i64::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i64::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::parse_i64(i as i64)
+                                        }
                                     }
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        unimplemented!("should use `validate_i64`");
+                                        if i > i64::max_value() as i128 {
+                                            Err(#error_path::TooLarge)
+                                        } else if i < i64::min_value() as i128 {
+                                            Err(#error_path::TooSmall)
+                                        } else {
+                                            Self::validate_i64(i as i64)
+                                        }
                                     }
 
                                     #[inline]
