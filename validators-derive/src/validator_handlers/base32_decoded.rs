@@ -366,22 +366,44 @@ pub fn base32_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let rocket_impl = if cfg!(feature = "rocket") {
-                    quote! {
-                        impl<'a> validators_prelude::FromFormValue<'a> for #name {
-                            type Error = #error_path;
+                    if padding.allow() {
+                        quote! {
+                            impl<'a> validators_prelude::FromFormValue<'a> for #name {
+                                type Error = #error_path;
 
-                            #[inline]
-                            fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                <#name as ValidateString>::parse_str(v)
+                                #[inline]
+                                fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
+                                    <#name as ValidateString>::parse_string(v.url_decode().map_err(|_| #error_path::Invalid)?)
+                                }
+                            }
+
+                            impl<'a> validators_prelude::FromParam<'a> for #name {
+                                type Error = #error_path;
+
+                                #[inline]
+                                fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
+                                    <#name as ValidateString>::parse_string(v.url_decode().map_err(|_| #error_path::Invalid)?)
+                                }
                             }
                         }
+                    } else {
+                        quote! {
+                            impl<'a> validators_prelude::FromFormValue<'a> for #name {
+                                type Error = #error_path;
 
-                        impl<'a> validators_prelude::FromParam<'a> for #name {
-                            type Error = #error_path;
+                                #[inline]
+                                fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
+                                    <#name as ValidateString>::parse_str(v)
+                                }
+                            }
 
-                            #[inline]
-                            fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                <#name as ValidateString>::parse_str(v)
+                            impl<'a> validators_prelude::FromParam<'a> for #name {
+                                type Error = #error_path;
+
+                                #[inline]
+                                fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
+                                    <#name as ValidateString>::parse_str(v)
+                                }
                             }
                         }
                     }

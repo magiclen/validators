@@ -285,7 +285,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                             #[inline]
                             fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                <#name as ValidateString>::parse_str(v)
+                                <#name as ValidateString>::parse_string(v.url_decode()?)
                             }
                         }
 
@@ -294,7 +294,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                             #[inline]
                             fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                <#name as ValidateString>::parse_str(v)
+                                <#name as ValidateString>::parse_string(v.url_decode()?)
                             }
                         }
                     }
