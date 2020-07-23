@@ -117,7 +117,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let other_functions = quote! {
                     impl #name {
                         #[inline]
-                        pub fn to_minfied_json_string(&self) -> String {
+                        pub fn to_minified_json_string(&self) -> String {
                             validators_prelude::serde_json::to_string(&self.0).unwrap()
                         }
 
@@ -259,7 +259,7 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::Serializer, {
-                                serializer.serialize_str(&self.to_minfied_json_string())
+                                serializer.serialize_str(&self.to_minified_json_string())
                             }
                         }
 

@@ -428,7 +428,7 @@ assert!(IPv6WithoutPort::parse_string("[::ffff:c000:0280]").is_ok());
 
 traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateNumber`, `ValidateBoolean`
 
-additional methods: `to_minfied_json_string`, `to_beautified_json_string`
+additional methods: `to_minified_json_string`, `to_beautified_json_string`
 
 ```rust
 #[macro_use] extern crate validators_derive;
