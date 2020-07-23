@@ -487,7 +487,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(line(empty(NotAllow)))]
+#[validator(line(char_length(trimmed_min = 1, min = 1, max = 1000)))]
 pub struct LineNotAllowEmpty(pub String);
 
 assert!(LineNotAllowEmpty::parse_string("123").is_ok());
@@ -719,7 +719,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(text(empty(NotAllow)))]
+#[validator(text(char_length(trimmed_min = 1, min = 1, max = 1000)))]
 pub struct TextNotAllowEmpty(pub String);
 
 assert!(TextNotAllowEmpty::parse_string("123").is_ok());

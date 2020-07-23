@@ -1,6 +1,6 @@
 [package]
 name = "validators-derive"
-version = "0.21.6"
+version = "0.22.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -10,7 +10,7 @@ categories = ["no-std", "parser-implementations", "value-formatting", "rust-patt
 description = "This is a library for validating and modeling user input and this crate provides a procedural macro to define validators with optional parameters."
 readme = "README.md"
 license = "MIT"
-include = ["src/**/*", "Cargo.toml"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [badges.travis-ci]
 repository = "magiclen/validators"
@@ -20,8 +20,8 @@ branch = "master"
 proc-macro = true
 
 [dependencies]
-validators-options = { version = "0.21", path = "../validators-options" }
-validators = { version = "0.21.3", path = "../validators" }
+validators-options = { version = "0.22", path = "../validators-options" }
+validators = { version = "0.22", path = "../validators" }
 
 proc-macro2 = "1"
 syn = "1"

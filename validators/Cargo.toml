@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.21.4"
+version = "0.22.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -10,14 +10,14 @@ categories = ["no-std", "parser-implementations", "value-formatting"]
 description = "This is a library for validating and modeling user input and this crate provides models, function, traits, errors and other dependencies used with the `validators-derive` crate."
 readme = "README.md"
 license = "MIT"
-include = ["src/**/*", "Cargo.toml"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [badges.travis-ci]
 repository = "magiclen/validators"
 branch = "master"
 
 [dependencies]
-validators-options = { version = "0.21", path = "../validators-options" }
+validators-options = { version = "0.22", path = "../validators-options" }
 
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }

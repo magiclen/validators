@@ -1,11 +1,13 @@
+use core::fmt::Write;
+
 use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 
 use crate::proc_macro::TokenStream;
 use crate::quote::ToTokens;
-use crate::syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path};
+use crate::syn::{Data, DeriveInput, Fields, Lit, Meta, NestedMeta, Path};
 
-use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption};
+use crate::{panic, TypeEnum, Validator};
 
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
@@ -21,20 +23,23 @@ pub fn line_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                 }
 
-                let mut empty = ValidatorOption::new();
+                let mut min: Option<usize> = None;
+                let mut trimmed_min: Option<usize> = None;
+                let mut max: Option<usize> = None;
 
                 let correct_usage_for_attribute = [stringify!(#[validator(line)])];
 
-                let correct_usage_for_empty = [
-                    stringify!(#[validator(line(empty(Must)))]),
-                    stringify!(#[validator(line(empty(Allow)))]),
-                    stringify!(#[validator(line(empty(NotAllow)))]),
+                let correct_usage_for_char_length = [
+                    stringify!(#[validator(line(char_length(max = 100)))]),
+                    stringify!(#[validator(line(char_length(trimmed_min = 1)))]),
+                    stringify!(#[validator(line(char_length(min = 5, max = 12)))]),
+                    stringify!(#[validator(line(char_length(trimmed_min = 1, min = 5, max = 12)))]),
                 ];
 
                 match meta {
                     Meta::Path(_) => (),
                     Meta::List(list) => {
-                        let mut empty_is_set = false;
+                        let mut char_length_is_set = false;
 
                         for p in list.nested.iter() {
                             match p {
@@ -42,13 +47,133 @@ pub fn line_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     let meta_name = meta.path().into_token_stream().to_string();
 
                                     match meta_name.as_str() {
-                                        "empty" => {
-                                            empty = ValidatorOption::from_meta(
-                                                meta_name.as_str(),
-                                                meta,
-                                                &mut empty_is_set,
-                                                &correct_usage_for_empty,
-                                            );
+                                        "char_length" => {
+                                            if char_length_is_set {
+                                                panic::reset_parameter("char_length");
+                                            }
+
+                                            char_length_is_set = true;
+
+                                            if let Meta::List(list) = meta {
+                                                let char_length = list.nested.len();
+
+                                                if char_length >= 1 && char_length <= 3 {
+                                                    let mut min_is_set = false;
+                                                    let mut trimmed_min_is_set = false;
+                                                    let mut max_is_set = false;
+
+                                                    for p in list.nested.iter() {
+                                                        match p {
+                                                            NestedMeta::Meta(meta) => {
+                                                                if let Meta::NameValue(name_value) =
+                                                                    meta
+                                                                {
+                                                                    match &name_value.lit {
+                                                                        Lit::Int(i) => {
+                                                                            if let Some(ident) =
+                                                                                meta.path()
+                                                                                    .get_ident()
+                                                                            {
+                                                                                if ident == "min" {
+                                                                                    if min_is_set {
+                                                                                        panic::reset_parameter("min");
+                                                                                    }
+
+                                                                                    min_is_set =
+                                                                                        true;
+
+                                                                                    min = Some(
+                                                                                        i.base10_digits().parse().unwrap(),
+                                                                                    );
+                                                                                } else if ident
+                                                                                    == "trimmed_min"
+                                                                                {
+                                                                                    if trimmed_min_is_set {
+                                                                                        panic::reset_parameter("trimmed_min");
+                                                                                    }
+
+                                                                                    trimmed_min_is_set = true;
+
+                                                                                    trimmed_min = Some(
+                                                                                        i.base10_digits().parse().unwrap(),
+                                                                                    );
+                                                                                } else if ident
+                                                                                    == "max"
+                                                                                {
+                                                                                    if max_is_set {
+                                                                                        panic::reset_parameter("max");
+                                                                                    }
+
+                                                                                    max_is_set =
+                                                                                        true;
+
+                                                                                    max = Some(
+                                                                                        i.base10_digits().parse().unwrap(),
+                                                                                    );
+                                                                                } else {
+                                                                                    panic::parameter_incorrect_format("char_length", &correct_usage_for_char_length);
+                                                                                }
+                                                                            } else {
+                                                                                panic::parameter_incorrect_format("char_length", &correct_usage_for_char_length);
+                                                                            }
+                                                                        }
+                                                                        _ => {
+                                                                            panic::parameter_incorrect_format("char_length", &correct_usage_for_char_length);
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    panic::parameter_incorrect_format("char_length", &correct_usage_for_char_length);
+                                                                }
+                                                            }
+                                                            NestedMeta::Lit(_) => {
+                                                                panic::parameter_incorrect_format(
+                                                                    "char_length",
+                                                                    &correct_usage_for_char_length,
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+
+                                                    if let Some(min) = min {
+                                                        if let Some(trimmed_min) = trimmed_min {
+                                                            if trimmed_min > min {
+                                                                panic!(
+                                                                    "{} > {} (trimmed_min > min)",
+                                                                    trimmed_min, min
+                                                                );
+                                                            }
+                                                        }
+
+                                                        if let Some(max) = max {
+                                                            if min > max {
+                                                                panic!(
+                                                                    "{} > {} (min > max)",
+                                                                    min, max
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                                } else if let Some(trimmed_min) = trimmed_min {
+                                                    if let Some(max) = max {
+                                                        if trimmed_min > max {
+                                                            panic!(
+                                                                "{} > {} (trimmed_min > max)",
+                                                                trimmed_min, max
+                                                            );
+                                                        }
+                                                    }
+                                                } else {
+                                                    panic::parameter_incorrect_format(
+                                                        "char_length",
+                                                        &correct_usage_for_char_length,
+                                                    );
+                                                }
+                                            } else {
+                                                panic::parameter_incorrect_format(
+                                                    "char_length",
+                                                    &correct_usage_for_char_length,
+                                                );
+                                            }
                                         }
                                         _ => panic::unknown_parameter("line", meta_name.as_str()),
                                     }
@@ -74,68 +199,411 @@ pub fn line_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 let error_path: Path =
                     syn::parse2(quote! { validators_prelude::LineError }).unwrap();
 
-                let empty_path = empty.to_expr();
+                let min_expr = {
+                    match min {
+                        Some(min) => {
+                            quote! {
+                                Some(#min)
+                            }
+                        }
+                        None => {
+                            quote! {
+                                None
+                            }
+                        }
+                    }
+                };
+
+                let trimmed_min_expr = {
+                    match trimmed_min {
+                        Some(trimmed_min) => {
+                            quote! {
+                                Some(#trimmed_min)
+                            }
+                        }
+                        None => {
+                            quote! {
+                                None
+                            }
+                        }
+                    }
+                };
+
+                let max_expr = {
+                    match max {
+                        Some(max) => {
+                            quote! {
+                                Some(#max)
+                            }
+                        }
+                        None => {
+                            quote! {
+                                None
+                            }
+                        }
+                    }
+                };
 
                 let parameters_impl = quote! {
                     impl #name {
-                        pub(crate) const V_EMPTY: validators_prelude::ValidatorOption = #empty_path;
+                        pub(crate) const V_LENGTH_MIN: Option<usize> = #min_expr;
+                        pub(crate) const V_LENGTH_TRIMMED_MIN: Option<usize> = #trimmed_min_expr;
+                        pub(crate) const V_LENGTH_MAX: Option<usize> = #max_expr;
                     }
                 };
 
                 let handle_str = {
-                    match empty {
-                        ValidatorOption::Allow => {
-                            quote! {
-                                for e in s.bytes() {
-                                    match e {
-                                        b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F' => {
-                                            return Err(#error_path::Invalid);
-                                        }
-                                        _ => (),
-                                    }
-                                }
-
-                                Ok(())
-                            }
-                        }
-                        ValidatorOption::Must => {
-                            quote! {
-                                for c in s.chars() {
-                                    if !c.is_whitespace() {
-                                        return Err(#error_path::EmptyMust);
-                                    }
-                                }
-
-                                Ok(())
-                            }
-                        }
-                        ValidatorOption::NotAllow => {
-                            quote! {
-                                let mut chars = s.chars();
-
-                                while let Some(c) = chars.next() {
-                                    if !c.is_whitespace() {
-                                        match c {
-                                            '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
-                                                return Err(#error_path::Invalid);
-                                            }
-                                            _ => (),
-                                        }
-
-                                        while let Some(c) = chars.next() {
-                                            match c {
-                                                '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
-                                                    return Err(#error_path::Invalid);
+                    match max {
+                        Some(max) => {
+                            match min {
+                                Some(min) => {
+                                    match trimmed_min {
+                                        Some(trimmed_min) => {
+                                            let handle_trimmed_empty = if trimmed_min == 0 {
+                                                quote! {
+                                                    if counter < #min {
+                                                        Err(#error_path::TooShort)
+                                                    } else if counter > #max {
+                                                        Err(#error_path::TooLong)
+                                                    } else {
+                                                        Ok(())
+                                                    }
                                                 }
-                                                _ => (),
+                                            } else {
+                                                quote! {
+                                                    Err(#error_path::TooShort)
+                                                }
+                                            };
+
+                                            quote! {
+                                                let mut chars = s.chars().take(#max + 1);
+                                                let mut counter = 0;
+
+                                                while let Some(c) = chars.next() {
+                                                    counter += 1;
+
+                                                    if !c.is_whitespace() {
+                                                        match c {
+                                                            '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                return Err(#error_path::Invalid);
+                                                            }
+                                                            _ => (),
+                                                        }
+
+                                                        let mut trimmed_counter = 1;
+                                                        let mut temp_counter = 0;
+
+                                                        while let Some(c) = chars.next() {
+                                                            match c {
+                                                                '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                    return Err(#error_path::Invalid);
+                                                                }
+                                                                _ => {
+                                                                    counter += 1;
+
+                                                                    if c.is_whitespace() {
+                                                                        temp_counter += 1;
+                                                                    } else {
+                                                                        trimmed_counter += temp_counter + 1;
+                                                                        temp_counter = 0;
+                                                                    }
+                                                                },
+                                                            }
+                                                        }
+
+                                                        if trimmed_counter >= #trimmed_min && counter >= #min {
+                                                            if counter <= #max {
+                                                                return Ok(());
+                                                            } else {
+                                                                return Err(#error_path::TooLong);
+                                                            }
+                                                        } else {
+                                                            return Err(#error_path::TooShort);
+                                                        }
+                                                    }
+                                                }
+
+                                                #handle_trimmed_empty
                                             }
                                         }
+                                        None => {
+                                            quote! {
+                                                let mut chars = s.chars().take(#max + 1);
+                                                let mut counter = 0;
 
-                                        return Ok(());
+                                                while let Some(c) = chars.next() {
+                                                    match c {
+                                                        '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                            return Err(#error_path::Invalid);
+                                                        }
+                                                        _ => counter += 1,
+                                                    }
+                                                }
+
+                                                if counter < #min {
+                                                    Err(#error_path::TooShort)
+                                                } else if counter > #max {
+                                                    Err(#error_path::TooLong)
+                                                } else {
+                                                    Ok(())
+                                                }
+                                            }
+                                        }
                                     }
                                 }
+                                None => {
+                                    match trimmed_min {
+                                        Some(trimmed_min) => {
+                                            let handle_trimmed_empty = if trimmed_min == 0 {
+                                                quote! {
+                                                    if counter <= #max {
+                                                        Ok(())
+                                                    } else {
+                                                        Err(#error_path::TooLong)
+                                                    }
+                                                }
+                                            } else {
+                                                quote! {
+                                                    Err(#error_path::TooShort)
+                                                }
+                                            };
 
-                                Err(#error_path::EmptyNotAllow)
+                                            quote! {
+                                                let mut chars = s.chars().take(#max + 1);
+                                                let mut counter = 0;
+
+                                                while let Some(c) = chars.next() {
+                                                    counter += 1;
+
+                                                    if !c.is_whitespace() {
+                                                        match c {
+                                                            '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                return Err(#error_path::Invalid);
+                                                            }
+                                                            _ => (),
+                                                        }
+
+                                                        let mut trimmed_counter = 1;
+                                                        let mut temp_counter = 0;
+
+                                                        while let Some(c) = chars.next() {
+                                                            match c {
+                                                                '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                    return Err(#error_path::Invalid);
+                                                                }
+                                                                _ => {
+                                                                    counter += 1;
+
+                                                                    if c.is_whitespace() {
+                                                                        temp_counter += 1;
+                                                                    } else {
+                                                                        trimmed_counter += temp_counter + 1;
+                                                                        temp_counter = 0;
+                                                                    }
+                                                                },
+                                                            }
+                                                        }
+
+                                                        if trimmed_counter >= #trimmed_min {
+                                                            if counter <= #max {
+                                                                return Ok(());
+                                                            } else {
+                                                                return Err(#error_path::TooLong);
+                                                            }
+                                                        } else {
+                                                            return Err(#error_path::TooShort);
+                                                        }
+                                                    }
+                                                }
+
+                                                #handle_trimmed_empty
+                                            }
+                                        }
+                                        None => {
+                                            quote! {
+                                                let mut chars = s.chars().take(#max + 1);
+                                                let mut counter = 0;
+
+                                                while let Some(c) = chars.next() {
+                                                    match c {
+                                                        '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                            return Err(#error_path::Invalid);
+                                                        }
+                                                        _ => counter += 1,
+                                                    }
+                                                }
+
+                                                if counter <= #max {
+                                                    Ok(())
+                                                } else {
+                                                    Err(#error_path::TooLong)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        None => {
+                            match min {
+                                Some(min) => {
+                                    match trimmed_min {
+                                        Some(trimmed_min) => {
+                                            let handle_trimmed_empty = if trimmed_min == 0 {
+                                                quote! {
+                                                    if counter >= #min {
+                                                        Ok(())
+                                                    } else {
+                                                        Err(#error_path::TooShort)
+                                                    }
+                                                }
+                                            } else {
+                                                quote! {
+                                                    Err(#error_path::TooShort)
+                                                }
+                                            };
+
+                                            quote! {
+                                                let mut chars = s.chars();
+                                                let mut counter = 0;
+
+                                                while let Some(c) = chars.next() {
+                                                    counter += 1;
+
+                                                    if !c.is_whitespace() {
+                                                        match c {
+                                                            '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                return Err(#error_path::Invalid);
+                                                            }
+                                                            _ => (),
+                                                        }
+
+                                                        let mut trimmed_counter = 1;
+                                                        let mut temp_counter = 0;
+
+                                                        while let Some(c) = chars.next() {
+                                                            match c {
+                                                                '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                    return Err(#error_path::Invalid);
+                                                                }
+                                                                _ => {
+                                                                    counter += 1;
+
+                                                                    if c.is_whitespace() {
+                                                                        temp_counter += 1;
+                                                                    } else {
+                                                                        trimmed_counter += temp_counter + 1;
+                                                                        temp_counter = 0;
+                                                                    }
+                                                                },
+                                                            }
+                                                        }
+
+                                                        if trimmed_counter >= #trimmed_min && counter >= #min {
+                                                            return Ok(());
+                                                        } else {
+                                                            return Err(#error_path::TooShort);
+                                                        }
+                                                    }
+                                                }
+
+                                                #handle_trimmed_empty
+                                            }
+                                        }
+                                        None => {
+                                            quote! {
+                                                let mut chars = s.chars();
+                                                let mut counter = 0;
+
+                                                while let Some(c) = chars.next() {
+                                                    match c {
+                                                        '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                            return Err(#error_path::Invalid);
+                                                        }
+                                                        _ => counter += 1,
+                                                    }
+                                                }
+
+                                                if counter >= #min {
+                                                    Ok(())
+                                                } else {
+                                                    Err(#error_path::TooShort)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                None => {
+                                    match trimmed_min {
+                                        Some(trimmed_min) => {
+                                            let handle_trimmed_empty = if trimmed_min == 0 {
+                                                quote! {
+                                                    Ok(())
+                                                }
+                                            } else {
+                                                quote! {
+                                                    Err(#error_path::TooShort)
+                                                }
+                                            };
+
+                                            quote! {
+                                                let mut chars = s.chars();
+
+                                                while let Some(c) = chars.next() {
+                                                    if !c.is_whitespace() {
+                                                        match c {
+                                                            '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                return Err(#error_path::Invalid);
+                                                            }
+                                                            _ => (),
+                                                        }
+
+                                                        let mut trimmed_counter = 1;
+                                                        let mut temp_counter = 0;
+
+                                                        while let Some(c) = chars.next() {
+                                                            match c {
+                                                                '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F' => {
+                                                                    return Err(#error_path::Invalid);
+                                                                }
+                                                                _ => {
+                                                                    if c.is_whitespace() {
+                                                                        temp_counter += 1;
+                                                                    } else {
+                                                                        trimmed_counter += temp_counter + 1;
+                                                                        temp_counter = 0;
+                                                                    }
+                                                                },
+                                                            }
+                                                        }
+
+                                                        if trimmed_counter >= #trimmed_min {
+                                                            return Ok(());
+                                                        } else {
+                                                            return Err(#error_path::TooShort);
+                                                        }
+                                                    }
+                                                }
+
+                                                #handle_trimmed_empty
+                                            }
+                                        }
+                                        None => {
+                                            quote! {
+                                                for e in s.bytes() {
+                                                    match e {
+                                                        b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F' => {
+                                                            return Err(#error_path::Invalid);
+                                                        }
+                                                        _ => (),
+                                                    }
+                                                }
+
+                                                Ok(())
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -187,12 +655,28 @@ pub fn line_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let serde_impl = if cfg!(feature = "serde") {
-                    let expect = match empty {
-                        ValidatorOption::Allow => "a line",
-                        ValidatorOption::Must => "a line which must be empty after trimming",
-                        ValidatorOption::NotAllow => {
-                            "a line which must not be empty after trimming"
+                    let expect = {
+                        let mut s = String::from("a line");
+
+                        if min.is_some() || max.is_some() || trimmed_min.is_some() {
+                            s.push_str(" in ");
+
+                            if let Some(min) = min {
+                                s.write_fmt(format_args!("{}", min)).unwrap();
+                            }
+
+                            if let Some(trimmed_min) = trimmed_min {
+                                s.write_fmt(format_args!("({})", trimmed_min)).unwrap();
+                            }
+
+                            s.push_str("..");
+
+                            if let Some(max) = max {
+                                s.write_fmt(format_args!("={}", max)).unwrap();
+                            }
                         }
+
+                        s
                     };
 
                     quote! {

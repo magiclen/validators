@@ -6,10 +6,10 @@ use std::error::Error;
 #[derive(Debug, Clone)]
 pub enum LineError {
     Invalid,
-    /// may not be valid but it is guaranteed that this line is not empty after trimming
-    EmptyMust,
-    /// this line is empty after trimming
-    EmptyNotAllow,
+    /// may not be valid but it is guaranteed that this line is too long
+    TooLong,
+    /// may not be valid but it is guaranteed that this line is too short
+    TooShort,
 }
 
 impl Display for LineError {
@@ -17,8 +17,8 @@ impl Display for LineError {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
             LineError::Invalid => f.write_str("invalid line"),
-            LineError::EmptyMust => f.write_str("non-empty line after trimming"),
-            LineError::EmptyNotAllow => f.write_str("empty line after trimming"),
+            LineError::TooLong => f.write_str("line is too long"),
+            LineError::TooShort => f.write_str("line is too short"),
         }
     }
 }
