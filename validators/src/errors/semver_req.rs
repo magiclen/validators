@@ -5,7 +5,7 @@ use std::error::Error;
 
 use crate::semver;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SemVerReqError(pub semver::ReqParseError);
 
 impl From<semver::ReqParseError> for SemVerReqError {

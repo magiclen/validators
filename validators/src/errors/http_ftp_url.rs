@@ -5,7 +5,7 @@ use std::error::Error;
 
 use crate::url;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum HttpFtpURLError {
     ParseError(url::ParseError),
     // may not be valid but it is guaranteed that the scheme (protocol) is not `http`, `https` or `ftp`

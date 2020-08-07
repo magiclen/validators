@@ -5,7 +5,7 @@ use std::error::Error;
 
 use crate::url;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct URLError(pub url::ParseError);
 
 impl From<url::ParseError> for URLError {
