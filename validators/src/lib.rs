@@ -22,8 +22,8 @@ pub extern crate serde_json;
 #[cfg(feature = "phonenumber")]
 pub extern crate phonenumber;
 
-#[cfg(feature = "failure")]
-pub extern crate failure;
+#[cfg(feature = "thiserror")]
+pub extern crate thiserror;
 
 #[cfg(feature = "regex-dep")]
 pub extern crate regex_dep as regex;

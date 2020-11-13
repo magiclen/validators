@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.22.2"
+version = "0.22.3"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -22,10 +22,10 @@ validators-options = { version = "0.22", path = "../validators-options" }
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }
 serde_json = { version = "1", optional = true }
-phonenumber = { version = "0.2", optional = true }
-failure = { version = "0.1", optional = true }
+phonenumber = { version = "0.3", optional = true }
+thiserror = { version = "1", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
-semver-dep = { package = "semver", version = "0.10", optional = true }
+semver-dep = { package = "semver", version = "0.11", optional = true }
 url-dep = { package = "url", version = "2", optional = true }
 str-utils = { version = "0.1", optional = true }
 
@@ -55,7 +55,7 @@ length = []
 line = []
 mac_address = []
 number = []
-phone = ["std", "phonenumber", "failure"]
+phone = ["std", "phonenumber", "thiserror"]
 regex = ["regex-dep"]
 semver = ["semver-dep"]
 semver_req = ["semver-dep"]

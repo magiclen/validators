@@ -3,19 +3,19 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
-use crate::failure;
+use crate::phonenumber::ParseError;
 
 #[derive(Debug)]
 pub enum PhoneError {
     /// fail to parse
-    Failure(failure::Error),
+    Failure(ParseError),
     /// parsed successfully, but is invalid according to the country
     Invalid,
 }
 
-impl From<failure::Error> for PhoneError {
+impl From<ParseError> for PhoneError {
     #[inline]
-    fn from(error: failure::Error) -> Self {
+    fn from(error: ParseError) -> Self {
         PhoneError::Failure(error)
     }
 }
