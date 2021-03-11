@@ -191,7 +191,7 @@ fn basic() {
                     pub struct HostWithoutPortIsLocal {
                         pub host: validators::models::Host,
                         pub is_local: bool,
-                    };
+                    }
 
                     test_inner!(
                         stringify! {

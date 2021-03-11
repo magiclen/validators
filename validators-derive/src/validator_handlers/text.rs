@@ -57,7 +57,7 @@ pub fn text_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             if let Meta::List(list) = meta {
                                                 let char_length = list.nested.len();
 
-                                                if char_length >= 1 && char_length <= 3 {
+                                                if (1..=3).contains(&char_length) {
                                                     let mut min_is_set = false;
                                                     let mut trimmed_min_is_set = false;
                                                     let mut max_is_set = false;

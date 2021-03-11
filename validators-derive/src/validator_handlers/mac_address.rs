@@ -116,7 +116,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     match separator {
                         ValidatorSeparatorOption::Allow(separator) => {
                             quote! {
-                                if length < 12 || length > 17 {
+                                if !(12..=17).contains(&length) {
                                     return Err(#error_path::Invalid);
                                 }
 

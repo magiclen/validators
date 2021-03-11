@@ -361,7 +361,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 }
                                             } else {
                                                 quote! {
-                                                    if u >= #min #cast && u <= #max #cast {
+                                                    if (#min #cast)..=(#max #cast).contains(&u) {
                                                         return Err(#error_path::Forbidden);
                                                     }
                                                 }

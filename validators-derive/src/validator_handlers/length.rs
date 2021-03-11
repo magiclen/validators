@@ -33,7 +33,7 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 if let Meta::List(list) = meta {
                     let length = list.nested.len();
 
-                    if length >= 1 && length <= 2 {
+                    if (1..=2).contains(&length) {
                         let mut min_is_set = false;
                         let mut max_is_set = false;
 

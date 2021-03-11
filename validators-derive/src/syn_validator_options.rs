@@ -23,18 +23,14 @@ impl SynOption for ValidatorOption {
 
             let p = list.nested.iter().next().unwrap();
 
-            if let NestedMeta::Meta(meta) = p {
-                if let Meta::Path(path) = meta {
-                    if let Some(ident) = path.get_ident() {
-                        if ident == "Allow" {
-                            ValidatorOption::Allow
-                        } else if ident == "Must" {
-                            ValidatorOption::Must
-                        } else if ident == "NotAllow" {
-                            ValidatorOption::NotAllow
-                        } else {
-                            panic::parameter_incorrect_format(meta_name, &correct_usage);
-                        }
+            if let NestedMeta::Meta(Meta::Path(path)) = p {
+                if let Some(ident) = path.get_ident() {
+                    if ident == "Allow" {
+                        ValidatorOption::Allow
+                    } else if ident == "Must" {
+                        ValidatorOption::Must
+                    } else if ident == "NotAllow" {
+                        ValidatorOption::NotAllow
                     } else {
                         panic::parameter_incorrect_format(meta_name, &correct_usage);
                     }
@@ -80,18 +76,14 @@ impl SynOption for ValidatorCaseOption {
 
             let p = list.nested.iter().next().unwrap();
 
-            if let NestedMeta::Meta(meta) = p {
-                if let Meta::Path(path) = meta {
-                    if let Some(ident) = path.get_ident() {
-                        if ident == "Any" {
-                            ValidatorCaseOption::Any
-                        } else if ident == "Upper" {
-                            ValidatorCaseOption::Upper
-                        } else if ident == "Lower" {
-                            ValidatorCaseOption::Lower
-                        } else {
-                            panic::parameter_incorrect_format(meta_name, &correct_usage);
-                        }
+            if let NestedMeta::Meta(Meta::Path(path)) = p {
+                if let Some(ident) = path.get_ident() {
+                    if ident == "Any" {
+                        ValidatorCaseOption::Any
+                    } else if ident == "Upper" {
+                        ValidatorCaseOption::Upper
+                    } else if ident == "Lower" {
+                        ValidatorCaseOption::Lower
                     } else {
                         panic::parameter_incorrect_format(meta_name, &correct_usage);
                     }
@@ -240,7 +232,7 @@ macro_rules! fetch_range {
         if let Meta::List(list) = $meta {
             let length = list.nested.len();
 
-            if length >= 1 && length <= 2 {
+            if (1..=2).contains(&length) {
                 let mut min = None;
                 let mut max = None;
 

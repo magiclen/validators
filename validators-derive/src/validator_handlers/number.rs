@@ -252,7 +252,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 }
                                             } else {
                                                 quote! {
-                                                    if f >= #min #cast && f <= #max #cast {
+                                                    if (#min #cast)..=(#max #cast).contains(&f){
                                                         return Err(#error_path::Forbidden);
                                                     }
                                                 }

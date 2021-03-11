@@ -106,7 +106,7 @@ pub fn uuid_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     match separator {
                         ValidatorSeparatorOption::Allow(separator) => {
                             quote! {
-                                if length < 32 || length > 36 {
+                                if !(32..=36).contains(&length) {
                                     return Err(#error_path::Invalid);
                                 }
 
