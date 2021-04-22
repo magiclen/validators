@@ -1,7 +1,7 @@
 Validators Derive
 ====================
 
-[![Build Status](https://travis-ci.org/magiclen/validators.svg?branch=master)](https://travis-ci.org/magiclen/validators)
+[![CI](https://github.com/magiclen/validators/actions/workflows/ci.yml/badge.svg)](https://github.com/magiclen/validators/actions/workflows/ci.yml)
 
 This is a library for validating and modeling user input and this crate provides a procedural macro to define validators with optional parameters.
 

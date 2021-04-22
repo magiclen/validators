@@ -1,7 +1,7 @@
 Validators Options
 ====================
 
-[![Build Status](https://travis-ci.org/magiclen/validators.svg?branch=master)](https://travis-ci.org/magiclen/validators)
+[![CI](https://github.com/magiclen/validators/actions/workflows/ci.yml/badge.svg)](https://github.com/magiclen/validators/actions/workflows/ci.yml)
 
 This is a library for validating and modeling user input and this crate is used with the [`validators-derive`](https://crates.io/crates/validators-derive) crate and the [`validators`](https://crates.io/crates/validators) crate.
 

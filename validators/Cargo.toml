@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.22.4"
+version = "0.22.5"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -11,10 +11,6 @@ description = "This is a library for validating and modeling user input and this
 readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
-
-[badges.travis-ci]
-repository = "magiclen/validators"
-branch = "master"
 
 [dependencies]
 validators-options = { version = "0.22", path = "../validators-options" }
