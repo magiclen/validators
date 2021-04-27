@@ -108,7 +108,12 @@ pub mod prelude {
         pub use crate::serde::de::{Deserialize, Deserializer, Error as DeError, Visitor};
 
         #[cfg(feature = "rocket")]
-        pub use crate::rocket::request::{FromFormValue, FromParam};
+        pub use crate::rocket::request::FromParam;
+
+        #[cfg(feature = "rocket")]
+        pub use crate::rocket::form::{
+            Error as FormError, FromFormField, Result as FormResult, ValueField,
+        };
 
         #[cfg(feature = "rocket")]
         pub use crate::rocket::http::{RawStr, Status};

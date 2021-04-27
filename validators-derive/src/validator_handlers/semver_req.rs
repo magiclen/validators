@@ -103,12 +103,10 @@ pub fn semver_req_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let rocket_impl = if cfg!(feature = "rocket") {
                     quote! {
-                        impl<'a> validators_prelude::FromFormValue<'a> for #name {
-                            type Error = #error_path;
-
+                        impl<'a> validators_prelude::FromFormField<'a> for #name {
                             #[inline]
-                            fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                <#name as ValidateString>::parse_string(v.url_decode().map_err(|_| #error_path(validators_prelude::semver::ReqParseError::InvalidIdentifier))?)
+                            fn from_value(v: validators_prelude::ValueField<'a>) -> validators_prelude::FormResult<'a, Self> {
+                                Ok(<#name as ValidateString>::parse_str(v.value).map_err(validators_prelude::FormError::custom)?)
                             }
                         }
 
@@ -116,8 +114,8 @@ pub fn semver_req_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             type Error = #error_path;
 
                             #[inline]
-                            fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                <#name as ValidateString>::parse_string(v.url_decode().map_err(|_| #error_path(validators_prelude::semver::ReqParseError::InvalidIdentifier))?)
+                            fn from_param(v: &'a str) -> Result<Self, Self::Error> {
+                                <#name as ValidateString>::parse_str(v)
                             }
                         }
                     }

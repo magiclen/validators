@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.22.5"
+version = "0.23.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -13,7 +13,7 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-validators-options = { version = "0.22", path = "../validators-options" }
+validators-options = { version = "0.23", path = "../validators-options" }
 
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }
@@ -26,7 +26,7 @@ url-dep = { package = "url", version = "2", optional = true }
 str-utils = { version = "0.1", optional = true }
 
 serde-dep = { package = "serde", version = "1", optional = true }
-rocket-dep = { package = "rocket", version = "0.4", optional = true }
+rocket-dep = { package = "rocket", git = "https://github.com/SergioBenitez/Rocket", version = "0.5.0-dev", optional = true }
 
 [features]
 std = []
@@ -62,7 +62,7 @@ url = ["std", "url-dep"]
 uuid = []
 
 serde = ["serde-dep", "semver-dep/serde", "url-dep/serde"]
-rocket = ["rocket-dep"]
+rocket = ["std", "rocket-dep"]
 
 [package.metadata.docs.rs]
 all-features = true

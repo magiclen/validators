@@ -322,44 +322,20 @@ pub fn base64_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let rocket_impl = if cfg!(feature = "rocket") {
-                    if padding.allow() {
-                        quote! {
-                            impl<'a> validators_prelude::FromFormValue<'a> for #name {
-                                type Error = #error_path;
-
-                                #[inline]
-                                fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                    <#name as ValidateString>::parse_string(v.url_decode().map_err(|_| #error_path::Invalid)?)
-                                }
-                            }
-
-                            impl<'a> validators_prelude::FromParam<'a> for #name {
-                                type Error = #error_path;
-
-                                #[inline]
-                                fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                    <#name as ValidateString>::parse_string(v.url_decode().map_err(|_| #error_path::Invalid)?)
-                                }
+                    quote! {
+                        impl<'a> validators_prelude::FromFormField<'a> for #name {
+                            #[inline]
+                            fn from_value(v: validators_prelude::ValueField<'a>) -> validators_prelude::FormResult<'a, Self> {
+                                Ok(<#name as ValidateString>::parse_str(v.value).map_err(validators_prelude::FormError::custom)?)
                             }
                         }
-                    } else {
-                        quote! {
-                            impl<'a> validators_prelude::FromFormValue<'a> for #name {
-                                type Error = #error_path;
 
-                                #[inline]
-                                fn from_form_value(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                    <#name as ValidateString>::parse_str(v)
-                                }
-                            }
+                        impl<'a> validators_prelude::FromParam<'a> for #name {
+                            type Error = #error_path;
 
-                            impl<'a> validators_prelude::FromParam<'a> for #name {
-                                type Error = #error_path;
-
-                                #[inline]
-                                fn from_param(v: &'a validators_prelude::RawStr) -> Result<Self, Self::Error> {
-                                    <#name as ValidateString>::parse_str(v)
-                                }
+                            #[inline]
+                            fn from_param(v: &'a str) -> Result<Self, Self::Error> {
+                                <#name as ValidateString>::parse_str(v)
                             }
                         }
                     }
