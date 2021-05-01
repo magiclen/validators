@@ -1,6 +1,6 @@
 use crate::rocket;
 
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
 use rocket::form::{self, FromFormField, ValueField};
 use rocket::request::FromParam;
@@ -43,6 +43,13 @@ impl<T, E> Deref for Result<T, E> {
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl<T, E> DerefMut for Result<T, E> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
