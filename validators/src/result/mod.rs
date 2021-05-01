@@ -19,6 +19,16 @@ impl<T, E> From<std::result::Result<T, E>> for Result<T, E> {
     }
 }
 
+impl<T, E> From<Result<T, E>> for std::result::Result<T, E> {
+    #[inline]
+    fn from(result: Result<T, E>) -> Self {
+        match result {
+            Result::Ok(v) => Ok(v),
+            Result::Err(v) => Err(v),
+        }
+    }
+}
+
 impl<'v, E: Sized + Send, T: FromParam<'v, Error = E> + Send> FromFormField<'v>
     for Result<T, T::Error>
 {
