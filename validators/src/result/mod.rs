@@ -3,6 +3,7 @@ use crate::rocket;
 use rocket::form::{self, FromFormField, ValueField};
 use rocket::request::FromParam;
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Result<T, E> {
     Ok(T),
     Err(E),
