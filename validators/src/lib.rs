@@ -50,7 +50,13 @@ pub mod functions;
 pub mod models;
 pub mod traits;
 
+#[cfg(feature = "rocket")]
+mod result;
+
 pub use errors::*;
+
+#[cfg(feature = "rocket")]
+pub use result::*;
 
 /**
 A convenience module appropriate for glob imports
@@ -122,6 +128,9 @@ pub mod prelude {
         pub use crate::functions::*;
         pub use crate::models::*;
         pub use crate::validators_options::*;
+
+        #[cfg(feature = "rocket")]
+        pub use crate::result::*;
 
         pub use crate::alloc::format;
     }
