@@ -489,7 +489,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(line(char_length(trimmed_min = 1, min = 1, max = 1000)))]
+#[validator(line(char_length(trimmed_min = 1, min = 1, max = 1000)))] // `byte_length` can also be used
 pub struct LineNotAllowEmpty(pub String);
 
 assert!(LineNotAllowEmpty::parse_string("123").is_ok());
@@ -721,7 +721,7 @@ extern crate validators;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(text(char_length(trimmed_min = 1, min = 1, max = 1000)))]
+#[validator(text(char_length(trimmed_min = 1, min = 1, max = 1000)))] // `byte_length` can also be used
 pub struct TextNotAllowEmpty(pub String);
 
 assert!(TextNotAllowEmpty::parse_string("123").is_ok());
