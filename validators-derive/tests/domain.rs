@@ -248,6 +248,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*port(NotAllow)))]
+                    #[allow(dead_code)]
                     struct DomainAllowIPv4WithoutPortIsLocal {
                         pub domain: String,
                         pub is_ipv4: bool,
@@ -272,6 +273,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), port(NotAllow), conflict(Allow)))]
+                    #[allow(dead_code)]
                     struct DomainIPv4WithoutPortIsLocal {
                         pub domain: String,
                         pub is_local: bool,
@@ -295,6 +297,7 @@ fn basic() {
 
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(NotAllow), port(NotAllow)))]
+                    #[allow(dead_code)]
                     struct DomainNonIPv4WithoutPortIsLocal {
                         pub domain: String,
                         pub is_local: bool,

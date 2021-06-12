@@ -18,7 +18,7 @@ impl SynOption for ValidatorOption {
             *is_set = true;
 
             if list.nested.len() != 1 {
-                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                panic::parameter_incorrect_format(meta_name, correct_usage);
             }
 
             let p = list.nested.iter().next().unwrap();
@@ -32,16 +32,16 @@ impl SynOption for ValidatorOption {
                     } else if ident == "NotAllow" {
                         ValidatorOption::NotAllow
                     } else {
-                        panic::parameter_incorrect_format(meta_name, &correct_usage);
+                        panic::parameter_incorrect_format(meta_name, correct_usage);
                     }
                 } else {
-                    panic::parameter_incorrect_format(meta_name, &correct_usage);
+                    panic::parameter_incorrect_format(meta_name, correct_usage);
                 }
             } else {
-                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                panic::parameter_incorrect_format(meta_name, correct_usage);
             }
         } else {
-            panic::parameter_incorrect_format(meta_name, &correct_usage);
+            panic::parameter_incorrect_format(meta_name, correct_usage);
         }
     }
 
@@ -71,7 +71,7 @@ impl SynOption for ValidatorCaseOption {
             *is_set = true;
 
             if list.nested.len() != 1 {
-                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                panic::parameter_incorrect_format(meta_name, correct_usage);
             }
 
             let p = list.nested.iter().next().unwrap();
@@ -85,16 +85,16 @@ impl SynOption for ValidatorCaseOption {
                     } else if ident == "Lower" {
                         ValidatorCaseOption::Lower
                     } else {
-                        panic::parameter_incorrect_format(meta_name, &correct_usage);
+                        panic::parameter_incorrect_format(meta_name, correct_usage);
                     }
                 } else {
-                    panic::parameter_incorrect_format(meta_name, &correct_usage);
+                    panic::parameter_incorrect_format(meta_name, correct_usage);
                 }
             } else {
-                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                panic::parameter_incorrect_format(meta_name, correct_usage);
             }
         } else {
-            panic::parameter_incorrect_format(meta_name, &correct_usage);
+            panic::parameter_incorrect_format(meta_name, correct_usage);
         }
     }
 
@@ -124,7 +124,7 @@ impl SynOption for ValidatorSeparatorOption {
             *is_set = true;
 
             if list.nested.len() != 1 {
-                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                panic::parameter_incorrect_format(meta_name, correct_usage);
             }
 
             let p = list.nested.iter().next().unwrap();
@@ -146,16 +146,16 @@ impl SynOption for ValidatorSeparatorOption {
                     } else if ident == "NotAllow" {
                         ValidatorSeparatorOption::NotAllow
                     } else {
-                        panic::parameter_incorrect_format(meta_name, &correct_usage);
+                        panic::parameter_incorrect_format(meta_name, correct_usage);
                     }
                 } else {
-                    panic::parameter_incorrect_format(meta_name, &correct_usage);
+                    panic::parameter_incorrect_format(meta_name, correct_usage);
                 }
             } else {
-                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                panic::parameter_incorrect_format(meta_name, correct_usage);
             }
         } else {
-            panic::parameter_incorrect_format(meta_name, &correct_usage);
+            panic::parameter_incorrect_format(meta_name, correct_usage);
         }
     }
 
@@ -192,13 +192,13 @@ fn fetch_separator(meta_name: &str, meta: &Meta, correct_usage: &[&str]) -> u8 {
                             } else if ident == "hyphen" {
                                 b'-'
                             } else {
-                                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                                panic::parameter_incorrect_format(meta_name, correct_usage);
                             }
                         } else {
-                            panic::parameter_incorrect_format(meta_name, &correct_usage);
+                            panic::parameter_incorrect_format(meta_name, correct_usage);
                         }
                     } else {
-                        panic::parameter_incorrect_format(meta_name, &correct_usage);
+                        panic::parameter_incorrect_format(meta_name, correct_usage);
                     }
                 }
                 NestedMeta::Lit(lit) => {
@@ -209,21 +209,21 @@ fn fetch_separator(meta_name: &str, meta: &Meta, correct_usage: &[&str]) -> u8 {
                             if c.is_ascii() {
                                 c as u8
                             } else {
-                                panic::parameter_incorrect_format(meta_name, &correct_usage);
+                                panic::parameter_incorrect_format(meta_name, correct_usage);
                             }
                         }
                         Lit::Byte(b) => b.value(),
                         _ => {
-                            panic::parameter_incorrect_format(meta_name, &correct_usage);
+                            panic::parameter_incorrect_format(meta_name, correct_usage);
                         }
                     }
                 }
             }
         } else {
-            panic::parameter_incorrect_format(meta_name, &correct_usage);
+            panic::parameter_incorrect_format(meta_name, correct_usage);
         }
     } else {
-        panic::parameter_incorrect_format(meta_name, &correct_usage);
+        panic::parameter_incorrect_format(meta_name, correct_usage);
     }
 }
 
