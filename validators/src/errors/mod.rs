@@ -113,11 +113,6 @@ mod semver;
 #[cfg(feature = "semver")]
 pub use self::semver::SemVerError;
 
-#[cfg(feature = "semver_req")]
-mod semver_req;
-#[cfg(feature = "semver_req")]
-pub use semver_req::SemVerReqError;
-
 #[cfg(feature = "signed_integer")]
 mod signed_integer;
 #[cfg(feature = "signed_integer")]

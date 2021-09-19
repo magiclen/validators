@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.23.0"
+version = "0.23.1"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -13,7 +13,7 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-validators-options = { version = "0.23", path = "../validators-options" }
+validators-options = { version = "0.23.1", path = "../validators-options" }
 
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }
@@ -21,7 +21,7 @@ serde_json = { version = "1", optional = true }
 phonenumber = { version = "0.3", optional = true }
 thiserror = { version = "1", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
-semver-dep = { package = "semver", version = "0.11", optional = true }
+semver-dep = { package = "semver", version = "1", optional = true }
 url-dep = { package = "url", version = "2", optional = true }
 str-utils = { version = "0.1", optional = true }
 

@@ -1,6 +1,6 @@
 [package]
 name = "validators-derive"
-version = "0.23.0"
+version = "0.23.1"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/validators"
@@ -17,7 +17,7 @@ proc-macro = true
 
 [dependencies]
 validators-options = { version = "0.23", path = "../validators-options" }
-validators = { version = "0.23", path = "../validators" }
+validators = { version = "0.23.1", path = "../validators" }
 
 proc-macro2 = "1"
 syn = "1"

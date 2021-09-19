@@ -5,12 +5,12 @@ use std::error::Error;
 
 use crate::semver;
 
-#[derive(Debug, Clone)]
-pub struct SemVerError(pub semver::SemVerError);
+#[derive(Debug)]
+pub struct SemVerError(pub semver::Error);
 
-impl From<semver::SemVerError> for SemVerError {
+impl From<semver::Error> for SemVerError {
     #[inline]
-    fn from(error: semver::SemVerError) -> Self {
+    fn from(error: semver::Error) -> Self {
         SemVerError(error)
     }
 }

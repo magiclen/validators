@@ -36,7 +36,7 @@ pub fn semver_req_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 // TODO impl
 
                 let error_path: Path =
-                    syn::parse2(quote! { validators_prelude::SemVerReqError }).unwrap();
+                    syn::parse2(quote! { validators_prelude::SemVerError }).unwrap();
 
                 let parameters_impl = quote! {};
 
