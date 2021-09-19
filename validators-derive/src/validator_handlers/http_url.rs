@@ -7,6 +7,7 @@ use crate::syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path};
 
 use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption};
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct {
     url: TypeEnum,
