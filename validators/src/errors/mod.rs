@@ -1,6 +1,6 @@
-#[cfg(any(feature = "base32", feature = "base32_decoded"))]
+#[cfg(feature = "base32")]
 mod base32;
-#[cfg(any(feature = "base32", feature = "base32_decoded"))]
+#[cfg(feature = "base32")]
 pub use base32::Base32Error;
 
 #[cfg(feature = "base32_decoded")]
@@ -8,9 +8,9 @@ mod base32_decoded;
 #[cfg(feature = "base32_decoded")]
 pub use base32_decoded::Base32DecodedError;
 
-#[cfg(any(feature = "base64", feature = "base64_decoded"))]
+#[cfg(feature = "base64")]
 mod base64;
-#[cfg(any(feature = "base64", feature = "base64_decoded"))]
+#[cfg(feature = "base64")]
 pub use base64::Base64Error;
 
 #[cfg(feature = "base64_decoded")]
@@ -18,9 +18,9 @@ mod base64_decoded;
 #[cfg(feature = "base64_decoded")]
 pub use base64_decoded::Base64DecodedError;
 
-#[cfg(any(feature = "base64_url", feature = "base64_url_decoded"))]
+#[cfg(feature = "base64_url")]
 mod base64_url;
-#[cfg(any(feature = "base64_url", feature = "base64_url_decoded"))]
+#[cfg(feature = "base64_url")]
 pub use base64_url::Base64UrlError;
 
 #[cfg(feature = "base64_url_decoded")]
@@ -108,9 +108,9 @@ mod regex;
 #[cfg(feature = "regex")]
 pub use self::regex::RegexError;
 
-#[cfg(feature = "semver")]
+#[cfg(any(feature = "semver", feature = "semver_req"))]
 mod semver;
-#[cfg(feature = "semver")]
+#[cfg(any(feature = "semver", feature = "semver_req"))]
 pub use self::semver::SemVerError;
 
 #[cfg(feature = "signed_integer")]

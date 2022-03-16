@@ -12,6 +12,9 @@ readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
+[lib]
+doctest = false
+
 [dependencies]
 validators-options = { version = "0.24", path = "../validators-options" }
 

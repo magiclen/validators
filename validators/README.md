@@ -149,7 +149,7 @@ assert_eq!([62, 100, 124, 132, 152, 99, 129, 83, 92, 7, 173, 115, 170, 23, 63, 7
 
 ### boolean
 
-traits: `ValidateString`, `ValidateChar`, `ValidateSignedInteger`, `ValidateUnignedInteger`
+traits: `ValidateString`, `ValidateChar`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateBoolean`
 
 ```rust
 use validators::prelude::*;
@@ -354,7 +354,7 @@ assert!(IPv6WithoutPort::parse_string("[::ffff:c000:0280]").is_ok());
 
 ### json
 
-traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateNumber`, `ValidateBoolean`
+traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateNumber`, `ValidateBoolean`, `ValidateJsonValue`
 
 additional methods: `to_minified_json_string`, `to_beautified_json_string`
 

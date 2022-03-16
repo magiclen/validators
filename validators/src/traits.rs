@@ -307,6 +307,17 @@ pub trait ValidateBoolean {
     fn validate_bool(b: bool) -> Result<(), Self::Error>;
 }
 
+#[cfg(feature = "serde_json")]
+/// Validate and deserialize `Value`s.
+pub trait ValidateJsonValue {
+    type Error;
+    type Output;
+
+    fn parse_json_value(v: Value) -> Result<Self::Output, Self::Error>;
+
+    fn validate_json_value(v: Value) -> Result<(), Self::Error>;
+}
+
 /// For types which should have the a `len` method.
 #[allow(clippy::len_without_is_empty)]
 pub trait CollectionLength {

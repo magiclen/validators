@@ -218,6 +218,13 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
+                let v_parse_bool = quote! {
+                    #[inline]
+                    fn v_parse_bool(b: bool) -> Result<bool, #error_path> {
+                        Ok(b)
+                    }
+                };
+
                 let parse_impl = quote! {
                     impl #name {
                         #v_parse_str
@@ -227,6 +234,8 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         #v_parse_i128
 
                         #v_parse_u128
+
+                        #v_parse_bool
                     }
                 };
 
@@ -305,6 +314,25 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         #[inline]
                         fn validate_u128(u: u128) -> Result<(), Self::Error> {
                             Self::v_parse_u128(u)?;
+
+                            Ok(())
+                        }
+                    }
+                };
+
+                let validate_boolean_impl = quote! {
+                    impl ValidateBoolean for #name {
+                        type Error = #error_path;
+                        type Output = Self;
+
+                        #[inline]
+                        fn parse_bool(b: bool) -> Result<Self::Output, Self::Error> {
+                            Ok(#name(Self::v_parse_bool(b)?))
+                        }
+
+                        #[inline]
+                        fn validate_bool(b: bool) -> Result<(), Self::Error> {
+                            Self::v_parse_bool(b)?;
 
                             Ok(())
                         }
@@ -441,6 +469,8 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #validate_signed_integer_impl
 
                     #validate_unsigned_integer_impl
+
+                    #validate_boolean_impl
 
                     #serde_impl
 

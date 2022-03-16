@@ -99,6 +99,13 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
+                let v_parse_json_value = quote! {
+                    #[inline]
+                    fn v_parse_json_value(v: validators_prelude::serde_json::Value) -> Result<#data_type, #error_path> {
+                        Ok(validators_prelude::serde_json::from_value(v)?)
+                    }
+                };
+
                 let parse_impl = quote! {
                     impl #name {
                         #v_parse_str
@@ -112,6 +119,8 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         #v_parse_f64
 
                         #v_parse_bool
+
+                        #v_parse_json_value
                     }
                 };
 
@@ -253,6 +262,25 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     }
                 };
 
+                let validate_json_value_impl = quote! {
+                    impl ValidateJsonValue for #name {
+                        type Error = #error_path;
+                        type Output = Self;
+
+                        #[inline]
+                        fn parse_json_value(v: validators_prelude::serde_json::Value) -> Result<Self::Output, Self::Error> {
+                            Ok(#name(Self::v_parse_json_value(v)?))
+                        }
+
+                        #[inline]
+                        fn validate_json_value(v: validators_prelude::serde_json::Value) -> Result<(), Self::Error> {
+                            Self::v_parse_json_value(v)?;
+
+                            Ok(())
+                        }
+                    }
+                };
+
                 let serde_impl = if cfg!(feature = "serde") {
                     quote! {
                         impl validators_prelude::Serialize for #name {
@@ -315,6 +343,8 @@ pub fn json_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     #validate_number_impl
 
                     #validate_boolean_impl
+
+                    #validate_json_value_impl
 
                     #other_functions
 
