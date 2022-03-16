@@ -1,8 +1,8 @@
 [package]
 name = "validators"
-version = "0.23.1"
+version = "0.24.0"
 authors = ["Magic Len <len@magiclen.org>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
@@ -13,7 +13,7 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-validators-options = { version = "0.23.1", path = "../validators-options" }
+validators-options = { version = "0.24", path = "../validators-options" }
 
 data-encoding = { version = "2.2", optional = true }
 idna = { version = "0.2", optional = true }

@@ -1,8 +1,8 @@
 [package]
 name = "validators-derive"
-version = "0.23.1"
+version = "0.24.0"
 authors = ["Magic Len <len@magiclen.org>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
@@ -16,8 +16,8 @@ include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 proc-macro = true
 
 [dependencies]
-validators-options = { version = "0.23", path = "../validators-options" }
-validators = { version = "0.23.1", path = "../validators" }
+validators-options = { version = "0.24", path = "../validators-options" }
+validators = { version = "0.24", path = "../validators" }
 
 proc-macro2 = "1"
 syn = "1"
