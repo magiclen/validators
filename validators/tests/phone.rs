@@ -1,9 +1,4 @@
-#![cfg(feature = "phone")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "phone", feature = "derive"))]
 
 use validators::prelude::*;
 use validators_prelude::phonenumber;

@@ -1,9 +1,4 @@
-#![cfg(feature = "number")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "unsigned_integer", feature = "derive"))]
 
 use validators::prelude::*;
 use validators::validators_options::ValidatorRangeOption;
@@ -59,10 +54,8 @@ fn basic() {
             let test = $test;
 
             test("", false);
-            test("0", !Validator::V_NAN.must() && check_range(0.0, Validator::V_RANGE));
-            test("1", !Validator::V_NAN.must() && check_range(1.0, Validator::V_RANGE));
-            test("-1", !Validator::V_NAN.must() && check_range(-1.0, Validator::V_RANGE));
-            test("NaN", Validator::V_NAN.allow());
+            test("0", check_range(0, Validator::V_RANGE));
+            test("1", check_range(1, Validator::V_RANGE));
         };
     }
 
@@ -104,8 +97,8 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(number($($p($v),)*conflict(Allow)))]
-                    pub struct F32(f32);
+                    #[validator(unsigned_integer($($p($v),)*))]
+                    pub struct U8(u8);
 
                     test_inner!(
                         stringify! {
@@ -113,7 +106,7 @@ fn basic() {
                                 $p = $v,
                             )*
                         };
-                        F32,
+                        U8,
                     );
                 }
             )*
@@ -125,8 +118,8 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(number($($p($v),)*conflict(Allow)))]
-                    pub struct F64(f64);
+                    #[validator(unsigned_integer($($p($v),)*))]
+                    pub struct Usize(usize);
 
                     test_inner!(
                         stringify! {
@@ -134,7 +127,28 @@ fn basic() {
                                 $p = $v,
                             )*
                         };
-                        F64,
+                        Usize,
+                    );
+                }
+            )*
+        }
+    }
+
+    macro_rules! test3 {
+        ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
+            $(
+                {
+                    #[derive(Validator)]
+                    #[validator(unsigned_integer($($p($v),)*))]
+                    pub struct U128(u128);
+
+                    test_inner!(
+                        stringify! {
+                            $(
+                                $p = $v,
+                            )*
+                        };
+                        U128,
                     );
                 }
             )*
@@ -143,126 +157,54 @@ fn basic() {
 
     test! {
         {
-            nan => Allow,
             range => NotLimited,
         },
         {
-            nan => Must,
-            range => NotLimited,
-        },
-        {
-            nan => NotAllow,
-            range => NotLimited,
-        },
-        {
-            nan => Allow,
             range => Inside(min = 0),
         },
         {
-            nan => Must,
-            range => Inside(min = 0),
-        },
-        {
-            nan => NotAllow,
-            range => Inside(min = 0),
-        },
-        {
-            nan => Allow,
             range => Inside(max = 0),
         },
         {
-            nan => Must,
-            range => Inside(max = 0),
-        },
-        {
-            nan => NotAllow,
-            range => Inside(max = 0),
-        },
-        {
-            nan => Allow,
             range => Inside(min = 0, max = 0),
         },
         {
-            nan => Must,
-            range => Inside(min = 0, max = 0),
-        },
-        {
-            nan => NotAllow,
-            range => Inside(min = 0, max = 0),
-        },
-        {
-            nan => Allow,
-            range => Outside(min = 0, max = 0),
-        },
-        {
-            nan => Must,
-            range => Outside(min = 0, max = 0),
-        },
-        {
-            nan => NotAllow,
             range => Outside(min = 0, max = 0),
         },
     }
 
     test2! {
         {
-            nan => Allow,
             range => NotLimited,
         },
         {
-            nan => Must,
-            range => NotLimited,
-        },
-        {
-            nan => NotAllow,
-            range => NotLimited,
-        },
-        {
-            nan => Allow,
             range => Inside(min = 0),
         },
         {
-            nan => Must,
-            range => Inside(min = 0),
-        },
-        {
-            nan => NotAllow,
-            range => Inside(min = 0),
-        },
-        {
-            nan => Allow,
             range => Inside(max = 0),
         },
         {
-            nan => Must,
-            range => Inside(max = 0),
-        },
-        {
-            nan => NotAllow,
-            range => Inside(max = 0),
-        },
-        {
-            nan => Allow,
             range => Inside(min = 0, max = 0),
         },
         {
-            nan => Must,
-            range => Inside(min = 0, max = 0),
-        },
-        {
-            nan => NotAllow,
-            range => Inside(min = 0, max = 0),
-        },
-        {
-            nan => Allow,
             range => Outside(min = 0, max = 0),
         },
+    }
+
+    test3! {
         {
-            nan => Must,
-            range => Outside(min = 0, max = 0),
+            range => NotLimited,
         },
         {
-            nan => NotAllow,
+            range => Inside(min = 0),
+        },
+        {
+            range => Inside(max = 0),
+        },
+        {
+            range => Inside(min = 0, max = 0),
+        },
+        {
             range => Outside(min = 0, max = 0),
         },
     }

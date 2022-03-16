@@ -1,11 +1,7 @@
-#![cfg(feature = "base64_url")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "http_ftp_url", feature = "derive"))]
 
 use validators::prelude::*;
+use validators_prelude::url;
 
 #[test]
 fn basic() {
@@ -14,8 +10,11 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(base64_url($($p($v),)*))]
-                    pub struct Validator(pub String);
+                    #[validator(http_ftp_url($($p($v),)*))]
+                    pub struct Validator {
+                        pub url: url::Url,
+                        pub protocol: validators::models::Protocol,
+                    }
 
                     fn test(s: &str, is_ok: bool) {
                         let panic = match Validator::validate_str(s) {
@@ -38,9 +37,11 @@ fn basic() {
                     }
 
                     test("", false);
-                    test("MTIzNDU2Nz-5MA==", Validator::V_PADDING.allow());
-                    test("MTIzNDU2Nz-5MA", !Validator::V_PADDING.must());
-                    test("MTIzND=U2Nz-5MA", false);
+                    test("example:", false);
+                    test("https://example.org/", !Validator::V_LOCAL.must());
+                    test("http://localhost:3000/", Validator::V_LOCAL.allow());
+                    test("http://127.0.0.1:3000/", Validator::V_LOCAL.allow());
+                    test("ftp://example.org/", !Validator::V_LOCAL.must());
                 }
             )*
         }
@@ -48,13 +49,13 @@ fn basic() {
 
     test! {
         {
-            padding => Allow,
+            local => Allow,
         },
         {
-            padding => Must,
+            local => Must,
         },
         {
-            padding => NotAllow,
+            local => NotAllow,
         },
     }
 }

@@ -1,9 +1,4 @@
-#![cfg(feature = "semver")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "semver", feature = "derive"))]
 
 use validators::prelude::*;
 use validators_prelude::semver;

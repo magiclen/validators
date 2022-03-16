@@ -1,9 +1,4 @@
-#![cfg(feature = "email")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "email", feature = "derive"))]
 
 use validators::prelude::*;
 

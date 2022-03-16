@@ -1,7 +1,9 @@
-use crate::syn::{Expr, Lit, Meta, NestedMeta};
-
 use crate::panic;
-use crate::validators_options::*;
+
+use quote::quote;
+use syn::{Expr, Lit, Meta, NestedMeta};
+
+use validators_options::*;
 
 pub trait SynOption: Sized {
     fn from_meta(meta_name: &str, meta: &Meta, is_set: &mut bool, correct_usage: &[&str]) -> Self;

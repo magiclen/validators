@@ -1,9 +1,4 @@
-#![cfg(feature = "domain")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "domain", feature = "derive"))]
 
 use validators::prelude::*;
 

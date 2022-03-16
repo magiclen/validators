@@ -1,18 +1,9 @@
-#![cfg(feature = "regex")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
-
-#[macro_use]
-extern crate lazy_static;
-
-extern crate once_cell;
+#![cfg(all(feature = "regex", feature = "derive"))]
 
 use validators::prelude::*;
 use validators_prelude::regex;
 
+use lazy_static::lazy_static;
 use once_cell::sync::Lazy;
 
 lazy_static! {

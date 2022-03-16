@@ -1,9 +1,4 @@
-#![cfg(feature = "ipv4")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "ip", feature = "derive"))]
 
 use validators::prelude::*;
 
@@ -15,13 +10,22 @@ fn basic() {
             let test = $test;
 
             test("", false);
-            test("0000:0000:0000:0000:0000:0000:370:7348", false);
-            test("[0000:0000:0000:0000:0000:0000:370:7348]", false);
-            test("[0000:0000:0000:0000:0000:0000:370:7348]:8080", false);
             test("127.0.0.1", Validator::V_LOCAL.allow() && !Validator::V_PORT.must());
             test("127.0.0.1:8080", Validator::V_LOCAL.allow() && Validator::V_PORT.allow());
             test("168.17.212.1", !Validator::V_LOCAL.must() && !Validator::V_PORT.must());
             test("168.17.212.1:8080", !Validator::V_LOCAL.must() && Validator::V_PORT.allow());
+            test(
+                "0000:0000:0000:0000:0000:0000:370:7348",
+                !Validator::V_LOCAL.must() && !Validator::V_PORT.must(),
+            );
+            test(
+                "[0000:0000:0000:0000:0000:0000:370:7348]",
+                !Validator::V_LOCAL.must() && !Validator::V_PORT.must(),
+            );
+            test(
+                "[0000:0000:0000:0000:0000:0000:370:7348]:8080",
+                !Validator::V_LOCAL.must() && Validator::V_PORT.allow(),
+            );
         };
     }
 
@@ -63,22 +67,22 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(ipv4($($p($v),)*))]
-                    pub struct IPv4AllowPort {
-                        pub ipv4: std::net::Ipv4Addr,
+                    #[validator(ip($($p($v),)*))]
+                    pub struct IPAllowPort {
+                        pub ip: std::net::IpAddr,
                         pub port: Option<u16>,
                     }
 
                     #[derive(Validator)]
-                    #[validator(ipv4($($p($v),)*port(Must)))]
-                    pub struct IPv4WithPort {
-                        pub ipv4: std::net::Ipv4Addr,
+                    #[validator(ip($($p($v),)*port(Must)))]
+                    pub struct IPWithPort {
+                        pub ip: std::net::IpAddr,
                         pub port: u16,
                     }
 
                     #[derive(Validator)]
-                    #[validator(ipv4($($p($v),)*port(NotAllow)))]
-                    pub struct IPv4WithoutPort(pub std::net::Ipv4Addr);
+                    #[validator(ip($($p($v),)*port(NotAllow)))]
+                    pub struct IPWithoutPort(pub std::net::IpAddr);
 
                     test_inner!(
                         stringify! {
@@ -86,9 +90,9 @@ fn basic() {
                                 $p = $v,
                             )*
                         };
-                        IPv4AllowPort,
-                        IPv4WithPort,
-                        IPv4WithoutPort,
+                        IPAllowPort,
+                        IPWithPort,
+                        IPWithoutPort,
                     );
                 }
             )*

@@ -1,9 +1,4 @@
-#![cfg(feature = "signed_integer")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "signed_integer", feature = "derive"))]
 
 use validators::prelude::*;
 use validators::validators_options::ValidatorRangeOption;

@@ -1,9 +1,4 @@
-#![cfg(feature = "line")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "line", feature = "derive"))]
 
 use validators::prelude::*;
 

@@ -1,9 +1,4 @@
-#![cfg(feature = "boolean")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "boolean", feature = "derive"))]
 
 use validators::prelude::*;
 

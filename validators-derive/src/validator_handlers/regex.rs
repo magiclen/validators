@@ -1,10 +1,9 @@
-extern crate regex_dep;
-
 use alloc::boxed::Box;
 use alloc::string::String;
 
-use crate::proc_macro::TokenStream;
-use crate::syn::{Data, DeriveInput, Fields, Lit, Meta, NestedMeta, Path};
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{Data, DeriveInput, Fields, Lit, Meta, NestedMeta, Path};
 
 use crate::{panic, TypeEnum, Validator};
 

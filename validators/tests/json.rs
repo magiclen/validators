@@ -1,9 +1,4 @@
-#![cfg(feature = "json")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "json", feature = "derive"))]
 
 use validators::prelude::*;
 

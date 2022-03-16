@@ -1,9 +1,4 @@
-#![cfg(feature = "base64_url_decoded")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "base32_decoded", feature = "derive"))]
 
 use validators::prelude::*;
 
@@ -14,7 +9,7 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(base64_url_decoded($($p($v),)*))]
+                    #[validator(base32_decoded($($p($v),)*))]
                     pub struct Validator(pub Vec<u8>);
 
                     fn test(s: &str, is_ok: bool) {
@@ -56,9 +51,9 @@ fn basic() {
                     }
 
                     test("", false);
-                    test("MTIzNDU2Nz-5MA==", Validator::V_PADDING.allow());
-                    test("MTIzNDU2Nz-5MA", !Validator::V_PADDING.must());
-                    test("MTIzND=U2Nzg5MA", false);
+                    test("GEZDGNBVGY3TQOI=", Validator::V_PADDING.allow());
+                    test("GEZDGNBVGY3TQOI", !Validator::V_PADDING.must());
+                    test("GEZDGNBV=GY3TQOI", false);
                 }
             )*
         }
@@ -80,10 +75,10 @@ fn basic() {
 #[test]
 fn decode() {
     #[derive(Validator)]
-    #[validator(base64_url_decoded)]
+    #[validator(base32_decoded)]
     struct Validator(Vec<u8>);
 
-    let base64_url_decoded = Validator::parse_str("MTIzNDU2Nzg5MA==").unwrap();
+    let base32_decoded = Validator::parse_str("GEZDGNBVGY3TQOI=").unwrap();
 
-    assert_eq!(b"1234567890", base64_url_decoded.0.as_slice());
+    assert_eq!(b"123456789", base32_decoded.0.as_slice());
 }

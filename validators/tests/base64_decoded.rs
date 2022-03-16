@@ -1,9 +1,4 @@
-#![cfg(feature = "base64_decoded")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "base64_decoded", feature = "derive"))]
 
 use validators::prelude::*;
 

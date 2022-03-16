@@ -1,7 +1,3 @@
-extern crate proc_macro2;
-
-extern crate phonenumber;
-
 use core::fmt::Write;
 use core::str::FromStr;
 
@@ -9,14 +5,14 @@ use alloc::boxed::Box;
 
 use std::collections::HashSet;
 
-use crate::proc_macro::TokenStream;
-use crate::syn::{Data, DeriveInput, Fields, Index, Meta, NestedMeta, Path};
-
-use crate::{panic, TypeEnum, Validator};
-
+use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
+use quote::quote;
+use syn::{Data, DeriveInput, Fields, Index, Meta, NestedMeta, Path};
 
 use phonenumber::country::Id;
+
+use crate::{panic, TypeEnum, Validator};
 
 #[derive(Debug)]
 pub struct Struct(TypeEnum);

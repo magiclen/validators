@@ -1,17 +1,14 @@
-extern crate proc_macro2;
-
 use core::fmt::Write;
 
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 
-use crate::proc_macro::TokenStream;
-use crate::quote::ToTokens;
-use crate::syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path};
+use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
+use quote::{quote, ToTokens};
+use syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path};
 
 use crate::{panic, SynOption, TypeEnum, Validator, ValidatorRangeOption};
-
-use proc_macro2::TokenStream as TokenStream2;
 
 #[derive(Debug)]
 pub struct Struct(TypeEnum);

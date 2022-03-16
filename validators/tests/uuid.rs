@@ -1,9 +1,4 @@
-#![cfg(feature = "base32_decoded")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "uuid", feature = "derive"))]
 
 use validators::prelude::*;
 
@@ -14,8 +9,8 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(base32_decoded($($p($v),)*))]
-                    pub struct Validator(pub Vec<u8>);
+                    #[validator(uuid($($p($v),)*))]
+                    pub struct Validator(pub u128);
 
                     fn test(s: &str, is_ok: bool) {
                         let panic = match Validator::validate_str(s) {
@@ -56,9 +51,13 @@ fn basic() {
                     }
 
                     test("", false);
-                    test("GEZDGNBVGY3TQOI=", Validator::V_PADDING.allow());
-                    test("GEZDGNBVGY3TQOI", !Validator::V_PADDING.must());
-                    test("GEZDGNBV=GY3TQOI", false);
+                    test("a866664a-f9d3-4dde-89cb-182015fa4f41", Validator::V_CASE.lower() && Validator::V_SEPARATOR.allow() == Some(b'-'));
+                    test("A866664A-F9D3-4DDE-89CB-182015FA4F41", Validator::V_CASE.upper() && Validator::V_SEPARATOR.allow() == Some(b'-'));
+                    test("A866664A-f9D3-4dde-89CB-182015FA4F41", Validator::V_CASE.any() && Validator::V_SEPARATOR.allow() == Some(b'-'));
+                    test("a866664a f9d3 4dde 89cb 182015fa4f41", false);
+                    test("a866664af9d34dde89cb182015fa4f41", Validator::V_CASE.lower() && !Validator::V_SEPARATOR.must().is_some());
+                    test("A866664AF9D34DDE89CB182015FA4F41", Validator::V_CASE.upper() && !Validator::V_SEPARATOR.must().is_some());
+                    test("A866664AF9D34dde89CB182015FA4F41", Validator::V_CASE.any() && !Validator::V_SEPARATOR.must().is_some());
                 }
             )*
         }
@@ -66,24 +65,40 @@ fn basic() {
 
     test! {
         {
-            padding => Allow,
+            case => Any,
+            separator => Allow(hyphen),
         },
         {
-            padding => Must,
+            case => Upper,
+            separator => Allow(hyphen),
         },
         {
-            padding => NotAllow,
+            case => Lower,
+            separator => Allow(hyphen),
+        },
+        {
+            case => Any,
+            separator => Must(hyphen),
+        },
+        {
+            case => Upper,
+            separator => Must(hyphen),
+        },
+        {
+            case => Lower,
+            separator => Must(hyphen),
+        },
+        {
+            case => Any,
+            separator => NotAllow,
+        },
+        {
+            case => Upper,
+            separator => NotAllow,
+        },
+        {
+            case => Lower,
+            separator => NotAllow,
         },
     }
-}
-
-#[test]
-fn decode() {
-    #[derive(Validator)]
-    #[validator(base32_decoded)]
-    struct Validator(Vec<u8>);
-
-    let base32_decoded = Validator::parse_str("GEZDGNBVGY3TQOI=").unwrap();
-
-    assert_eq!(b"123456789", base32_decoded.0.as_slice());
 }

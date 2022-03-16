@@ -17,7 +17,6 @@ proc-macro = true
 
 [dependencies]
 validators-options = { version = "0.24", path = "../validators-options" }
-validators = { version = "0.24", path = "../validators" }
 
 proc-macro2 = "1"
 syn = "1"
@@ -29,78 +28,41 @@ enum-ordinalize = "3.1"
 phonenumber = { version = "0.3", optional = true }
 regex-dep = { package = "regex", version = "1", optional = true }
 
-[dev-dependencies]
-lazy_static = "1.4"
-once_cell = "1.4"
-
 [features]
-default = ["full"]
-std = ["validators/std"]
+std = []
 
-full = [
-    "base32",
-    "base32_decoded",
-    "base64",
-    "base64_decoded",
-    "base64_url",
-    "base64_url_decoded",
-    "boolean",
-    "domain",
-    "email",
-    "host",
-    "http_url",
-    "http_ftp_url",
-    "ip",
-    "ipv4",
-    "ipv6",
-    "json",
-    "length",
-    "line",
-    "mac_address",
-    "number",
-    "phone",
-    "regex",
-    "semver",
-    "semver_req",
-    "signed_integer",
-    "text",
-    "unsigned_integer",
-    "url",
-    "uuid",
-]
+base32 = []
+base32_decoded = []
+base64 = []
+base64_decoded = []
+base64_url = []
+base64_url_decoded = []
+boolean = []
+domain = []
+email = []
+host = []
+http_url = []
+http_ftp_url = []
+ip = []
+ipv4 = []
+ipv6 = []
+json = []
+length = []
+line = []
+mac_address = []
+number = []
+phone = ["std", "phonenumber"]
+regex = ["regex-dep"]
+semver = []
+semver_req = []
+signed_integer = []
+text = []
+unsigned_integer = []
+url = []
+uuid = []
 
-base32 = ["validators/base32"]
-base32_decoded = ["validators/base32_decoded"]
-base64 = ["validators/base64"]
-base64_decoded = ["validators/base64_decoded"]
-base64_url = ["validators/base64_url"]
-base64_url_decoded = ["validators/base64_url_decoded"]
-boolean = ["validators/boolean"]
-domain = ["validators/domain"]
-email = ["validators/email"]
-host = ["validators/host"]
-http_url = ["validators/http_url"]
-http_ftp_url = ["validators/http_ftp_url"]
-ip = ["validators/ip"]
-ipv4 = ["validators/ipv4"]
-ipv6 = ["validators/ipv6"]
-json = ["validators/json"]
-length = ["validators/length"]
-line = ["validators/line"]
-mac_address = ["validators/mac_address"]
-number = ["validators/number"]
-phone = ["validators/phone", "std", "phonenumber"]
-regex = ["validators/regex", "regex-dep"]
-semver = ["validators/semver"]
-semver_req = ["validators/semver_req"]
-signed_integer = ["validators/signed_integer"]
-text = ["validators/text"]
-unsigned_integer = ["validators/unsigned_integer"]
-url = ["validators/url"]
-uuid = ["validators/uuid"]
-
-serde = ["validators/serde"]
-rocket = ["validators/rocket"]
+serde = []
+rocket = []
 
 [package.metadata.docs.rs]
 all-features = true

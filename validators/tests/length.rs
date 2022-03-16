@@ -1,9 +1,4 @@
-#![cfg(feature = "length")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "length", feature = "derive"))]
 
 extern crate alloc;
 

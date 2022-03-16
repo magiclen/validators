@@ -1,9 +1,4 @@
-#![cfg(feature = "uuid")]
-
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
+#![cfg(all(feature = "mac_address", feature = "derive"))]
 
 use validators::prelude::*;
 
@@ -14,8 +9,8 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(uuid($($p($v),)*))]
-                    pub struct Validator(pub u128);
+                    #[validator(mac_address($($p($v),)*))]
+                    pub struct Validator(pub u64);
 
                     fn test(s: &str, is_ok: bool) {
                         let panic = match Validator::validate_str(s) {
@@ -56,19 +51,45 @@ fn basic() {
                     }
 
                     test("", false);
-                    test("a866664a-f9d3-4dde-89cb-182015fa4f41", Validator::V_CASE.lower() && Validator::V_SEPARATOR.allow() == Some(b'-'));
-                    test("A866664A-F9D3-4DDE-89CB-182015FA4F41", Validator::V_CASE.upper() && Validator::V_SEPARATOR.allow() == Some(b'-'));
-                    test("A866664A-f9D3-4dde-89CB-182015FA4F41", Validator::V_CASE.any() && Validator::V_SEPARATOR.allow() == Some(b'-'));
-                    test("a866664a f9d3 4dde 89cb 182015fa4f41", false);
-                    test("a866664af9d34dde89cb182015fa4f41", Validator::V_CASE.lower() && !Validator::V_SEPARATOR.must().is_some());
-                    test("A866664AF9D34DDE89CB182015FA4F41", Validator::V_CASE.upper() && !Validator::V_SEPARATOR.must().is_some());
-                    test("A866664AF9D34dde89CB182015FA4F41", Validator::V_CASE.any() && !Validator::V_SEPARATOR.must().is_some());
+                    test("08:00:27:b2:46:c3", Validator::V_CASE.lower() && Validator::V_SEPARATOR.allow() == Some(b':'));
+                    test("08:00:27:B2:46:C3", Validator::V_CASE.upper() && Validator::V_SEPARATOR.allow() == Some(b':'));
+                    test("08:00:27:b2:46:C3", Validator::V_CASE.any() && Validator::V_SEPARATOR.allow() == Some(b':'));
+                    test("08-00-27-b2-46-c3", Validator::V_CASE.lower() && Validator::V_SEPARATOR.allow() == Some(b'-'));
+                    test("08-00-27-B2-46-C3", Validator::V_CASE.upper() && Validator::V_SEPARATOR.allow() == Some(b'-'));
+                    test("08-00-27-b2-46-C3", Validator::V_CASE.any() && Validator::V_SEPARATOR.allow() == Some(b'-'));
+                    test("080027b246c3", Validator::V_CASE.lower() && !Validator::V_SEPARATOR.must().is_some());
+                    test("080027B246C3", Validator::V_CASE.upper() && !Validator::V_SEPARATOR.must().is_some());
+                    test("080027b246C3", Validator::V_CASE.any() && !Validator::V_SEPARATOR.must().is_some());
                 }
             )*
         }
     }
 
     test! {
+        {
+            case => Any,
+            separator => Allow(colon),
+        },
+        {
+            case => Upper,
+            separator => Allow(colon),
+        },
+        {
+            case => Lower,
+            separator => Allow(colon),
+        },
+        {
+            case => Any,
+            separator => Must(colon),
+        },
+        {
+            case => Upper,
+            separator => Must(colon),
+        },
+        {
+            case => Lower,
+            separator => Must(colon),
+        },
         {
             case => Any,
             separator => Allow(hyphen),
