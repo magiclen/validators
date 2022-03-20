@@ -708,12 +708,12 @@ pub mod functions;
 pub mod models;
 pub mod traits;
 
-#[cfg(any(feature = "rocket", feature = "serde"))]
+#[cfg(any(feature = "rocket", all(feature = "serde", feature = "std")))]
 mod result;
 
 pub use errors::*;
 
-#[cfg(any(feature = "rocket", feature = "serde"))]
+#[cfg(any(feature = "rocket", all(feature = "serde", feature = "std")))]
 pub use result::*;
 
 /**
@@ -787,7 +787,7 @@ pub mod prelude {
         pub use crate::models::*;
         pub use crate::validators_options::*;
 
-        #[cfg(any(feature = "rocket", feature = "serde"))]
+        #[cfg(any(feature = "rocket", all(feature = "serde", feature = "std")))]
         pub use crate::result::*;
 
         pub use crate::alloc::format;
