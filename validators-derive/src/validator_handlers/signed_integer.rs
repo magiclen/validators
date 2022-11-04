@@ -445,9 +445,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     #[cfg(not(target_pointer_width = "128"))]
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        if i > isize::max_value() as i128 {
+                                        if i > isize::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < isize::min_value() as i128 {
+                                        } else if i < isize::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::parse_isize(i as isize)
@@ -457,9 +457,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     #[cfg(not(target_pointer_width = "128"))]
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        if i > isize::max_value() as i128 {
+                                        if i > isize::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < isize::min_value() as i128 {
+                                        } else if i < isize::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::validate_isize(i as isize)
@@ -545,9 +545,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        if i > i8::max_value() as i128 {
+                                        if i > i8::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i8::min_value() as i128 {
+                                        } else if i < i8::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::parse_i8(i as i8)
@@ -556,9 +556,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        if i > i8::max_value() as i128 {
+                                        if i > i8::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i8::min_value() as i128 {
+                                        } else if i < i8::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::validate_i8(i as i8)
@@ -589,9 +589,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        if i > i16::max_value() as i128 {
+                                        if i > i16::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i16::min_value() as i128 {
+                                        } else if i < i16::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::parse_i16(i as i16)
@@ -600,9 +600,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        if i > i16::max_value() as i128 {
+                                        if i > i16::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i16::min_value() as i128 {
+                                        } else if i < i16::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::validate_i16(i as i16)
@@ -633,9 +633,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        if i > i32::max_value() as i128 {
+                                        if i > i32::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i32::min_value() as i128 {
+                                        } else if i < i32::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::parse_i32(i as i32)
@@ -644,9 +644,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        if i > i32::max_value() as i128 {
+                                        if i > i32::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i32::min_value() as i128 {
+                                        } else if i < i32::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::validate_i32(i as i32)
@@ -677,9 +677,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self::Output, Self::Error> {
-                                        if i > i64::max_value() as i128 {
+                                        if i > i64::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i64::min_value() as i128 {
+                                        } else if i < i64::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::parse_i64(i as i64)
@@ -688,9 +688,9 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
-                                        if i > i64::max_value() as i128 {
+                                        if i > i64::MAX as i128 {
                                             Err(#error_path::TooLarge)
-                                        } else if i < i64::min_value() as i128 {
+                                        } else if i < i64::MIN as i128 {
                                             Err(#error_path::TooSmall)
                                         } else {
                                             Self::validate_i64(i as i64)
