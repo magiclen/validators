@@ -21,7 +21,7 @@ validators-options = { version = "0.24", path = "../validators-options" }
 validators-derive = { version = "0.24", path = "../validators-derive", optional = true }
 
 data-encoding = { version = "2.2", optional = true }
-idna = { version = "0.2", optional = true }
+idna = { version = "0.3", optional = true }
 serde_json = { version = "1", optional = true }
 phonenumber = { version = "0.3", optional = true }
 thiserror = { version = "1", optional = true }
