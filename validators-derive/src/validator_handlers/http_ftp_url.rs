@@ -1,5 +1,7 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -10,13 +12,12 @@ use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption};
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct {
-    url: TypeEnum,
+    url:      TypeEnum,
     protocol: TypeEnum,
 }
 
 const ITEM: Struct = Struct {
-    url: TypeEnum::Url,
-    protocol: TypeEnum::Protocol,
+    url: TypeEnum::Url, protocol: TypeEnum::Protocol
 };
 const VALIDATOR: Validator = Validator::http_ftp_url;
 
@@ -64,30 +65,24 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &mut local_is_set,
                                                 &correct_usage_for_local,
                                             );
-                                        }
-                                        _ => {
-                                            panic::unknown_parameter(
-                                                "http_ftp_url",
-                                                meta_name.as_str(),
-                                            )
-                                        }
+                                        },
+                                        _ => panic::unknown_parameter(
+                                            "http_ftp_url",
+                                            meta_name.as_str(),
+                                        ),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "http_ftp_url",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "http_ftp_url",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
-                    Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format(
-                            "http_ftp_url",
-                            &correct_usage_for_attribute,
-                        )
-                    }
+                    },
+                    Meta::NameValue(_) => panic::attribute_incorrect_format(
+                        "http_ftp_url",
+                        &correct_usage_for_attribute,
+                    ),
                 }
 
                 let name = ast.ident;
@@ -109,7 +104,7 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     match local {
                         ValidatorOption::Allow => {
                             quote! {}
-                        }
+                        },
                         _ => {
                             let check_local = if local.not_allow() {
                                 quote! {
@@ -136,7 +131,7 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 #check_local
                             }
-                        }
+                        },
                     }
                 };
 
@@ -214,10 +209,10 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             ValidatorOption::Allow => (),
                             ValidatorOption::Must => {
                                 s.push_str(" which must be local");
-                            }
+                            },
                             ValidatorOption::NotAllow => {
                                 s.push_str(" which must not be local");
-                            }
+                            },
                         }
 
                         s
@@ -302,7 +297,7 @@ pub fn http_ftp_url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

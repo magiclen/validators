@@ -1,7 +1,8 @@
-use alloc::collections::{BTreeMap, BTreeSet, BinaryHeap};
-use alloc::string::String;
-use alloc::vec::Vec;
-
+use alloc::{
+    collections::{BTreeMap, BTreeSet, BinaryHeap},
+    string::String,
+    vec::Vec,
+};
 #[cfg(feature = "std")]
 use std::collections::{HashMap, HashSet};
 

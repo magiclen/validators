@@ -1,6 +1,7 @@
-use core::fmt::{self, Display, Formatter};
-use core::num::ParseIntError;
-
+use core::{
+    fmt::{self, Display, Formatter},
+    num::ParseIntError,
+};
 #[cfg(feature = "std")]
 use std::error::Error;
 

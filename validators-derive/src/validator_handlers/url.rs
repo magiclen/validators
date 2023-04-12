@@ -135,7 +135,7 @@ pub fn url_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

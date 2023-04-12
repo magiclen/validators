@@ -1,5 +1,7 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -13,7 +15,7 @@ pub struct Struct(TypeEnum);
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowLocal {
-    domain: TypeEnum,
+    domain:   TypeEnum,
     is_local: TypeEnum,
 }
 
@@ -21,90 +23,90 @@ pub struct StructAllowLocal {
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPort {
     domain: TypeEnum,
-    port: TypeEnum,
+    port:   TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPortAllowLocal {
-    domain: TypeEnum,
+    domain:   TypeEnum,
     is_local: TypeEnum,
-    port: TypeEnum,
+    port:     TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4 {
-    domain: TypeEnum,
+    domain:  TypeEnum,
     is_ipv4: TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4AllowLocal {
-    domain: TypeEnum,
-    is_ipv4: TypeEnum,
+    domain:   TypeEnum,
+    is_ipv4:  TypeEnum,
     is_local: TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4AllowPort {
-    domain: TypeEnum,
+    domain:  TypeEnum,
     is_ipv4: TypeEnum,
-    port: TypeEnum,
+    port:    TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4AllowPortAllowLocal {
-    domain: TypeEnum,
-    is_ipv4: TypeEnum,
+    domain:   TypeEnum,
+    is_ipv4:  TypeEnum,
     is_local: TypeEnum,
-    port: TypeEnum,
+    port:     TypeEnum,
 }
 
 const ITEM: Struct = Struct(TypeEnum::String);
 const ITEM_ALLOW_LOCAL: StructAllowLocal = StructAllowLocal {
-    domain: TypeEnum::String,
+    domain:   TypeEnum::String,
     is_local: TypeEnum::Boolean,
 };
 const ITEM_ALLOW_PORT: StructAllowPort = StructAllowPort {
     domain: TypeEnum::String,
-    port: TypeEnum::OptionU16,
+    port:   TypeEnum::OptionU16,
 };
 const ITEM_WITH_PORT: StructAllowPort = StructAllowPort {
     domain: TypeEnum::String,
-    port: TypeEnum::U16,
+    port:   TypeEnum::U16,
 };
 const ITEM_ALLOW_LOCAL_ALLOW_PORT: StructAllowPortAllowLocal = StructAllowPortAllowLocal {
-    domain: TypeEnum::String,
+    domain:   TypeEnum::String,
     is_local: TypeEnum::Boolean,
-    port: TypeEnum::OptionU16,
+    port:     TypeEnum::OptionU16,
 };
 const ITEM_ALLOW_LOCAL_WITH_PORT: StructAllowPortAllowLocal = StructAllowPortAllowLocal {
-    domain: TypeEnum::String,
+    domain:   TypeEnum::String,
     is_local: TypeEnum::Boolean,
-    port: TypeEnum::U16,
+    port:     TypeEnum::U16,
 };
 const ITEM_ALLOW_IPV4_ALLOW_LOCAL: StructAllowIPv4AllowLocal = StructAllowIPv4AllowLocal {
-    domain: TypeEnum::String,
-    is_ipv4: TypeEnum::Boolean,
+    domain:   TypeEnum::String,
+    is_ipv4:  TypeEnum::Boolean,
     is_local: TypeEnum::Boolean,
 };
 const ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT: StructAllowIPv4AllowPortAllowLocal =
     StructAllowIPv4AllowPortAllowLocal {
-        domain: TypeEnum::String,
-        is_ipv4: TypeEnum::Boolean,
+        domain:   TypeEnum::String,
+        is_ipv4:  TypeEnum::Boolean,
         is_local: TypeEnum::Boolean,
-        port: TypeEnum::OptionU16,
+        port:     TypeEnum::OptionU16,
     };
 const ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT: StructAllowIPv4AllowPortAllowLocal =
     StructAllowIPv4AllowPortAllowLocal {
-        domain: TypeEnum::String,
-        is_ipv4: TypeEnum::Boolean,
+        domain:   TypeEnum::String,
+        is_ipv4:  TypeEnum::Boolean,
         is_local: TypeEnum::Boolean,
-        port: TypeEnum::U16,
+        port:     TypeEnum::U16,
     };
 
 const VALIDATOR: Validator = Validator::domain;
@@ -171,7 +173,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut ipv4_is_set,
                                             &correct_usage_for_ipv4,
                                         );
-                                    }
+                                    },
                                     "local" => {
                                         local = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -179,7 +181,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut local_is_set,
                                             &correct_usage_for_local,
                                         );
-                                    }
+                                    },
                                     "port" => {
                                         port = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -187,7 +189,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut port_is_set,
                                             &correct_usage_for_port,
                                         );
-                                    }
+                                    },
                                     "at_least_two_labels" => {
                                         at_least_two_labels = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -195,7 +197,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut at_least_two_labels_is_set,
                                             &correct_usage_for_at_least_two_labels,
                                         );
-                                    }
+                                    },
                                     "conflict" => {
                                         conflict = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -210,22 +212,20 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &correct_usage_for_conflict,
                                             );
                                         }
-                                    }
+                                    },
                                     _ => panic::unknown_parameter("domain", meta_name.as_str()),
                                 }
-                            }
-                            NestedMeta::Lit(_) => {
-                                panic::attribute_incorrect_format(
-                                    "domain",
-                                    &correct_usage_for_attribute,
-                                )
-                            }
+                            },
+                            NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                "domain",
+                                &correct_usage_for_attribute,
+                            ),
                         }
                     }
-                }
+                },
                 Meta::NameValue(_) => {
                     panic::attribute_incorrect_format("domain", &correct_usage_for_attribute)
-                }
+                },
             }
 
             let mut meta_is_conflict = false;
@@ -275,7 +275,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::Must => {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 4 {
@@ -305,7 +305,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::NotAllow => {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 3 {
@@ -334,7 +334,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_IPV4_ALLOW_LOCAL),
                                     );
                                 }
-                            }
+                            },
                         }
                     } else {
                         match port {
@@ -363,7 +363,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::Must => {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
@@ -389,7 +389,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_WITH_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::NotAllow => {
                                 if let Fields::Unnamed(_) = &data.fields {
                                     if data.fields.len() != 1 {
@@ -404,10 +404,10 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM),
                                     );
                                 }
-                            }
+                            },
                         }
                     }
-                }
+                },
                 _ => {
                     if local == ValidatorOption::Allow
                         && at_least_two_labels != ValidatorOption::Allow
@@ -441,7 +441,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_LOCAL_ALLOW_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::Must => {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 3 {
@@ -470,7 +470,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_LOCAL_WITH_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::NotAllow => {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
@@ -496,7 +496,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_LOCAL),
                                     );
                                 }
-                            }
+                            },
                         }
                     } else {
                         match port {
@@ -525,7 +525,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_ALLOW_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::Must => {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
@@ -551,7 +551,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM_WITH_PORT),
                                     );
                                 }
-                            }
+                            },
                             ValidatorOption::NotAllow => {
                                 if let Fields::Unnamed(_) = &data.fields {
                                     if data.fields.len() != 1 {
@@ -566,10 +566,10 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         Box::new(ITEM),
                                     );
                                 }
-                            }
+                            },
                         }
                     }
-                }
+                },
             }
 
             let name = ast.ident;
@@ -646,14 +646,14 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 return Err(#error_path::LocalMust);
                             }
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             if is_local {
                                 return Err(#error_path::LocalNotAllow);
                             }
                         }
-                    }
+                    },
                 }
             };
 
@@ -742,14 +742,14 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             return Err(#error_path::AtLeastTwoLabelsMust);
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     quote! {
                                         if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
                                             return Err(#error_path::AtLeastTwoLabelsNotAllow);
                                         }
                                     }
-                                }
+                                },
                             }
                         };
 
@@ -870,7 +870,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 }
                             }
                         }
-                    }
+                    },
                     ValidatorOption::Must => {
                         quote! {
                             #[inline]
@@ -878,7 +878,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 validators_prelude::format!("{}:{}", self.get_domain_non_fully_qualified(), self.port)
                             }
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             #[inline]
@@ -886,7 +886,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 self.get_domain_non_fully_qualified()
                             }
                         }
-                    }
+                    },
                 }
             };
 
@@ -914,7 +914,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port,
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::Must => {
                                     quote! {
                                         #name {
@@ -924,7 +924,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port.unwrap(),
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     quote! {
                                         #name {
@@ -933,7 +933,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             is_local: _is_local,
                                         }
                                     }
-                                }
+                                },
                             }
                         } else {
                             match port {
@@ -944,7 +944,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port,
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::Must => {
                                     quote! {
                                         #name {
@@ -952,15 +952,15 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port.unwrap(),
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     quote! {
                                         #name(domain)
                                     }
-                                }
+                                },
                             }
                         }
-                    }
+                    },
                     _ => {
                         if local == ValidatorOption::Allow
                             && at_least_two_labels != ValidatorOption::Allow
@@ -974,7 +974,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port,
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::Must => {
                                     quote! {
                                         #name {
@@ -983,7 +983,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port.unwrap(),
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     quote! {
                                         #name {
@@ -991,7 +991,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             is_local: _is_local,
                                         }
                                     }
-                                }
+                                },
                             }
                         } else {
                             match port {
@@ -1002,7 +1002,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port,
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::Must => {
                                     quote! {
                                         #name {
@@ -1010,15 +1010,15 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             port: _port.unwrap(),
                                         }
                                     }
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     quote! {
                                         #name(domain)
                                     }
-                                }
+                                },
                             }
                         }
-                    }
+                    },
                 }
             };
 
@@ -1060,40 +1060,38 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorOption::Allow => (),
                                 ValidatorOption::Must => {
                                     s.push_str("at-least-two-labels ");
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     s.push_str("one-label ");
-                                }
+                                },
                             }
 
                             s.push_str("domain name");
-                        }
+                        },
                         ValidatorOption::Must => {
                             s.push_str("IPv4 string");
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             if at_least_two_labels.must() {
                                 s.push_str("at-least-two-labels and ");
                             }
 
                             s.push_str("non-IPv4 domain name");
-                        }
+                        },
                     }
 
                     match local {
-                        ValidatorOption::Allow => {
-                            match port {
-                                ValidatorOption::Allow => {
-                                    s.push_str(" with an optional port");
-                                }
-                                ValidatorOption::Must => {
-                                    s.push_str(" with a port");
-                                }
-                                ValidatorOption::NotAllow => {
-                                    s.push_str(" without ports");
-                                }
-                            }
-                        }
+                        ValidatorOption::Allow => match port {
+                            ValidatorOption::Allow => {
+                                s.push_str(" with an optional port");
+                            },
+                            ValidatorOption::Must => {
+                                s.push_str(" with a port");
+                            },
+                            ValidatorOption::NotAllow => {
+                                s.push_str(" without ports");
+                            },
+                        },
                         ValidatorOption::Must => {
                             s.push_str(" which must be local");
 
@@ -1101,12 +1099,12 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorOption::Allow => (),
                                 ValidatorOption::Must => {
                                     s.push_str(" and with a port");
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     s.push_str(" and without ports");
-                                }
+                                },
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             s.push_str(" which must not be local");
 
@@ -1114,12 +1112,12 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorOption::Allow => (),
                                 ValidatorOption::Must => {
                                     s.push_str(" and must be with a port");
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     s.push_str(" and must be without ports");
-                                }
+                                },
                             }
-                        }
+                        },
                     }
 
                     s
@@ -1210,7 +1208,7 @@ pub fn domain_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             };
 
             domain_impl.into()
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

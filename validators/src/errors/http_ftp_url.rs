@@ -1,5 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-
 #[cfg(feature = "std")]
 use std::error::Error;
 
@@ -28,7 +27,7 @@ impl Display for HttpFtpURLError {
             HttpFtpURLError::ParseError(error) => Display::fmt(error, f),
             HttpFtpURLError::ProtocolError => {
                 f.write_str("need to use `http`, `https` or `ftp` as a protocol")
-            }
+            },
             HttpFtpURLError::LocalMust => f.write_str("must be local"),
             HttpFtpURLError::LocalNotAllow => f.write_str("must not be local"),
         }

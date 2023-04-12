@@ -164,7 +164,7 @@ impl Validator {
                     s,
                     Validator::variants()
                 )
-            }
+            },
         }
     }
 }

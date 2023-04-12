@@ -1,7 +1,5 @@
+use alloc::{boxed::Box, string::String};
 use core::fmt::Debug;
-
-use alloc::boxed::Box;
-use alloc::string::String;
 
 use crate::Validator;
 

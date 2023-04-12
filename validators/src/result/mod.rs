@@ -1,5 +1,7 @@
-use core::marker::PhantomData;
-use core::ops::{Deref, DerefMut};
+use core::{
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
 
 #[cfg(feature = "rocket")]
 use rocket::form::{self, FromFormField, ValueField};

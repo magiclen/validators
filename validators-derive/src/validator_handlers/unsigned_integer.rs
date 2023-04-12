@@ -1,7 +1,8 @@
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 use core::fmt::Write;
-
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
@@ -75,81 +76,73 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     let meta_name = meta.path().into_token_stream().to_string();
 
                                     match meta_name.as_str() {
-                                        "range" => {
-                                            match unsigned_integer_type {
-                                                UnsignedIntegerType::Usize => {
-                                                    range_usize = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                UnsignedIntegerType::U8 => {
-                                                    range_u8 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                UnsignedIntegerType::U16 => {
-                                                    range_u16 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                UnsignedIntegerType::U32 => {
-                                                    range_u32 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                UnsignedIntegerType::U64 => {
-                                                    range_u64 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                UnsignedIntegerType::U128 => {
-                                                    range = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                            }
-                                        }
-                                        _ => {
-                                            panic::unknown_parameter(
-                                                "unsigned_integer",
-                                                meta_name.as_str(),
-                                            )
-                                        }
+                                        "range" => match unsigned_integer_type {
+                                            UnsignedIntegerType::Usize => {
+                                                range_usize = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            UnsignedIntegerType::U8 => {
+                                                range_u8 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            UnsignedIntegerType::U16 => {
+                                                range_u16 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            UnsignedIntegerType::U32 => {
+                                                range_u32 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            UnsignedIntegerType::U64 => {
+                                                range_u64 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            UnsignedIntegerType::U128 => {
+                                                range = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                        },
+                                        _ => panic::unknown_parameter(
+                                            "unsigned_integer",
+                                            meta_name.as_str(),
+                                        ),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "unsigned_integer",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "unsigned_integer",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
-                    Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format(
-                            "unsigned_integer",
-                            &correct_usage_for_attribute,
-                        )
-                    }
+                    },
+                    Meta::NameValue(_) => panic::attribute_incorrect_format(
+                        "unsigned_integer",
+                        &correct_usage_for_attribute,
+                    ),
                 }
 
                 // merge
@@ -166,7 +159,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -175,12 +168,12 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as usize}))
-                    }
+                    },
                     UnsignedIntegerType::U8 => {
                         let expr = range_u8.to_expr();
 
@@ -193,7 +186,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -202,12 +195,12 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u8}))
-                    }
+                    },
                     UnsignedIntegerType::U16 => {
                         let expr = range_u16.to_expr();
 
@@ -220,7 +213,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -229,12 +222,12 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u16}))
-                    }
+                    },
                     UnsignedIntegerType::U32 => {
                         let expr = range_u32.to_expr();
 
@@ -247,7 +240,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -256,12 +249,12 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u32}))
-                    }
+                    },
                     UnsignedIntegerType::U64 => {
                         let expr = range_u64.to_expr();
 
@@ -274,7 +267,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -283,12 +276,12 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|u| u as u128),
                                     max: max.map(|u| u as u128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as u64}))
-                    }
+                    },
                     UnsignedIntegerType::U128 => (range.to_expr(), None),
                 };
 
@@ -341,54 +334,48 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
 
                             token_stream
-                        }
+                        },
                         ValidatorRangeOption::Outside {
                             min,
                             max,
-                        } => {
-                            match min {
-                                Some(min) => {
-                                    match max {
-                                        Some(max) => {
-                                            if min == max {
-                                                quote! {
-                                                    if u == #min #cast {
-                                                        return Err(#error_path::Forbidden);
-                                                    }
-                                                }
-                                            } else {
-                                                quote! {
-                                                    if (#min #cast)..=(#max #cast).contains(&u) {
-                                                        return Err(#error_path::Forbidden);
-                                                    }
-                                                }
+                        } => match min {
+                            Some(min) => match max {
+                                Some(max) => {
+                                    if min == max {
+                                        quote! {
+                                            if u == #min #cast {
+                                                return Err(#error_path::Forbidden);
                                             }
                                         }
-                                        None => {
-                                            quote! {
-                                                if u >= #min #cast {
-                                                    return Err(#error_path::Forbidden);
-                                                }
+                                    } else {
+                                        quote! {
+                                            if (#min #cast)..=(#max #cast).contains(&u) {
+                                                return Err(#error_path::Forbidden);
                                             }
                                         }
                                     }
-                                }
+                                },
                                 None => {
-                                    match max {
-                                        Some(max) => {
-                                            quote! {
-                                                if u <= #max #cast {
-                                                    return Err(#error_path::Forbidden);
-                                                }
-                                            }
-                                        }
-                                        None => {
-                                            quote! {}
+                                    quote! {
+                                        if u >= #min #cast {
+                                            return Err(#error_path::Forbidden);
                                         }
                                     }
-                                }
-                            }
-                        }
+                                },
+                            },
+                            None => match max {
+                                Some(max) => {
+                                    quote! {
+                                        if u <= #max #cast {
+                                            return Err(#error_path::Forbidden);
+                                        }
+                                    }
+                                },
+                                None => {
+                                    quote! {}
+                                },
+                            },
+                        },
                         ValidatorRangeOption::NotLimited => quote! {},
                     }
                 };
@@ -532,7 +519,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         UnsignedIntegerType::U8 => {
                             quote! {
                                 impl ValidateUnsignedInteger for #name {
@@ -572,7 +559,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         UnsignedIntegerType::U16 => {
                             quote! {
                                 impl ValidateUnsignedInteger for #name {
@@ -612,7 +599,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         UnsignedIntegerType::U32 => {
                             quote! {
                                 impl ValidateUnsignedInteger for #name {
@@ -652,7 +639,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         UnsignedIntegerType::U64 => {
                             quote! {
                                 impl ValidateUnsignedInteger for #name {
@@ -692,7 +679,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         UnsignedIntegerType::U128 => {
                             quote! {
                                 impl ValidateUnsignedInteger for #name {
@@ -714,7 +701,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -738,7 +725,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Some(max) = max {
                                     s.write_fmt(format_args!("={}", max)).unwrap();
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -754,7 +741,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Some(max) = max {
                                     s.write_fmt(format_args!("={}", max)).unwrap();
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
@@ -794,27 +781,27 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         unreachable!("the `integer128` feature of the `serde` crate needs to be enabled")
                                     }
                                 }
-                            }
+                            },
                             UnsignedIntegerType::U8 => {
                                 quote! {
                                     serializer.serialize_u8(self.0)
                                 }
-                            }
+                            },
                             UnsignedIntegerType::U16 => {
                                 quote! {
                                     serializer.serialize_u16(self.0)
                                 }
-                            }
+                            },
                             UnsignedIntegerType::U32 => {
                                 quote! {
                                     serializer.serialize_u32(self.0)
                                 }
-                            }
+                            },
                             UnsignedIntegerType::U64 => {
                                 quote! {
                                     serializer.serialize_u64(self.0)
                                 }
-                            }
+                            },
                             UnsignedIntegerType::U128 => {
                                 quote! {
                                     validators_prelude::serde_if_integer128! {
@@ -823,7 +810,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     unreachable!("the `integer128` feature of the `serde` crate needs to be enabled")
                                 }
-                            }
+                            },
                         }
                     };
 
@@ -953,7 +940,7 @@ pub fn unsigned_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

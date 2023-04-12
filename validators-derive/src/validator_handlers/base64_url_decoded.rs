@@ -1,5 +1,4 @@
-use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::{boxed::Box, string::ToString};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -49,30 +48,24 @@ pub fn base64_url_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &mut padding_is_set,
                                                 &correct_usage_for_padding,
                                             );
-                                        }
-                                        _ => {
-                                            panic::unknown_parameter(
-                                                "base64_url_decoded",
-                                                meta_name.as_str(),
-                                            )
-                                        }
+                                        },
+                                        _ => panic::unknown_parameter(
+                                            "base64_url_decoded",
+                                            meta_name.as_str(),
+                                        ),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "base64_url_decoded",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "base64_url_decoded",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
-                    Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format(
-                            "base64_url_decoded",
-                            &correct_usage_for_attribute,
-                        )
-                    }
+                    },
+                    Meta::NameValue(_) => panic::attribute_incorrect_format(
+                        "base64_url_decoded",
+                        &correct_usage_for_attribute,
+                    ),
                 }
 
                 let name = ast.ident;
@@ -135,17 +128,17 @@ pub fn base64_url_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 validators_prelude::data_encoding::BASE64URL_NOPAD.decode(v.as_ref()).map_err(|_| #error_path::Decode)
                             }
                         }
-                    }
+                    },
                     ValidatorOption::Must => {
                         quote! {
                             validators_prelude::data_encoding::BASE64URL.decode(v.as_ref()).map_err(|_| #error_path::Decode)
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             validators_prelude::data_encoding::BASE64URL_NOPAD.decode(v.as_ref()).map_err(|_| #error_path::Decode)
                         }
-                    }
+                    },
                 };
 
                 let v_parse_str = quote! {
@@ -407,7 +400,7 @@ pub fn base64_url_decoded_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

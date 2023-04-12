@@ -1,16 +1,12 @@
-use core::fmt::Write;
-use core::str::FromStr;
-
 use alloc::boxed::Box;
-
+use core::{fmt::Write, str::FromStr};
 use std::collections::HashSet;
 
+use phonenumber::country::Id;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, Index, Meta, NestedMeta, Path};
-
-use phonenumber::country::Id;
 
 use crate::{panic, TypeEnum, Validator};
 
@@ -46,7 +42,11 @@ pub fn phone_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             let id = Id::from_str(country.as_str()).unwrap();
 
                                             if !countries.insert(id) {
-                                                panic!("the country `{}` of the phone validator is repeated", id.as_ref());
+                                                panic!(
+                                                    "the country `{}` of the phone validator is \
+                                                     repeated",
+                                                    id.as_ref()
+                                                );
                                             }
                                         } else {
                                             panic::attribute_incorrect_format(
@@ -60,16 +60,14 @@ pub fn phone_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &correct_usage_for_attribute,
                                         )
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "phone",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "phone",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
+                    },
                     _ => panic::attribute_incorrect_format("phone", &correct_usage_for_attribute),
                 }
 
@@ -92,20 +90,18 @@ pub fn phone_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let (parameters_impl, v_parse_str) = {
                     match countries_length {
-                        0 => {
-                            (quote! {}, quote! {
-                                #[inline]
-                                fn v_parse_str(s: &str) -> Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
-                                    let phonenumber = validators_prelude::phonenumber::parse(None, s)?;
+                        0 => (quote! {}, quote! {
+                            #[inline]
+                            fn v_parse_str(s: &str) -> Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
+                                let phonenumber = validators_prelude::phonenumber::parse(None, s)?;
 
-                                    if phonenumber.is_valid() {
-                                        Ok(phonenumber)
-                                    } else {
-                                        Err(#error_path::Invalid)
-                                    }
+                                if phonenumber.is_valid() {
+                                    Ok(phonenumber)
+                                } else {
+                                    Err(#error_path::Invalid)
                                 }
-                            })
-                        }
+                            }
+                        }),
                         1 => {
                             let c =
                                 TokenStream2::from_str(countries.iter().next().unwrap().as_ref())
@@ -134,7 +130,7 @@ pub fn phone_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 },
                             )
-                        }
+                        },
                         _ => {
                             let countries: Vec<_> = countries
                                 .iter()
@@ -170,7 +166,7 @@ pub fn phone_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             })
-                        }
+                        },
                     }
                 };
 
@@ -298,7 +294,7 @@ pub fn phone_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

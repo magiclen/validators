@@ -1,10 +1,9 @@
 #![cfg(all(feature = "regex", feature = "derive"))]
 
-use validators::prelude::*;
-use validators_prelude::regex;
-
 use lazy_static::lazy_static;
 use once_cell::sync::Lazy;
+use validators::prelude::*;
+use validators_prelude::regex;
 
 lazy_static! {
     static ref RE_NON_ZERO_NUMBERS: regex::Regex = regex::Regex::new("^[1-9]+$").unwrap();

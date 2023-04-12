@@ -1,5 +1,7 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -70,7 +72,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut local_is_set,
                                             &correct_usage_for_local,
                                         );
-                                    }
+                                    },
                                     "port" => {
                                         port = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -78,22 +80,20 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut port_is_set,
                                             &correct_usage_for_port,
                                         );
-                                    }
+                                    },
                                     _ => panic::unknown_parameter("ipv6", meta_name.as_str()),
                                 }
-                            }
-                            NestedMeta::Lit(_) => {
-                                panic::attribute_incorrect_format(
-                                    "ipv6",
-                                    &correct_usage_for_attribute,
-                                )
-                            }
+                            },
+                            NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                "ipv6",
+                                &correct_usage_for_attribute,
+                            ),
                         }
                     }
-                }
+                },
                 Meta::NameValue(_) => {
                     panic::attribute_incorrect_format("ipv6", &correct_usage_for_attribute)
-                }
+                },
             }
 
             match port {
@@ -122,7 +122,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             Box::new(ITEM_ALLOW_PORT),
                         );
                     }
-                }
+                },
                 ValidatorOption::Must => {
                     if let Fields::Named(_) = &data.fields {
                         if data.fields.len() != 2 {
@@ -145,7 +145,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     } else {
                         panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM_WITH_PORT));
                     }
-                }
+                },
                 ValidatorOption::NotAllow => {
                     if let Fields::Unnamed(_) = &data.fields {
                         if data.fields.len() != 1 {
@@ -154,7 +154,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     } else {
                         panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                     }
-                }
+                },
             }
 
             let name = ast.ident;
@@ -182,14 +182,14 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 return Err(#error_path::LocalMust);
                             }
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             if is_local {
                                 return Err(#error_path::LocalNotAllow);
                             }
                         }
-                    }
+                    },
                 }
             };
 
@@ -324,7 +324,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 }
                             }
                         }
-                    }
+                    },
                     ValidatorOption::Must => {
                         quote! {
                             #[inline]
@@ -332,7 +332,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 validators_prelude::format!("[{}]:{}", self.ipv6, self.port)
                             }
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             #[inline]
@@ -340,7 +340,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 validators_prelude::format!("[{}]", self.0)
                             }
                         }
-                    }
+                    },
                 }
             };
 
@@ -359,7 +359,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 port: _port,
                             }
                         }
-                    }
+                    },
                     ValidatorOption::Must => {
                         quote! {
                             #name {
@@ -367,12 +367,12 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 port: _port.unwrap(),
                             }
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             #name(ipv6)
                         }
-                    }
+                    },
                 }
             };
 
@@ -409,19 +409,17 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     let mut s = String::from("an IPv6 string");
 
                     match local {
-                        ValidatorOption::Allow => {
-                            match port {
-                                ValidatorOption::Allow => {
-                                    s.push_str(" with an optional port");
-                                }
-                                ValidatorOption::Must => {
-                                    s.push_str(" with a port");
-                                }
-                                ValidatorOption::NotAllow => {
-                                    s.push_str(" without ports");
-                                }
-                            }
-                        }
+                        ValidatorOption::Allow => match port {
+                            ValidatorOption::Allow => {
+                                s.push_str(" with an optional port");
+                            },
+                            ValidatorOption::Must => {
+                                s.push_str(" with a port");
+                            },
+                            ValidatorOption::NotAllow => {
+                                s.push_str(" without ports");
+                            },
+                        },
                         ValidatorOption::Must => {
                             s.push_str(" which must be local");
 
@@ -429,12 +427,12 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorOption::Allow => (),
                                 ValidatorOption::Must => {
                                     s.push_str(" and with a port");
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     s.push_str(" and without ports");
-                                }
+                                },
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             s.push_str(" which must not be local");
 
@@ -442,12 +440,12 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorOption::Allow => (),
                                 ValidatorOption::Must => {
                                     s.push_str(" and must be with a port");
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     s.push_str(" and must be without ports");
-                                }
+                                },
                             }
-                        }
+                        },
                     }
 
                     s
@@ -531,7 +529,7 @@ pub fn ipv6_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             };
 
             ipv6_impl.into()
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

@@ -1,5 +1,4 @@
-use alloc::boxed::Box;
-use alloc::string::ToString;
+use alloc::{boxed::Box, string::ToString};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -49,22 +48,20 @@ pub fn base32_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &mut padding_is_set,
                                                 &correct_usage_for_padding,
                                             );
-                                        }
+                                        },
                                         _ => panic::unknown_parameter("base32", meta_name.as_str()),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "base32",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "base32",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
+                    },
                     Meta::NameValue(_) => {
                         panic::attribute_incorrect_format("base32", &correct_usage_for_attribute)
-                    }
+                    },
                 }
 
                 let name = ast.ident;
@@ -361,7 +358,7 @@ pub fn base32_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

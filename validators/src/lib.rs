@@ -712,7 +712,6 @@ pub mod traits;
 mod result;
 
 pub use errors::*;
-
 #[cfg(any(feature = "rocket", all(feature = "serde", feature = "std")))]
 pub use result::*;
 
@@ -725,76 +724,53 @@ use validators::prelude::*;
 */
 pub mod prelude {
     pub mod validators_prelude {
-        pub use core::fmt::{self, Formatter};
-        pub use core::str::from_utf8_unchecked;
-
-        pub use alloc::borrow::Cow;
-        pub use alloc::string::String;
-        pub use alloc::vec::Vec;
-
+        pub use alloc::{borrow::Cow, string::String, vec::Vec};
+        pub use core::{
+            fmt::{self, Formatter},
+            str::from_utf8_unchecked,
+        };
         #[cfg(feature = "std")]
         pub use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
         #[cfg(feature = "data-encoding")]
         pub use crate::data_encoding;
-
-        #[cfg(feature = "idna")]
-        pub use crate::idna;
-
-        #[cfg(feature = "serde_json")]
-        pub use crate::serde_json;
-
-        #[cfg(feature = "phonenumber")]
-        pub use crate::phonenumber;
-
         #[cfg(feature = "failure")]
         pub use crate::failure;
-
+        #[cfg(feature = "idna")]
+        pub use crate::idna;
+        #[cfg(feature = "phonenumber")]
+        pub use crate::phonenumber;
         #[cfg(feature = "regex-dep")]
         pub use crate::regex;
-
-        #[cfg(feature = "semver-dep")]
-        pub use crate::semver;
-
-        #[cfg(feature = "url-dep")]
-        pub use crate::url;
-
-        #[cfg(feature = "str-utils")]
-        pub use crate::str_utils;
-
-        #[cfg(feature = "serde")]
-        pub use crate::serde::serde_if_integer128;
-
-        #[cfg(feature = "serde")]
-        pub use crate::serde::ser::{Error as SeError, Serialize, Serializer};
-
-        #[cfg(feature = "serde")]
-        pub use crate::serde::de::{Deserialize, Deserializer, Error as DeError, Visitor};
-
-        #[cfg(feature = "rocket")]
-        pub use crate::rocket::request::FromParam;
-
+        #[cfg(any(feature = "rocket", all(feature = "serde", feature = "std")))]
+        pub use crate::result::*;
         #[cfg(feature = "rocket")]
         pub use crate::rocket::form::{
             Error as FormError, FromFormField, Result as FormResult, ValueField,
         };
-
         #[cfg(feature = "rocket")]
         pub use crate::rocket::http::{RawStr, Status};
-
-        pub use crate::errors::*;
-        pub use crate::functions::*;
-        pub use crate::models::*;
-        pub use crate::validators_options::*;
-
-        #[cfg(any(feature = "rocket", all(feature = "serde", feature = "std")))]
-        pub use crate::result::*;
-
-        pub use crate::alloc::format;
+        #[cfg(feature = "rocket")]
+        pub use crate::rocket::request::FromParam;
+        #[cfg(feature = "semver-dep")]
+        pub use crate::semver;
+        #[cfg(feature = "serde")]
+        pub use crate::serde::de::{Deserialize, Deserializer, Error as DeError, Visitor};
+        #[cfg(feature = "serde")]
+        pub use crate::serde::ser::{Error as SeError, Serialize, Serializer};
+        #[cfg(feature = "serde")]
+        pub use crate::serde::serde_if_integer128;
+        #[cfg(feature = "serde_json")]
+        pub use crate::serde_json;
+        #[cfg(feature = "str-utils")]
+        pub use crate::str_utils;
+        #[cfg(feature = "url-dep")]
+        pub use crate::url;
+        pub use crate::{alloc::format, errors::*, functions::*, models::*, validators_options::*};
     }
-
-    pub use crate::traits::*;
 
     #[cfg(feature = "derive")]
     pub use validators_derive::Validator;
+
+    pub use crate::traits::*;
 }

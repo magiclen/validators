@@ -1,5 +1,7 @@
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -10,7 +12,7 @@ use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption};
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct {
-    local_part: TypeEnum,
+    local_part:  TypeEnum,
     need_quoted: TypeEnum,
     domain_part: TypeEnum,
 }
@@ -18,139 +20,139 @@ pub struct Struct {
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct StructAllowComment {
-    local_part: TypeEnum,
-    need_quoted: TypeEnum,
-    domain_part: TypeEnum,
-    comment_before_local_part: TypeEnum,
-    comment_after_local_part: TypeEnum,
+    local_part:                 TypeEnum,
+    need_quoted:                TypeEnum,
+    domain_part:                TypeEnum,
+    comment_before_local_part:  TypeEnum,
+    comment_after_local_part:   TypeEnum,
     comment_before_domain_part: TypeEnum,
-    comment_after_domain_part: TypeEnum,
+    comment_after_domain_part:  TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowLocal {
-    local_part: TypeEnum,
+    local_part:  TypeEnum,
     need_quoted: TypeEnum,
     domain_part: TypeEnum,
-    is_local: TypeEnum,
+    is_local:    TypeEnum,
 }
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowCommentAllowLocal {
-    local_part: TypeEnum,
-    need_quoted: TypeEnum,
-    domain_part: TypeEnum,
-    comment_before_local_part: TypeEnum,
-    comment_after_local_part: TypeEnum,
+    local_part:                 TypeEnum,
+    need_quoted:                TypeEnum,
+    domain_part:                TypeEnum,
+    comment_before_local_part:  TypeEnum,
+    comment_after_local_part:   TypeEnum,
     comment_before_domain_part: TypeEnum,
-    comment_after_domain_part: TypeEnum,
-    is_local: TypeEnum,
+    comment_after_domain_part:  TypeEnum,
+    is_local:                   TypeEnum,
 }
 
 const ITEM: Struct = Struct {
-    local_part: TypeEnum::String,
+    local_part:  TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
     domain_part: TypeEnum::String,
 };
 
 const ITEM_ALLOW_IP: Struct = Struct {
-    local_part: TypeEnum::String,
+    local_part:  TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
     domain_part: TypeEnum::Host,
 };
 
 const ITEM_MUST_IP: Struct = Struct {
-    local_part: TypeEnum::String,
+    local_part:  TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
     domain_part: TypeEnum::IpAddr,
 };
 
 const ITEM_ALLOW_COMMENT: StructAllowComment = StructAllowComment {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::String,
-    comment_before_local_part: TypeEnum::OptionString,
-    comment_after_local_part: TypeEnum::OptionString,
+    local_part:                 TypeEnum::String,
+    need_quoted:                TypeEnum::Boolean,
+    domain_part:                TypeEnum::String,
+    comment_before_local_part:  TypeEnum::OptionString,
+    comment_after_local_part:   TypeEnum::OptionString,
     comment_before_domain_part: TypeEnum::OptionString,
-    comment_after_domain_part: TypeEnum::OptionString,
+    comment_after_domain_part:  TypeEnum::OptionString,
 };
 
 const ITEM_ALLOW_COMMENT_ALLOW_IP: StructAllowComment = StructAllowComment {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::Host,
-    comment_before_local_part: TypeEnum::OptionString,
-    comment_after_local_part: TypeEnum::OptionString,
+    local_part:                 TypeEnum::String,
+    need_quoted:                TypeEnum::Boolean,
+    domain_part:                TypeEnum::Host,
+    comment_before_local_part:  TypeEnum::OptionString,
+    comment_after_local_part:   TypeEnum::OptionString,
     comment_before_domain_part: TypeEnum::OptionString,
-    comment_after_domain_part: TypeEnum::OptionString,
+    comment_after_domain_part:  TypeEnum::OptionString,
 };
 
 const ITEM_ALLOW_COMMENT_MUST_IP: StructAllowComment = StructAllowComment {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::IpAddr,
-    comment_before_local_part: TypeEnum::OptionString,
-    comment_after_local_part: TypeEnum::OptionString,
+    local_part:                 TypeEnum::String,
+    need_quoted:                TypeEnum::Boolean,
+    domain_part:                TypeEnum::IpAddr,
+    comment_before_local_part:  TypeEnum::OptionString,
+    comment_after_local_part:   TypeEnum::OptionString,
     comment_before_domain_part: TypeEnum::OptionString,
-    comment_after_domain_part: TypeEnum::OptionString,
+    comment_after_domain_part:  TypeEnum::OptionString,
 };
 
 const ITEM_ALLOW_LOCAL: StructAllowLocal = StructAllowLocal {
-    local_part: TypeEnum::String,
+    local_part:  TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
     domain_part: TypeEnum::String,
-    is_local: TypeEnum::Boolean,
+    is_local:    TypeEnum::Boolean,
 };
 
 const ITEM_ALLOW_LOCAL_ALLOW_IP: StructAllowLocal = StructAllowLocal {
-    local_part: TypeEnum::String,
+    local_part:  TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
     domain_part: TypeEnum::Host,
-    is_local: TypeEnum::Boolean,
+    is_local:    TypeEnum::Boolean,
 };
 
 const ITEM_ALLOW_LOCAL_MUST_IP: StructAllowLocal = StructAllowLocal {
-    local_part: TypeEnum::String,
+    local_part:  TypeEnum::String,
     need_quoted: TypeEnum::Boolean,
     domain_part: TypeEnum::IpAddr,
-    is_local: TypeEnum::Boolean,
+    is_local:    TypeEnum::Boolean,
 };
 
 const ITEM_ALLOW_COMMENT_ALLOW_LOCAL: StructAllowCommentAllowLocal = StructAllowCommentAllowLocal {
-    local_part: TypeEnum::String,
-    need_quoted: TypeEnum::Boolean,
-    domain_part: TypeEnum::String,
-    comment_before_local_part: TypeEnum::OptionString,
-    comment_after_local_part: TypeEnum::OptionString,
+    local_part:                 TypeEnum::String,
+    need_quoted:                TypeEnum::Boolean,
+    domain_part:                TypeEnum::String,
+    comment_before_local_part:  TypeEnum::OptionString,
+    comment_after_local_part:   TypeEnum::OptionString,
     comment_before_domain_part: TypeEnum::OptionString,
-    comment_after_domain_part: TypeEnum::OptionString,
-    is_local: TypeEnum::Boolean,
+    comment_after_domain_part:  TypeEnum::OptionString,
+    is_local:                   TypeEnum::Boolean,
 };
 
 const ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP: StructAllowCommentAllowLocal =
     StructAllowCommentAllowLocal {
-        local_part: TypeEnum::String,
-        need_quoted: TypeEnum::Boolean,
-        domain_part: TypeEnum::Host,
-        comment_before_local_part: TypeEnum::OptionString,
-        comment_after_local_part: TypeEnum::OptionString,
+        local_part:                 TypeEnum::String,
+        need_quoted:                TypeEnum::Boolean,
+        domain_part:                TypeEnum::Host,
+        comment_before_local_part:  TypeEnum::OptionString,
+        comment_after_local_part:   TypeEnum::OptionString,
         comment_before_domain_part: TypeEnum::OptionString,
-        comment_after_domain_part: TypeEnum::OptionString,
-        is_local: TypeEnum::Boolean,
+        comment_after_domain_part:  TypeEnum::OptionString,
+        is_local:                   TypeEnum::Boolean,
     };
 
 const ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP: StructAllowCommentAllowLocal =
     StructAllowCommentAllowLocal {
-        local_part: TypeEnum::String,
-        need_quoted: TypeEnum::Boolean,
-        domain_part: TypeEnum::IpAddr,
-        comment_before_local_part: TypeEnum::OptionString,
-        comment_after_local_part: TypeEnum::OptionString,
+        local_part:                 TypeEnum::String,
+        need_quoted:                TypeEnum::Boolean,
+        domain_part:                TypeEnum::IpAddr,
+        comment_before_local_part:  TypeEnum::OptionString,
+        comment_after_local_part:   TypeEnum::OptionString,
         comment_before_domain_part: TypeEnum::OptionString,
-        comment_after_domain_part: TypeEnum::OptionString,
-        is_local: TypeEnum::Boolean,
+        comment_after_domain_part:  TypeEnum::OptionString,
+        is_local:                   TypeEnum::Boolean,
     };
 
 const VALIDATOR: Validator = Validator::email;
@@ -223,7 +225,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut comment_is_set,
                                             &correct_usage_for_comment,
                                         );
-                                    }
+                                    },
                                     "ip" => {
                                         ip = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -231,7 +233,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut ip_is_set,
                                             &correct_usage_for_ip,
                                         );
-                                    }
+                                    },
                                     "local" => {
                                         local = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -239,7 +241,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut local_is_set,
                                             &correct_usage_for_local,
                                         );
-                                    }
+                                    },
                                     "at_least_two_labels" => {
                                         at_least_two_labels = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -247,7 +249,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &mut at_least_two_labels_is_set,
                                             &correct_usage_for_at_least_two_labels,
                                         );
-                                    }
+                                    },
                                     "non_ascii" => {
                                         non_ascii = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -262,7 +264,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &correct_usage_for_non_ascii,
                                             );
                                         }
-                                    }
+                                    },
                                     "conflict" => {
                                         conflict = ValidatorOption::from_meta(
                                             meta_name.as_str(),
@@ -277,22 +279,20 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &correct_usage_for_conflict,
                                             );
                                         }
-                                    }
+                                    },
                                     _ => panic::unknown_parameter("email", meta_name.as_str()),
                                 }
-                            }
-                            NestedMeta::Lit(_) => {
-                                panic::attribute_incorrect_format(
-                                    "email",
-                                    &correct_usage_for_attribute,
-                                )
-                            }
+                            },
+                            NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                "email",
+                                &correct_usage_for_attribute,
+                            ),
                         }
                     }
-                }
+                },
                 Meta::NameValue(_) => {
                     panic::attribute_incorrect_format("email", &correct_usage_for_attribute)
-                }
+                },
             }
 
             let mut meta_is_conflict = false;
@@ -376,7 +376,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 Box::new(ITEM_ALLOW_COMMENT_ALLOW_IP),
                             );
                         }
-                    }
+                    },
                     ValidatorOption::Must => {
                         if local == ValidatorOption::Allow
                             && at_least_two_labels != ValidatorOption::Allow
@@ -444,7 +444,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 Box::new(ITEM_ALLOW_COMMENT_MUST_IP),
                             );
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         if local == ValidatorOption::Allow
                             && at_least_two_labels != ValidatorOption::Allow
@@ -512,7 +512,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 Box::new(ITEM_ALLOW_COMMENT),
                             );
                         }
-                    }
+                    },
                 }
             } else {
                 match ip {
@@ -575,7 +575,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 Box::new(ITEM_ALLOW_IP),
                             );
                         }
-                    }
+                    },
                     ValidatorOption::Must => {
                         if local == ValidatorOption::Allow
                             && at_least_two_labels != ValidatorOption::Allow
@@ -635,7 +635,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 Box::new(ITEM_MUST_IP),
                             );
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         if local == ValidatorOption::Allow
                             && at_least_two_labels != ValidatorOption::Allow
@@ -689,7 +689,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                         } else {
                             panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM));
                         }
-                    }
+                    },
                 }
             }
 
@@ -779,14 +779,14 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 return Err(#error_path::LocalMust);
                             }
                         }
-                    }
+                    },
                     ValidatorOption::NotAllow => {
                         quote! {
                             if is_local {
                                 return Err(#error_path::LocalNotAllow);
                             }
                         }
-                    }
+                    },
                 }
             };
 
@@ -921,14 +921,14 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     return Err(#error_path::AtLeastTwoLabelsMust);
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             quote! {
                                 if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
                                     return Err(#error_path::AtLeastTwoLabelsNotAllow);
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -1427,7 +1427,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::Must => {
                             quote! {
                                 #[inline]
@@ -1438,7 +1438,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             quote! {
                                 #[inline]
@@ -1446,7 +1446,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     validators_prelude::format!("{}@{}", self.local_part, self.domain_part)
                                 }
                             }
-                        }
+                        },
                     }
                 } else {
                     let generate_s = quote! {
@@ -1511,7 +1511,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     s
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::Must => {
                             quote! {
                                 #[inline]
@@ -1530,7 +1530,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     s
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             quote! {
                                 #[inline]
@@ -1544,7 +1544,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     s
                                 }
                             }
-                        }
+                        },
                     }
                 }
             };
@@ -1587,7 +1587,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::Must => {
                             if local == ValidatorOption::Allow
                                 && at_least_two_labels != ValidatorOption::Allow
@@ -1629,7 +1629,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             if local == ValidatorOption::Allow
                                 && at_least_two_labels != ValidatorOption::Allow
@@ -1669,7 +1669,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 } else {
                     match ip {
@@ -1694,7 +1694,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::Must => {
                             if local == ValidatorOption::Allow
                                 && at_least_two_labels != ValidatorOption::Allow
@@ -1728,7 +1728,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             if local == ValidatorOption::Allow
                                 && at_least_two_labels != ValidatorOption::Allow
@@ -1760,7 +1760,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 }
             };
@@ -1802,20 +1802,18 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                     };
 
                     match ip {
-                        ValidatorOption::Allow => {
-                            match at_least_two_labels {
-                                ValidatorOption::Allow => (),
-                                ValidatorOption::Must => {
-                                    s.push_str(" whose domain part must be at-least-two-labels");
-                                }
-                                ValidatorOption::NotAllow => {
-                                    s.push_str(" whose domain part must be one-label");
-                                }
-                            }
-                        }
+                        ValidatorOption::Allow => match at_least_two_labels {
+                            ValidatorOption::Allow => (),
+                            ValidatorOption::Must => {
+                                s.push_str(" whose domain part must be at-least-two-labels");
+                            },
+                            ValidatorOption::NotAllow => {
+                                s.push_str(" whose domain part must be one-label");
+                            },
+                        },
                         ValidatorOption::Must => {
                             s.push_str(" whose domain part must be an IP");
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             s.push_str(" whose domain part must be non-IP");
 
@@ -1823,12 +1821,12 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 ValidatorOption::Allow => (),
                                 ValidatorOption::Must => {
                                     s.push_str(" and at-least-two-labels");
-                                }
+                                },
                                 ValidatorOption::NotAllow => {
                                     s.push_str(" and one-label");
-                                }
+                                },
                             }
-                        }
+                        },
                     }
 
                     s
@@ -1919,7 +1917,7 @@ pub fn email_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             };
 
             email_impl.into()
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM_ALLOW_COMMENT)),
     }
 }

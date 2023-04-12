@@ -1,5 +1,4 @@
-use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::{boxed::Box, string::String};
 
 use proc_macro::TokenStream;
 use quote::quote;
@@ -54,7 +53,7 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         &correct_usage_for_attribute,
                                     );
                                 }
-                            }
+                            },
                             NestedMeta::Lit(lit) => {
                                 if let Lit::Str(lit) = lit {
                                     let s = lit.value();
@@ -68,9 +67,9 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         &correct_usage_for_attribute,
                                     );
                                 }
-                            }
+                            },
                         }
-                    }
+                    },
                     _ => panic::attribute_incorrect_format("regex", &correct_usage_for_attribute),
                 }
 
@@ -89,11 +88,11 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     pub(crate) const V_REGEX: &'static str = #regex;
                                 }
                             }
-                        }
+                        },
                         Regex::Ref(_) => {
                             // unable to be used as a const
                             quote! {}
-                        }
+                        },
                     }
                 };
 
@@ -103,12 +102,12 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             quote! {
                                 validators_prelude::regex::Regex::new(#regex).unwrap()
                             }
-                        }
+                        },
                         Regex::Ref(path) => {
                             quote! {
                                 #path
                             }
-                        }
+                        },
                     }
                 };
 
@@ -173,13 +172,13 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 quote! {
                                     f.write_str(#regex)
                                 }
-                            }
+                            },
                             Regex::Ref(path) => {
                                 quote! {
                                     f.write_str("a string matched by a regular expression: ")?;
                                     f.write_fmt(format_args!("{}", #path.to_string()))
                                 }
-                            }
+                            },
                         }
                     };
 
@@ -269,7 +268,7 @@ pub fn regex_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

@@ -77,13 +77,11 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                         &correct_usage_for_attribute,
                                                     )
                                                 }
-                                            }
-                                            _ => {
-                                                panic::attribute_incorrect_format(
-                                                    "length",
-                                                    &correct_usage_for_attribute,
-                                                )
-                                            }
+                                            },
+                                            _ => panic::attribute_incorrect_format(
+                                                "length",
+                                                &correct_usage_for_attribute,
+                                            ),
                                         }
                                     } else {
                                         panic::attribute_incorrect_format(
@@ -91,13 +89,11 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                             &correct_usage_for_attribute,
                                         )
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "length",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "length",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
 
@@ -128,12 +124,12 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             quote! {
                                 Some(#min)
                             }
-                        }
+                        },
                         None => {
                             quote! {
                                 None
                             }
-                        }
+                        },
                     }
                 };
 
@@ -143,12 +139,12 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             quote! {
                                 Some(#max)
                             }
-                        }
+                        },
                         None => {
                             quote! {
                                 None
                             }
-                        }
+                        },
                     }
                 };
 
@@ -179,23 +175,21 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
 
                             token_stream
-                        }
-                        None => {
-                            match max {
-                                Some(max) => {
-                                    quote! {
-                                        let length = v.len();
+                        },
+                        None => match max {
+                            Some(max) => {
+                                quote! {
+                                    let length = v.len();
 
-                                        if length > #max {
-                                            return Err(#error_path::TooLarge);
-                                        }
+                                    if length > #max {
+                                        return Err(#error_path::TooLarge);
                                     }
                                 }
-                                None => {
-                                    quote! {}
-                                }
-                            }
-                        }
+                            },
+                            None => {
+                                quote! {}
+                            },
+                        },
                     }
                 };
 
@@ -290,7 +284,7 @@ pub fn length_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

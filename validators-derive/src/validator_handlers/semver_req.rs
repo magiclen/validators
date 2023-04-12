@@ -24,12 +24,10 @@ pub fn semver_req_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 match meta {
                     Meta::Path(_) => (),
-                    _ => {
-                        panic::attribute_incorrect_format(
-                            "semver_req",
-                            &correct_usage_for_attribute,
-                        )
-                    }
+                    _ => panic::attribute_incorrect_format(
+                        "semver_req",
+                        &correct_usage_for_attribute,
+                    ),
                 }
 
                 let name = ast.ident;
@@ -140,7 +138,7 @@ pub fn semver_req_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

@@ -1,7 +1,8 @@
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 use core::fmt::Write;
-
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
 
 use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
@@ -61,7 +62,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &mut case_is_set,
                                                 &correct_usage_for_case,
                                             );
-                                        }
+                                        },
                                         "separator" => {
                                             separator = ValidatorSeparatorOption::from_meta(
                                                 meta_name.as_str(),
@@ -69,30 +70,24 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &mut separator_is_set,
                                                 &correct_usage_for_separator,
                                             );
-                                        }
-                                        _ => {
-                                            panic::unknown_parameter(
-                                                "mac_address",
-                                                meta_name.as_str(),
-                                            )
-                                        }
+                                        },
+                                        _ => panic::unknown_parameter(
+                                            "mac_address",
+                                            meta_name.as_str(),
+                                        ),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "mac_address",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "mac_address",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
-                    Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format(
-                            "mac_address",
-                            &correct_usage_for_attribute,
-                        )
-                    }
+                    },
+                    Meta::NameValue(_) => panic::attribute_incorrect_format(
+                        "mac_address",
+                        &correct_usage_for_attribute,
+                    ),
                 }
 
                 let name = ast.ident;
@@ -160,7 +155,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
                             }
-                        }
+                        },
                         ValidatorSeparatorOption::Must(separator) => {
                             quote! {
                                 if length != 17 {
@@ -185,7 +180,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
                             }
-                        }
+                        },
                         ValidatorSeparatorOption::NotAllow => {
                             quote! {
                                 if length != 12 {
@@ -194,7 +189,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                 bytes.iter().copied()
                             }
-                        }
+                        },
                     }
                 };
 
@@ -219,7 +214,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorCaseOption::Upper => {
                             quote! {
                                 for e in iter {
@@ -236,7 +231,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorCaseOption::Lower => {
                             quote! {
                                 for e in iter {
@@ -253,7 +248,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -268,7 +263,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorCaseOption::Upper => {
                             quote! {
                                 for e in iter {
@@ -278,7 +273,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         ValidatorCaseOption::Lower => {
                             quote! {
                                 for e in iter {
@@ -288,7 +283,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -336,62 +331,58 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                 let to_mac_address_string = {
                     match case {
-                        ValidatorCaseOption::Lower => {
-                            match separator {
-                                ValidatorSeparatorOption::Allow(separator)
-                                | ValidatorSeparatorOption::Must(separator) => {
-                                    let separator = separator as char;
+                        ValidatorCaseOption::Lower => match separator {
+                            ValidatorSeparatorOption::Allow(separator)
+                            | ValidatorSeparatorOption::Must(separator) => {
+                                let separator = separator as char;
 
-                                    quote! {
-                                        #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            let bytes: [u8; 8] = self.0.to_le_bytes();
+                                quote! {
+                                    #[inline]
+                                    pub fn to_mac_address_string(&self) -> validators_prelude::String {
+                                        let bytes: [u8; 8] = self.0.to_le_bytes();
 
-                                            validators_prelude::format!(
-                                                "{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}",
-                                                bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator
-                                            )
-                                        }
+                                        validators_prelude::format!(
+                                            "{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}{separator}{:02x}",
+                                            bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator
+                                        )
                                     }
                                 }
-                                ValidatorSeparatorOption::NotAllow => {
-                                    quote! {
-                                        #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            validators_prelude::format!("{:012x}", self.0)
-                                        }
+                            },
+                            ValidatorSeparatorOption::NotAllow => {
+                                quote! {
+                                    #[inline]
+                                    pub fn to_mac_address_string(&self) -> validators_prelude::String {
+                                        validators_prelude::format!("{:012x}", self.0)
                                     }
                                 }
-                            }
-                        }
-                        _ => {
-                            match separator {
-                                ValidatorSeparatorOption::Allow(separator)
-                                | ValidatorSeparatorOption::Must(separator) => {
-                                    let separator = separator as char;
+                            },
+                        },
+                        _ => match separator {
+                            ValidatorSeparatorOption::Allow(separator)
+                            | ValidatorSeparatorOption::Must(separator) => {
+                                let separator = separator as char;
 
-                                    quote! {
-                                        #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            let bytes: [u8; 8] = self.0.to_le_bytes();
+                                quote! {
+                                    #[inline]
+                                    pub fn to_mac_address_string(&self) -> validators_prelude::String {
+                                        let bytes: [u8; 8] = self.0.to_le_bytes();
 
-                                            validators_prelude::format!(
-                                                "{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}",
-                                                bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator
-                                            )
-                                        }
+                                        validators_prelude::format!(
+                                            "{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}{separator}{:02X}",
+                                            bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator
+                                        )
                                     }
                                 }
-                                ValidatorSeparatorOption::NotAllow => {
-                                    quote! {
-                                        #[inline]
-                                        pub fn to_mac_address_string(&self) -> validators_prelude::String {
-                                            validators_prelude::format!("{:012X}", self.0)
-                                        }
+                            },
+                            ValidatorSeparatorOption::NotAllow => {
+                                quote! {
+                                    #[inline]
+                                    pub fn to_mac_address_string(&self) -> validators_prelude::String {
+                                        validators_prelude::format!("{:012X}", self.0)
                                     }
                                 }
-                            }
-                        }
+                            },
+                        },
                     }
                 };
 
@@ -433,10 +424,10 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             ValidatorCaseOption::Any => (),
                             ValidatorCaseOption::Upper => {
                                 s.push_str("upper-case ");
-                            }
+                            },
                             ValidatorCaseOption::Lower => {
                                 s.push_str("lower-case ");
-                            }
+                            },
                         }
 
                         s.push_str("MacAddress string");
@@ -445,14 +436,14 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             ValidatorSeparatorOption::Must(e) => {
                                 s.write_fmt(format_args!(" with separators {:?}", e as char))
                                     .unwrap();
-                            }
+                            },
                             ValidatorSeparatorOption::Allow(e) => {
                                 s.write_fmt(format_args!(
                                     " with optional separators {:?}",
                                     e as char
                                 ))
                                 .unwrap();
-                            }
+                            },
                             ValidatorSeparatorOption::NotAllow => s.push_str(" without separators"),
                         }
 
@@ -547,7 +538,7 @@ pub fn mac_address_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

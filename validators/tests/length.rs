@@ -2,9 +2,9 @@
 
 extern crate alloc;
 
-use validators::prelude::*;
-
 use alloc::collections::BTreeSet;
+
+use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(length(min = 1))]

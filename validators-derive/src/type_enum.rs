@@ -54,9 +54,15 @@ impl TypeEnum {
             TypeEnum::VersionReq => "crate::semver::VersionReq",
             TypeEnum::Url => "url::Url",
             TypeEnum::PhoneNumber => "crate::phonenumber::PhoneNumber",
-            TypeEnum::HashMapPhoneNumber => "std::collection::HashMap<crate::phonenumber::country::Id, crate::phonenumber::PhoneNumber>",
+            TypeEnum::HashMapPhoneNumber => {
+                "std::collection::HashMap<crate::phonenumber::country::Id, \
+                 crate::phonenumber::PhoneNumber>"
+            },
             #[cfg(feature = "serde")]
-            TypeEnum::CollectionLength => "T: crate::validators::traits::CollectionLength + crate::serde::se::Serialize + crate::serde::de::Deserialize",
+            TypeEnum::CollectionLength => {
+                "T: crate::validators::traits::CollectionLength + crate::serde::se::Serialize + \
+                 crate::serde::de::Deserialize"
+            },
             #[cfg(not(feature = "serde"))]
             TypeEnum::CollectionLength => "T: crate::validators::traits::CollectionLength",
         }

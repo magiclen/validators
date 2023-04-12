@@ -1,7 +1,8 @@
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 use core::fmt::Write;
-
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
@@ -75,81 +76,73 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     let meta_name = meta.path().into_token_stream().to_string();
 
                                     match meta_name.as_str() {
-                                        "range" => {
-                                            match signed_integer_type {
-                                                SignedIntegerType::Isize => {
-                                                    range_isize = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                SignedIntegerType::I8 => {
-                                                    range_i8 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                SignedIntegerType::I16 => {
-                                                    range_i16 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                SignedIntegerType::I32 => {
-                                                    range_i32 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                SignedIntegerType::I64 => {
-                                                    range_i64 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                SignedIntegerType::I128 => {
-                                                    range = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                            }
-                                        }
-                                        _ => {
-                                            panic::unknown_parameter(
-                                                "signed_integer",
-                                                meta_name.as_str(),
-                                            )
-                                        }
+                                        "range" => match signed_integer_type {
+                                            SignedIntegerType::Isize => {
+                                                range_isize = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            SignedIntegerType::I8 => {
+                                                range_i8 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            SignedIntegerType::I16 => {
+                                                range_i16 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            SignedIntegerType::I32 => {
+                                                range_i32 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            SignedIntegerType::I64 => {
+                                                range_i64 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            SignedIntegerType::I128 => {
+                                                range = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                        },
+                                        _ => panic::unknown_parameter(
+                                            "signed_integer",
+                                            meta_name.as_str(),
+                                        ),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "signed_integer",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "signed_integer",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
-                    Meta::NameValue(_) => {
-                        panic::attribute_incorrect_format(
-                            "signed_integer",
-                            &correct_usage_for_attribute,
-                        )
-                    }
+                    },
+                    Meta::NameValue(_) => panic::attribute_incorrect_format(
+                        "signed_integer",
+                        &correct_usage_for_attribute,
+                    ),
                 }
 
                 // merge
@@ -166,7 +159,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -175,12 +168,12 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as isize}))
-                    }
+                    },
                     SignedIntegerType::I8 => {
                         let expr = range_i8.to_expr();
 
@@ -193,7 +186,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -202,12 +195,12 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as i8}))
-                    }
+                    },
                     SignedIntegerType::I16 => {
                         let expr = range_i16.to_expr();
 
@@ -220,7 +213,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -229,12 +222,12 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as i16}))
-                    }
+                    },
                     SignedIntegerType::I32 => {
                         let expr = range_i32.to_expr();
 
@@ -247,7 +240,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -256,12 +249,12 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as i32}))
-                    }
+                    },
                     SignedIntegerType::I64 => {
                         let expr = range_i64.to_expr();
 
@@ -274,7 +267,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -283,12 +276,12 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|i| i as i128),
                                     max: max.map(|i| i as i128),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as i64}))
-                    }
+                    },
                     SignedIntegerType::I128 => (range.to_expr(), None),
                 };
 
@@ -341,54 +334,48 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
 
                             token_stream
-                        }
+                        },
                         ValidatorRangeOption::Outside {
                             min,
                             max,
-                        } => {
-                            match min {
-                                Some(min) => {
-                                    match max {
-                                        Some(max) => {
-                                            if min == max {
-                                                quote! {
-                                                    if i == #min #cast {
-                                                        return Err(#error_path::Forbidden);
-                                                    }
-                                                }
-                                            } else {
-                                                quote! {
-                                                    if (#min #cast)..=(#max #cast).contains(&i) {
-                                                        return Err(#error_path::Forbidden);
-                                                    }
-                                                }
+                        } => match min {
+                            Some(min) => match max {
+                                Some(max) => {
+                                    if min == max {
+                                        quote! {
+                                            if i == #min #cast {
+                                                return Err(#error_path::Forbidden);
                                             }
                                         }
-                                        None => {
-                                            quote! {
-                                                if i >= #min #cast {
-                                                    return Err(#error_path::Forbidden);
-                                                }
+                                    } else {
+                                        quote! {
+                                            if (#min #cast)..=(#max #cast).contains(&i) {
+                                                return Err(#error_path::Forbidden);
                                             }
                                         }
                                     }
-                                }
+                                },
                                 None => {
-                                    match max {
-                                        Some(max) => {
-                                            quote! {
-                                                if i <= #max #cast {
-                                                    return Err(#error_path::Forbidden);
-                                                }
-                                            }
-                                        }
-                                        None => {
-                                            quote! {}
+                                    quote! {
+                                        if i >= #min #cast {
+                                            return Err(#error_path::Forbidden);
                                         }
                                     }
-                                }
-                            }
-                        }
+                                },
+                            },
+                            None => match max {
+                                Some(max) => {
+                                    quote! {
+                                        if i <= #max #cast {
+                                            return Err(#error_path::Forbidden);
+                                        }
+                                    }
+                                },
+                                None => {
+                                    quote! {}
+                                },
+                            },
+                        },
                         ValidatorRangeOption::NotLimited => quote! {},
                     }
                 };
@@ -536,7 +523,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         SignedIntegerType::I8 => {
                             quote! {
                                 impl ValidateSignedInteger for #name {
@@ -580,7 +567,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         SignedIntegerType::I16 => {
                             quote! {
                                 impl ValidateSignedInteger for #name {
@@ -624,7 +611,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         SignedIntegerType::I32 => {
                             quote! {
                                 impl ValidateSignedInteger for #name {
@@ -668,7 +655,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         SignedIntegerType::I64 => {
                             quote! {
                                 impl ValidateSignedInteger for #name {
@@ -712,7 +699,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         SignedIntegerType::I128 => {
                             quote! {
                                 impl ValidateSignedInteger for #name {
@@ -734,7 +721,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -758,7 +745,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Some(max) = max {
                                     s.write_fmt(format_args!("={}", max)).unwrap();
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -774,7 +761,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Some(max) = max {
                                     s.write_fmt(format_args!("={}", max)).unwrap();
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
@@ -814,27 +801,27 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                         unreachable!("the `integer128` feature of the `serde` crate needs to be enabled")
                                     }
                                 }
-                            }
+                            },
                             SignedIntegerType::I8 => {
                                 quote! {
                                     serializer.serialize_i8(self.0)
                                 }
-                            }
+                            },
                             SignedIntegerType::I16 => {
                                 quote! {
                                     serializer.serialize_i16(self.0)
                                 }
-                            }
+                            },
                             SignedIntegerType::I32 => {
                                 quote! {
                                     serializer.serialize_i32(self.0)
                                 }
-                            }
+                            },
                             SignedIntegerType::I64 => {
                                 quote! {
                                     serializer.serialize_i64(self.0)
                                 }
-                            }
+                            },
                             SignedIntegerType::I128 => {
                                 quote! {
                                     validators_prelude::serde_if_integer128! {
@@ -843,7 +830,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
 
                                     unreachable!("the `integer128` feature of the `serde` crate needs to be enabled")
                                 }
-                            }
+                            },
                         }
                     };
 
@@ -973,7 +960,7 @@ pub fn signed_integer_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

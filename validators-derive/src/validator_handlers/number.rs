@@ -1,17 +1,17 @@
 extern crate proc_macro2;
 
+use alloc::{
+    boxed::Box,
+    string::{String, ToString},
+};
 use core::fmt::Write;
 
-use alloc::boxed::Box;
-use alloc::string::{String, ToString};
-
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
 use syn::{Data, DeriveInput, Fields, Meta, NestedMeta, Path};
 
 use crate::{panic, SynOption, TypeEnum, Validator, ValidatorOption, ValidatorRangeOption};
-
-use proc_macro2::TokenStream as TokenStream2;
 
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
@@ -88,27 +88,25 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                 &mut nan_is_set,
                                                 &correct_usage_for_nan,
                                             );
-                                        }
-                                        "range" => {
-                                            match number_type {
-                                                NumberType::F32 => {
-                                                    range_f32 = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                                NumberType::F64 => {
-                                                    range = ValidatorRangeOption::from_meta(
-                                                        meta_name.as_str(),
-                                                        meta,
-                                                        &mut range_is_set,
-                                                        &correct_usage_for_range,
-                                                    );
-                                                }
-                                            }
-                                        }
+                                        },
+                                        "range" => match number_type {
+                                            NumberType::F32 => {
+                                                range_f32 = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                            NumberType::F64 => {
+                                                range = ValidatorRangeOption::from_meta(
+                                                    meta_name.as_str(),
+                                                    meta,
+                                                    &mut range_is_set,
+                                                    &correct_usage_for_range,
+                                                );
+                                            },
+                                        },
                                         "conflict" => {
                                             conflict = ValidatorOption::from_meta(
                                                 meta_name.as_str(),
@@ -123,22 +121,20 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                                     &correct_usage_for_conflict,
                                                 );
                                             }
-                                        }
+                                        },
                                         _ => panic::unknown_parameter("number", meta_name.as_str()),
                                     }
-                                }
-                                NestedMeta::Lit(_) => {
-                                    panic::attribute_incorrect_format(
-                                        "number",
-                                        &correct_usage_for_attribute,
-                                    )
-                                }
+                                },
+                                NestedMeta::Lit(_) => panic::attribute_incorrect_format(
+                                    "number",
+                                    &correct_usage_for_attribute,
+                                ),
                             }
                         }
-                    }
+                    },
                     Meta::NameValue(_) => {
                         panic::attribute_incorrect_format("number", &correct_usage_for_attribute)
-                    }
+                    },
                 }
 
                 // merge
@@ -155,7 +151,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|f| f as f64),
                                     max: max.map(|f| f as f64),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -164,12 +160,12 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     min: min.map(|f| f as f64),
                                     max: max.map(|f| f as f64),
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
                         (expr, Some(quote! {as f32}))
-                    }
+                    },
                     NumberType::F64 => (range.to_expr(), None),
                 };
 
@@ -235,54 +231,48 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             }
 
                             token_stream
-                        }
+                        },
                         ValidatorRangeOption::Outside {
                             min,
                             max,
-                        } => {
-                            match min {
-                                Some(min) => {
-                                    match max {
-                                        Some(max) => {
-                                            if (min - max).abs() < 1e-10 {
-                                                quote! {
-                                                    if (f - #min #cast).abs() < 1e-10 {
-                                                        return Err(#error_path::Forbidden);
-                                                    }
-                                                }
-                                            } else {
-                                                quote! {
-                                                    if (#min #cast)..=(#max #cast).contains(&f){
-                                                        return Err(#error_path::Forbidden);
-                                                    }
-                                                }
+                        } => match min {
+                            Some(min) => match max {
+                                Some(max) => {
+                                    if (min - max).abs() < 1e-10 {
+                                        quote! {
+                                            if (f - #min #cast).abs() < 1e-10 {
+                                                return Err(#error_path::Forbidden);
                                             }
                                         }
-                                        None => {
-                                            quote! {
-                                                if f >= #min #cast {
-                                                    return Err(#error_path::Forbidden);
-                                                }
+                                    } else {
+                                        quote! {
+                                            if (#min #cast)..=(#max #cast).contains(&f){
+                                                return Err(#error_path::Forbidden);
                                             }
                                         }
                                     }
-                                }
+                                },
                                 None => {
-                                    match max {
-                                        Some(max) => {
-                                            quote! {
-                                                if f <= #max #cast {
-                                                    return Err(#error_path::Forbidden);
-                                                }
-                                            }
-                                        }
-                                        None => {
-                                            quote! {}
+                                    quote! {
+                                        if f >= #min #cast {
+                                            return Err(#error_path::Forbidden);
                                         }
                                     }
-                                }
-                            }
-                        }
+                                },
+                            },
+                            None => match max {
+                                Some(max) => {
+                                    quote! {
+                                        if f <= #max #cast {
+                                            return Err(#error_path::Forbidden);
+                                        }
+                                    }
+                                },
+                                None => {
+                                    quote! {}
+                                },
+                            },
+                        },
                         ValidatorRangeOption::NotLimited => quote! {},
                     }
                 };
@@ -296,14 +286,14 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     return Err(#error_path::NaNMust);
                                 }
                             }
-                        }
+                        },
                         ValidatorOption::NotAllow => {
                             quote! {
                                 if f.is_nan() {
                                     return Err(#error_path::NaNNotAllow);
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -383,7 +373,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                         NumberType::F64 => {
                             quote! {
                                 impl ValidateNumber for #name {
@@ -405,7 +395,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                     }
                                 }
                             }
-                        }
+                        },
                     }
                 };
 
@@ -429,7 +419,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Some(max) = max {
                                     s.write_fmt(format_args!("={:.6}", max)).unwrap();
                                 }
-                            }
+                            },
                             ValidatorRangeOption::Outside {
                                 min,
                                 max,
@@ -445,7 +435,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 if let Some(max) = max {
                                     s.write_fmt(format_args!("={:.6}", max)).unwrap();
                                 }
-                            }
+                            },
                             ValidatorRangeOption::NotLimited => (),
                         }
 
@@ -453,10 +443,10 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                             ValidatorOption::Allow => (),
                             ValidatorOption::Must => {
                                 s.push_str(" which must be NaN");
-                            }
+                            },
                             ValidatorOption::NotAllow => {
                                 s.push_str(" which must not be NaN");
-                            }
+                            },
                         }
 
                         s
@@ -468,12 +458,12 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                                 quote! {
                                     serializer.serialize_f32(self.0)
                                 }
-                            }
+                            },
                             NumberType::F64 => {
                                 quote! {
                                     serializer.serialize_f64(self.0)
                                 }
-                            }
+                            },
                         }
                     };
 
@@ -579,7 +569,7 @@ pub fn number_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }

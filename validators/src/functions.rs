@@ -1,8 +1,7 @@
 #[cfg(feature = "std")]
-use std::str::{from_utf8_unchecked, FromStr};
-
-#[cfg(feature = "std")]
 use std::net::{AddrParseError, IpAddr, Ipv4Addr, Ipv6Addr};
+#[cfg(feature = "std")]
+use std::str::{from_utf8_unchecked, FromStr};
 
 #[cfg(feature = "std")]
 #[inline]
@@ -31,9 +30,9 @@ pub fn is_local_ipv6(addr: Ipv6Addr) -> bool {
 
     let first = segments[0];
 
-    if (first & 0xff00) == 0xff00 {
+    if (first & 0xFF00) == 0xFF00 {
         // is_multicast
-        first & 0x000f != 14 // 14 is `std::net::Ipv6MulticastScope::Global`
+        first & 0x000F != 14 // 14 is `std::net::Ipv6MulticastScope::Global`
     } else {
         if segments.starts_with(&[0, 0, 0, 0, 0, 0, 0]) {
             match segments[7] {
@@ -41,21 +40,21 @@ pub fn is_local_ipv6(addr: Ipv6Addr) -> bool {
                     // is_loopback
                     // is_unspecified
                     return true;
-                }
+                },
                 _ => (),
             }
         }
 
-        match first & 0xffc0 {
-            0xfe80 | 0xfec0 => {
+        match first & 0xFFC0 {
+            0xFE80 | 0xFEC0 => {
                 // is_unicast_link_local
                 // is_unicast_site_local
                 return true;
-            }
+            },
             _ => (),
         }
 
-        if first & 0xfe00 == 0xfc00 || (first == 0x2001) && (segments[1] == 0xdb8) {
+        if first & 0xFE00 == 0xFC00 || (first == 0x2001) && (segments[1] == 0xDB8) {
             // is_unique_local
             // is_documentation
             return true;
@@ -76,11 +75,7 @@ pub fn is_local_domain<S: AsRef<str>>(s: S) -> bool {
 
     let length_dec = bytes.len() - 1;
 
-    let bytes = if bytes[length_dec] == b'.' {
-        &bytes[..length_dec]
-    } else {
-        bytes
-    };
+    let bytes = if bytes[length_dec] == b'.' { &bytes[..length_dec] } else { bytes };
 
     bytes.eq_ignore_ascii_case(b"localhost")
 }

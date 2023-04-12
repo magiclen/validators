@@ -1,9 +1,8 @@
-use crate::panic;
-
 use quote::quote;
 use syn::{Expr, Lit, Meta, NestedMeta};
-
 use validators_options::*;
+
+use crate::panic;
 
 pub trait SynOption: Sized {
     fn from_meta(meta_name: &str, meta: &Meta, is_set: &mut bool, correct_usage: &[&str]) -> Self;
@@ -52,13 +51,13 @@ impl SynOption for ValidatorOption {
         match self {
             ValidatorOption::Must => {
                 syn::parse2(quote! { validators_prelude::ValidatorOption::Must }).unwrap()
-            }
+            },
             ValidatorOption::Allow => {
                 syn::parse2(quote! { validators_prelude::ValidatorOption::Allow }).unwrap()
-            }
+            },
             ValidatorOption::NotAllow => {
                 syn::parse2(quote! { validators_prelude::ValidatorOption::NotAllow }).unwrap()
-            }
+            },
         }
     }
 }
@@ -105,13 +104,13 @@ impl SynOption for ValidatorCaseOption {
         match self {
             ValidatorCaseOption::Any => {
                 syn::parse2(quote! { validators_prelude::ValidatorCaseOption::Any }).unwrap()
-            }
+            },
             ValidatorCaseOption::Upper => {
                 syn::parse2(quote! { validators_prelude::ValidatorCaseOption::Upper }).unwrap()
-            }
+            },
             ValidatorCaseOption::Lower => {
                 syn::parse2(quote! { validators_prelude::ValidatorCaseOption::Lower }).unwrap()
-            }
+            },
         }
     }
 }
@@ -167,15 +166,15 @@ impl SynOption for ValidatorSeparatorOption {
             ValidatorSeparatorOption::Must(c) => {
                 syn::parse2(quote! { validators_prelude::ValidatorSeparatorOption::Must(#c) })
                     .unwrap()
-            }
+            },
             ValidatorSeparatorOption::Allow(c) => {
                 syn::parse2(quote! { validators_prelude::ValidatorSeparatorOption::Allow(#c) })
                     .unwrap()
-            }
+            },
             ValidatorSeparatorOption::NotAllow => {
                 syn::parse2(quote! { validators_prelude::ValidatorSeparatorOption::NotAllow })
                     .unwrap()
-            }
+            },
         }
     }
 }
@@ -202,24 +201,22 @@ fn fetch_separator(meta_name: &str, meta: &Meta, correct_usage: &[&str]) -> u8 {
                     } else {
                         panic::parameter_incorrect_format(meta_name, correct_usage);
                     }
-                }
-                NestedMeta::Lit(lit) => {
-                    match lit {
-                        Lit::Char(c) => {
-                            let c = c.value();
+                },
+                NestedMeta::Lit(lit) => match lit {
+                    Lit::Char(c) => {
+                        let c = c.value();
 
-                            if c.is_ascii() {
-                                c as u8
-                            } else {
-                                panic::parameter_incorrect_format(meta_name, correct_usage);
-                            }
-                        }
-                        Lit::Byte(b) => b.value(),
-                        _ => {
+                        if c.is_ascii() {
+                            c as u8
+                        } else {
                             panic::parameter_incorrect_format(meta_name, correct_usage);
                         }
-                    }
-                }
+                    },
+                    Lit::Byte(b) => b.value(),
+                    _ => {
+                        panic::parameter_incorrect_format(meta_name, correct_usage);
+                    },
+                },
             }
         } else {
             panic::parameter_incorrect_format(meta_name, correct_usage);
@@ -276,7 +273,7 @@ macro_rules! fetch_range {
                                                 &$correct_usage,
                                             );
                                         }
-                                    }
+                                    },
                                     Lit::Int(i) => {
                                         if let Some(ident) = meta.path().get_ident() {
                                             if ident == "min" {
@@ -307,21 +304,21 @@ macro_rules! fetch_range {
                                                 &$correct_usage,
                                             );
                                         }
-                                    }
+                                    },
                                     _ => {
                                         panic::parameter_incorrect_format(
                                             $meta_name,
                                             &$correct_usage,
                                         );
-                                    }
+                                    },
                                 }
                             } else {
                                 panic::parameter_incorrect_format($meta_name, &$correct_usage);
                             }
-                        }
+                        },
                         NestedMeta::Lit(_) => {
                             panic::parameter_incorrect_format($meta_name, &$correct_usage);
-                        }
+                        },
                     }
                 }
 

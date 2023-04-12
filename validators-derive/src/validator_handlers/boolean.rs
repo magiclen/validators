@@ -340,7 +340,8 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
                 };
 
                 let serde_impl = if cfg!(feature = "serde") {
-                    let expect = "a boolean, a boolean string like \"true\", \"false\", \"0\", \"1\", \"on\", \"off\", \"yes\", \"no\", or a number `0` or `1`";
+                    let expect = "a boolean, a boolean string like \"true\", \"false\", \"0\", \
+                                  \"1\", \"on\", \"off\", \"yes\", \"no\", or a number `0` or `1`";
 
                     quote! {
                         impl validators_prelude::Serialize for #name {
@@ -481,7 +482,7 @@ pub fn boolean_handler(ast: DeriveInput, meta: Meta) -> TokenStream {
             } else {
                 panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM))
             }
-        }
+        },
         _ => panic::validator_only_support_for_item(VALIDATOR, Box::new(ITEM)),
     }
 }
