@@ -9,7 +9,6 @@ homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user"]
 categories = ["no-std", "value-formatting"]
 description = "This crate provides options used with the `validators-derive` crate and the `validators` crate."
-readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 

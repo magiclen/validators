@@ -9,7 +9,6 @@ homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
 categories = ["no-std", "parser-implementations", "value-formatting"]
 description = "This is a library for validating and modeling user input and this crate provides models, function, traits, errors and other dependencies."
-readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
