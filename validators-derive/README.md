@@ -1,4 +1,4 @@
-Validators Options
+Validators Derive
 ====================
 
 [![CI](https://github.com/magiclen/validators/actions/workflows/ci.yml/badge.svg)](https://github.com/magiclen/validators/actions/workflows/ci.yml)
