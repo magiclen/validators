@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.25.0"
+version = "0.25.1"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
 rust-version = "1.69"
@@ -8,7 +8,7 @@ repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
 categories = ["no-std", "parser-implementations", "value-formatting"]
-description = "This is a library for validating and modeling user input and this crate provides models, function, traits, errors and other dependencies."
+description = "This library is designed for validating and modeling user input. The crate includes models, functions, traits, errors, and other dependencies."
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
