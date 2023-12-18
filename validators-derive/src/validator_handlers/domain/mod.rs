@@ -938,7 +938,7 @@ impl ValidatorHandler for DomainHandler {
                                     Some(port) => {
                                         let non_fully_qualified_domain = QualifyDomain::get_domain_non_fully_qualified(self);
 
-                                        validators_prelude::Cow::Owned(validators_prelude::format!("{non_fully_qualified_domain}:{port}"))
+                                        validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", non_fully_qualified_domain, port))
                                     },
                                     None => validators_prelude::Cow::Borrowed(self.get_domain_non_fully_qualified()),
                                 }
@@ -954,7 +954,7 @@ impl ValidatorHandler for DomainHandler {
                                 let non_fully_qualified_domain = QualifyDomain::get_domain_non_fully_qualified(self);
                                 let port = self.port;
 
-                                validators_prelude::Cow::Owned(validators_prelude::format!("{non_fully_qualified_domain}:{port}"))
+                                validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", non_fully_qualified_domain, port))
                             }
                         }
                     }

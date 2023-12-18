@@ -400,14 +400,14 @@ impl ValidatorHandler for IpHandler {
                                 match &self.ip {
                                     ::std::net::IpAddr::V4(ip) => {
                                         match self.port {
-                                            Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}:{port}")),
-                                            None => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}")),
+                                            Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
+                                            None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                         }
                                     },
                                     ::std::net::IpAddr::V6(ip) => {
                                         match self.port {
-                                            Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]:{port}")),
-                                            None => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]")),
+                                            Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
+                                            None => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                         }
                                     },
                                 }
@@ -423,8 +423,8 @@ impl ValidatorHandler for IpHandler {
                                 let port = self.port;
 
                                 match &self.ip {
-                                    ::std::net::IpAddr::V4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}:{port}")),
-                                    ::std::net::IpAddr::V6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]:{port}")),
+                                    ::std::net::IpAddr::V4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
+                                    ::std::net::IpAddr::V6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
                                 }
                             }
                         }
@@ -436,8 +436,8 @@ impl ValidatorHandler for IpHandler {
                             #[inline]
                             fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
                                 match &self.0 {
-                                    ::std::net::IpAddr::V4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}")),
-                                    ::std::net::IpAddr::V6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]")),
+                                    ::std::net::IpAddr::V4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
+                                    ::std::net::IpAddr::V6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                 }
                             }
                         }

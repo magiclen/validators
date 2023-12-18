@@ -658,8 +658,8 @@ impl ValidatorHandler for HostHandler {
                             #[inline]
                             fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
                                 match &self.0 {
-                                    validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}")),
-                                    validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]")),
+                                    validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
+                                    validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                     validators_prelude::Host::Domain(domain) => validators_prelude::Cow::Borrowed(domain),
                                 }
                             }
@@ -675,19 +675,19 @@ impl ValidatorHandler for HostHandler {
                                         match &self.host {
                                             validators_prelude::Host::IPv4(ip) => {
                                                 match self.port {
-                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}:{port}")),
-                                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}")),
+                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{port}", ip)),
+                                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                                 }
                                             },
                                             validators_prelude::Host::IPv6(ip) => {
                                                 match self.port {
-                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]:{port}")),
-                                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]")),
+                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
+                                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                                 }
                                             },
                                             validators_prelude::Host::Domain(domain) => {
                                                 match self.port {
-                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{domain}:{port}")),
+                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", domain, port)),
                                                     None => validators_prelude::Cow::Borrowed(domain),
                                                 }
                                             },
@@ -704,9 +704,9 @@ impl ValidatorHandler for HostHandler {
                                         let port = self.port;
 
                                         match &self.host {
-                                            validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}:{port}")),
-                                            validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]:{port}")),
-                                            validators_prelude::Host::Domain(domain) => validators_prelude::Cow::Owned(validators_prelude::format!("{domain}:{port}")),
+                                            validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
+                                            validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
+                                            validators_prelude::Host::Domain(domain) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", domain, port)),
                                         }
                                     }
                                 }
@@ -718,8 +718,8 @@ impl ValidatorHandler for HostHandler {
                                     #[inline]
                                     fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
                                         match &self.host {
-                                            validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}")),
-                                            validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]")),
+                                            validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
+                                            validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                             validators_prelude::Host::Domain(domain) => validators_prelude::Cow::Borrowed(domain),
                                         }
                                     }

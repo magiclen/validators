@@ -331,8 +331,8 @@ impl ValidatorHandler for Ipv6Handler {
                                 let ip = self.ipv6;
 
                                 match self.port {
-                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]:{port}")),
-                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]")),
+                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
+                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                 }
                             }
                         }
@@ -346,7 +346,7 @@ impl ValidatorHandler for Ipv6Handler {
                                 let ip = self.ipv6;
                                 let port = self.port;
 
-                                validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]:{port}"))
+                                validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port))
                             }
                         }
                     }
@@ -358,7 +358,7 @@ impl ValidatorHandler for Ipv6Handler {
                             fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
                                 let ip = self.0;
 
-                                validators_prelude::Cow::Owned(validators_prelude::format!("[{ip}]"))
+                                validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip))
                             }
                         }
                     }

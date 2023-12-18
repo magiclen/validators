@@ -1546,9 +1546,9 @@ impl ValidatorHandler for EmailHandler {
                                     let local_part = &self.local_part;
 
                                     match &self.domain_part {
-                                        validators_prelude::Host::IPv4(ip) => validators_prelude::format!("{local_part}@[{ip}]"),
-                                        validators_prelude::Host::IPv6(ip) => validators_prelude::format!("{local_part}@[IPv6:{ip}]"),
-                                        validators_prelude::Host::Domain(domain) => validators_prelude::format!("{local_part}@{domain}"),
+                                        validators_prelude::Host::IPv4(ip) => validators_prelude::format!("{}@[{}]", local_part, ip),
+                                        validators_prelude::Host::IPv6(ip) => validators_prelude::format!("{}@[IPv6:{}]", local_part, ip),
+                                        validators_prelude::Host::Domain(domain) => validators_prelude::format!("{}@{}", local_part, domain),
                                     }
                                 }
                             }
@@ -1562,8 +1562,8 @@ impl ValidatorHandler for EmailHandler {
                                     let local_part = &self.local_part;
 
                                     match &self.domain_part {
-                                        ::std::net::IpAddr::V4(ip) => validators_prelude::format!("{local_part}@[{ip}]"),
-                                        ::std::net::IpAddr::V6(ip) => validators_prelude::format!("{local_part}@[IPv6:{ip}]"),
+                                        ::std::net::IpAddr::V4(ip) => validators_prelude::format!("{}@[{}]", local_part, ip),
+                                        ::std::net::IpAddr::V6(ip) => validators_prelude::format!("{}@[IPv6:{}]", local_part, ip),
                                     }
                                 }
                             }
@@ -1577,7 +1577,7 @@ impl ValidatorHandler for EmailHandler {
                                     let local_part = &self.local_part;
                                     let domain_part = &self.domain_part;
 
-                                    validators_prelude::format!("{local_part}@{domain_part}")
+                                    validators_prelude::format!("{}@{}", local_part, domain_part)
                                 }
                             }
                         }

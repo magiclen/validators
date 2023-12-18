@@ -299,8 +299,8 @@ impl ValidatorHandler for Ipv4Handler {
                                 let ip = self.ipv4;
 
                                 match self.port {
-                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}:{port}")),
-                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("{ip}")),
+                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
+                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                 }
                             }
                         }
@@ -314,7 +314,7 @@ impl ValidatorHandler for Ipv4Handler {
                                 let ip = self.ipv4;
                                 let port = self.port;
 
-                                validators_prelude::Cow::Owned(validators_prelude::format!("{ip}:{port}"))
+                                validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port))
                             }
                         }
                     }
@@ -326,7 +326,7 @@ impl ValidatorHandler for Ipv4Handler {
                             fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
                                 let ip = self.0;
 
-                                validators_prelude::Cow::Owned(validators_prelude::format!("{ip}"))
+                                validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip))
                             }
                         }
                     }
