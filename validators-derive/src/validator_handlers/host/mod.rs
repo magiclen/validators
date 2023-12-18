@@ -675,7 +675,7 @@ impl ValidatorHandler for HostHandler {
                                         match &self.host {
                                             validators_prelude::Host::IPv4(ip) => {
                                                 match self.port {
-                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{port}", ip)),
+                                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
                                                     None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                                 }
                                             },
