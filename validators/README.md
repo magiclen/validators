@@ -158,6 +158,7 @@ assert_eq!(1000u64, AtLeastOneBit::parse_string("1kb").unwrap().0);
 ```
 
 * Traits: `ValidateString`, `ValidateUnsignedInteger`
+* By default, the range is unlimited
 
 #### boolean
 
@@ -200,7 +201,7 @@ assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0);
 ```
 
 * Traits: `ValidateString`, `ValidateUnsignedInteger`
-* By default, `ignore_case = true`
+* By default, the range is unlimited, `ignore_case = true`
 
 #### domain
 
