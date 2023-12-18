@@ -231,3 +231,28 @@ where
         })
     }
 }
+
+#[inline]
+pub(crate) fn range_equal<T: RangedNumber>(
+    min: Option<T>,
+    max: Option<T>,
+    inclusive: bool,
+) -> bool {
+    if let Some(min) = min {
+        if let Some(max) = max {
+            if inclusive {
+                min == max
+            } else if T::IS_FLOAT {
+                false
+            } else if let Some(min) = min.inc() {
+                min == max
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    } else {
+        false
+    }
+}

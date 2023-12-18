@@ -6,7 +6,7 @@ use syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
-    common::{range_option::range_equal, type_enum::TypeEnum},
+    common::{range::range_equal, type_enum::TypeEnum},
     panic,
 };
 

@@ -121,7 +121,7 @@ pub use regex::*;
 #[cfg(any(feature = "semver", feature = "semver_req"))]
 mod semver;
 #[cfg(any(feature = "semver", feature = "semver_req"))]
-pub use semver::*;
+pub use self::semver::*;
 
 #[cfg(feature = "signed_integer")]
 mod signed_integer;
@@ -141,7 +141,7 @@ pub use unsigned_integer::*;
 #[cfg(feature = "url")]
 mod url;
 #[cfg(feature = "url")]
-pub use url::*;
+pub use self::url::*;
 
 #[cfg(feature = "uuid")]
 mod uuid;
