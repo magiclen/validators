@@ -1,21 +1,21 @@
-#![cfg(all(feature = "phone", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "phone"))]
 
-use validators::prelude::*;
-use validators_prelude::phonenumber;
+use validators::{
+    phonenumber::{country::Id, PhoneNumber},
+    prelude::*,
+};
 
 #[derive(Validator)]
 #[validator(phone)]
-pub struct InternationalPhone(pub phonenumber::PhoneNumber);
+pub struct InternationalPhone(pub PhoneNumber);
 
 #[derive(Validator)]
-#[validator(phone(TW))]
-pub struct TWPhone(pub phonenumber::PhoneNumber);
+#[validator(phone(countries(TW)))]
+pub struct TWPhone(pub PhoneNumber);
 
 #[derive(Validator)]
-#[validator(phone(TW, US))]
-pub struct TWorUSPhone(
-    pub std::collections::HashMap<phonenumber::country::Id, phonenumber::PhoneNumber>,
-);
+#[validator(phone(countries(TW, US)))]
+pub struct TWorUSPhone(pub std::collections::HashMap<Id, PhoneNumber>);
 
 #[test]
 fn basic() {

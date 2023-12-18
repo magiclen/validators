@@ -1,4 +1,4 @@
-#![cfg(all(feature = "host", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "host"))]
 
 use validators::prelude::*;
 
@@ -143,7 +143,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(host($($p($v),)*port(NotAllow)))]
+                    #[validator(host($($p($v),)*port(Disallow)))]
                     pub struct HostWithoutPort(pub validators::models::Host);
 
                     test_inner!(
@@ -182,7 +182,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(host($($p($v),)*port(NotAllow)))]
+                    #[validator(host($($p($v),)*port(Disallow)))]
                     pub struct HostWithoutPortIsLocal {
                         pub host: validators::models::Host,
                         pub is_local: bool,
@@ -218,19 +218,19 @@ fn basic() {
         },
         {
             local => Must,
-            at_least_two_labels => NotAllow,
+            at_least_two_labels => Disallow,
         },
         {
-            local => NotAllow,
+            local => Disallow,
             at_least_two_labels => Allow,
         },
         {
-            local => NotAllow,
+            local => Disallow,
             at_least_two_labels => Must,
         },
         {
-            local => NotAllow,
-            at_least_two_labels => NotAllow,
+            local => Disallow,
+            at_least_two_labels => Disallow,
         },
     }
 
@@ -241,7 +241,7 @@ fn basic() {
         },
         {
             local => Allow,
-            at_least_two_labels => NotAllow,
+            at_least_two_labels => Disallow,
         },
     }
 }

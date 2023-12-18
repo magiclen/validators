@@ -1,8 +1,6 @@
-#![cfg(all(feature = "length", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "length"))]
 
-extern crate alloc;
-
-use alloc::collections::BTreeSet;
+use std::collections::BTreeSet;
 
 use validators::prelude::*;
 

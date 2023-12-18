@@ -1,7 +1,6 @@
-#![cfg(all(feature = "http_ftp_url", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "http_ftp_url"))]
 
-use validators::prelude::*;
-use validators_prelude::url;
+use validators::{prelude::*, url};
 
 #[test]
 fn basic() {
@@ -55,7 +54,7 @@ fn basic() {
             local => Must,
         },
         {
-            local => NotAllow,
+            local => Disallow,
         },
     }
 }

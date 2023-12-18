@@ -1,4 +1,4 @@
-#![cfg(all(feature = "ipv6", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "ipv6"))]
 
 use validators::prelude::*;
 
@@ -81,7 +81,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(ipv6($($p($v),)*port(NotAllow)))]
+                    #[validator(ipv6($($p($v),)*port(Disallow)))]
                     pub struct IPv6WithoutPort(pub std::net::Ipv6Addr);
 
                     test_inner!(
@@ -107,7 +107,7 @@ fn basic() {
             local => Must,
         },
         {
-            local => NotAllow,
+            local => Disallow,
         }
     }
 }

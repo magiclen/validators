@@ -1,4 +1,4 @@
-#![cfg(all(feature = "text", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "text"))]
 
 use validators::prelude::*;
 

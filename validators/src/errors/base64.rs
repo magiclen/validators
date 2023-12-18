@@ -2,23 +2,24 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `base64` validator.
 #[derive(Debug, Clone)]
 pub enum Base64Error {
-    /// the fallback variant
+    /// Incorrect Base64-encoded data.
     Invalid,
-    /// may not be valid but missing the padding part is guaranteed
+    /// May not be valid, but the absence of padding is guaranteed.
     PaddingMust,
-    /// may not be valid and the padding part seems to exist
-    PaddingNotAllow,
+    /// May not be valid, but it appears that the padding part exists.
+    PaddingDisallow,
 }
 
 impl Display for Base64Error {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            Base64Error::Invalid => f.write_str("invalid Base64"),
-            Base64Error::PaddingMust => f.write_str("padding not found"),
-            Base64Error::PaddingNotAllow => f.write_str("padding not allowed"),
+            Self::Invalid => f.write_str("invalid Base64"),
+            Self::PaddingMust => f.write_str("padding not found"),
+            Self::PaddingDisallow => f.write_str("padding not allowed"),
         }
     }
 }

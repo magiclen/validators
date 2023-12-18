@@ -2,38 +2,39 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `email` validator.
 #[derive(Debug, Clone)]
 pub enum EmailError {
-    /// the fallback variant
+    /// Incorrect email data.
     Invalid,
-    /// may not be valid but it is guaranteed that the domain part is not an IP
+    /// May not be valid, but it is guaranteed that the domain part is not an IP.
     IPMust,
-    /// may not be valid and the domain part seems to be an IP
-    IPNotAllow,
-    /// may not be valid but it is guaranteed that the domain part is not local
+    /// May not be valid and the domain part seems to be an IP.
+    IPDisallow,
+    /// May not be valid, but it is guaranteed that the domain part is not local.
     LocalMust,
-    /// may not be valid but it is guaranteed that the domain part is local
-    LocalNotAllow,
-    /// may not be valid but it is guaranteed that the domain part has only one label
+    /// May not be valid, but it is guaranteed that the domain part is local.
+    LocalDisallow,
+    /// May not be valid, but it is guaranteed that the domain part has only one label.
     AtLeastTwoLabelsMust,
-    /// may not be valid and the domain part seems to has at least two labels
-    AtLeastTwoLabelsNotAllow,
-    /// may not be valid and comments seems to exist
-    CommentNotAllow,
+    /// May not be valid and the domain part seems to has at least two labels.
+    AtLeastTwoLabelsDisallow,
+    /// May not be valid and comments seems to exist.
+    CommentDisallow,
 }
 
 impl Display for EmailError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            EmailError::Invalid => f.write_str("invalid Email"),
-            EmailError::IPMust => f.write_str("must use an IP"),
-            EmailError::IPNotAllow => f.write_str("must not use an IP"),
-            EmailError::LocalMust => f.write_str("must be local"),
-            EmailError::LocalNotAllow => f.write_str("must not be local"),
-            EmailError::AtLeastTwoLabelsMust => f.write_str("must have at least two labels"),
-            EmailError::AtLeastTwoLabelsNotAllow => f.write_str("must have only one label"),
-            EmailError::CommentNotAllow => f.write_str("must not contain comments"),
+            Self::Invalid => f.write_str("invalid Email"),
+            Self::IPMust => f.write_str("must use an IP"),
+            Self::IPDisallow => f.write_str("must not use an IP"),
+            Self::LocalMust => f.write_str("must be local"),
+            Self::LocalDisallow => f.write_str("must not be local"),
+            Self::AtLeastTwoLabelsMust => f.write_str("must have at least two labels"),
+            Self::AtLeastTwoLabelsDisallow => f.write_str("must have only one label"),
+            Self::CommentDisallow => f.write_str("must not contain comments"),
         }
     }
 }

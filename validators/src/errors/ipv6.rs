@@ -2,32 +2,33 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `ipv6` validator.
 #[derive(Debug, Clone)]
-pub enum IPv6Error {
-    /// the fallback variant
+pub enum Ipv6Error {
+    /// Incorrect IP data.
     Invalid,
-    /// may not be valid but it is guaranteed that the IPv6 is not local
+    /// May not be valid, but it is guaranteed that the IP is not local.
     LocalMust,
-    /// may not be valid but it is guaranteed that the IPv6 is local
-    LocalNotAllow,
-    /// may not be valid but missing a port is guaranteed
+    /// May not be valid, but it is guaranteed that the IP is local.
+    LocalDisallow,
+    /// May not be valid, but missing a port is guaranteed.
     PortMust,
-    /// may not be valid and the port part seems to exist
-    PortNotAllow,
+    /// May not be valid, and the port part seems to exist.
+    PortDisallow,
 }
 
-impl Display for IPv6Error {
+impl Display for Ipv6Error {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            IPv6Error::Invalid => f.write_str("invalid domain or IPv6"),
-            IPv6Error::LocalMust => f.write_str("must be local"),
-            IPv6Error::LocalNotAllow => f.write_str("must not be local"),
-            IPv6Error::PortMust => f.write_str("port not found"),
-            IPv6Error::PortNotAllow => f.write_str("port not allowed"),
+            Self::Invalid => f.write_str("invalid IPv6"),
+            Self::LocalMust => f.write_str("must be local"),
+            Self::LocalDisallow => f.write_str("must not be local"),
+            Self::PortMust => f.write_str("port not found"),
+            Self::PortDisallow => f.write_str("port not allowed"),
         }
     }
 }
 
 #[cfg(feature = "std")]
-impl Error for IPv6Error {}
+impl Error for Ipv6Error {}

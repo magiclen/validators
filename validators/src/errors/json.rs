@@ -2,29 +2,30 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `json` validator.
 #[derive(Debug)]
-pub enum JSONError {
+pub enum JsonError {
     SerdeJsonError(serde_json::Error),
     /// The value is empty or is not supported in JSON.
     InvalidJsonValueError,
 }
 
-impl From<serde_json::Error> for JSONError {
+impl From<serde_json::Error> for JsonError {
     #[inline]
     fn from(error: serde_json::Error) -> Self {
-        JSONError::SerdeJsonError(error)
+        Self::SerdeJsonError(error)
     }
 }
 
-impl Display for JSONError {
+impl Display for JsonError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            JSONError::SerdeJsonError(error) => Display::fmt(error, f),
-            JSONError::InvalidJsonValueError => f.write_str("invalid json value"),
+            Self::SerdeJsonError(error) => Display::fmt(error, f),
+            Self::InvalidJsonValueError => f.write_str("invalid json value"),
         }
     }
 }
 
 #[cfg(feature = "std")]
-impl Error for JSONError {}
+impl Error for JsonError {}

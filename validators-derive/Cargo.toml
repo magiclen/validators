@@ -1,14 +1,14 @@
 [package]
 name = "validators-derive"
-version = "0.24.5"
+version = "0.25.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
-rust-version = "1.65"
+rust-version = "1.69"
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
 categories = ["no-std", "parser-implementations", "value-formatting", "rust-patterns"]
-description = "This crate provides a procedural macro to define validators with optional parameters."
+description = "The provided crate offers a procedural macro for defining validators, including optional parameters."
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
@@ -16,20 +16,20 @@ include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 proc-macro = true
 
 [dependencies]
-validators-options = { version = "0.24", path = "../validators-options" }
-
-proc-macro2 = "1"
-syn = "1"
+syn = "2"
 quote = "1"
+proc-macro2 = "1"
 
-educe = "0.4"
-enum-ordinalize = "3.1"
+enum-ordinalize = { version = "4.2", default-features = false, features = ["derive"] }
 
+educe = { version = "0.5", default-features = false, features = ["Debug"], optional = true }
 phonenumber = { version = "0.3", optional = true }
-regex-dep = { package = "regex", version = "1", optional = true }
+regex = { version = "1", optional = true }
 
 [features]
 std = []
+test = []
+full = ["syn/full"]
 
 base32 = []
 base32_decoded = []
@@ -37,22 +37,24 @@ base64 = []
 base64_decoded = []
 base64_url = []
 base64_url_decoded = []
+bit = []
 boolean = []
-domain = []
-email = []
-host = []
+byte = []
+domain = ["dep:educe"]
+email = ["dep:educe"]
+host = ["dep:educe"]
 http_url = []
 http_ftp_url = []
-ip = []
-ipv4 = []
-ipv6 = []
+ip = ["dep:educe"]
+ipv4 = ["dep:educe"]
+ipv6 = ["dep:educe"]
 json = []
 length = []
 line = []
 mac_address = []
 number = []
-phone = ["std", "phonenumber"]
-regex = ["regex-dep"]
+phone = ["dep:phonenumber"]
+regex = ["dep:regex"]
 semver = []
 semver_req = []
 signed_integer = []
@@ -66,3 +68,4 @@ rocket = []
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

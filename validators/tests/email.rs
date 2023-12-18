@@ -1,4 +1,4 @@
-#![cfg(all(feature = "email", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "email"))]
 
 use validators::prelude::*;
 
@@ -192,7 +192,7 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow)))]
+                    #[validator(email($($p($v),)*comment(Disallow)))]
                     pub struct EmailAllowIP {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -200,7 +200,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(Must), conflict(Allow)))]
+                    #[validator(email($($p($v),)*comment(Disallow), ip(Must), conflict(Allow)))]
                     pub struct EmailIP {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -208,7 +208,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(NotAllow)))]
+                    #[validator(email($($p($v),)*comment(Disallow), ip(Disallow)))]
                     pub struct EmailNonIP {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -240,7 +240,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*ip(NotAllow)))]
+                    #[validator(email($($p($v),)*ip(Disallow)))]
                     pub struct EmailAllowCommentNonIP {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -274,7 +274,7 @@ fn basic() {
             $(
                 {
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow)))]
+                    #[validator(email($($p($v),)*comment(Disallow)))]
                     pub struct EmailAllowIPIsLocal {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -283,7 +283,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(Must), conflict(Allow)))]
+                    #[validator(email($($p($v),)*comment(Disallow), ip(Must), conflict(Allow)))]
                     pub struct EmailIPIsLocal {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -292,7 +292,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*comment(NotAllow), ip(NotAllow)))]
+                    #[validator(email($($p($v),)*comment(Disallow), ip(Disallow)))]
                     pub struct EmailNonIPIsLocal {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -327,7 +327,7 @@ fn basic() {
                     }
 
                     #[derive(Validator)]
-                    #[validator(email($($p($v),)*ip(NotAllow)))]
+                    #[validator(email($($p($v),)*ip(Disallow)))]
                     pub struct EmailAllowCommentNonIPIsLocal {
                         pub local_part: String,
                         pub need_quoted: bool,
@@ -366,7 +366,7 @@ fn basic() {
         {
             local => Allow,
             at_least_two_labels => Allow,
-            non_ascii => NotAllow,
+            non_ascii => Disallow,
         },
         {
             local => Must,
@@ -376,37 +376,37 @@ fn basic() {
         {
             local => Must,
             at_least_two_labels => Allow,
-            non_ascii => NotAllow,
+            non_ascii => Disallow,
         },
         {
-            local => NotAllow,
+            local => Disallow,
             at_least_two_labels => Allow,
             non_ascii => Allow,
         },
         {
-            local => NotAllow,
+            local => Disallow,
             at_least_two_labels => Allow,
-            non_ascii => NotAllow,
+            non_ascii => Disallow,
         },
         {
             local => Must,
-            at_least_two_labels => NotAllow,
+            at_least_two_labels => Disallow,
             non_ascii => Allow,
         },
         {
             local => Must,
-            at_least_two_labels => NotAllow,
-            non_ascii => NotAllow,
+            at_least_two_labels => Disallow,
+            non_ascii => Disallow,
         },
         {
-            local => NotAllow,
-            at_least_two_labels => NotAllow,
+            local => Disallow,
+            at_least_two_labels => Disallow,
             non_ascii => Allow,
         },
         {
-            local => NotAllow,
-            at_least_two_labels => NotAllow,
-            non_ascii => NotAllow,
+            local => Disallow,
+            at_least_two_labels => Disallow,
+            non_ascii => Disallow,
         },
         {
             local => Must,
@@ -416,17 +416,17 @@ fn basic() {
         {
             local => Must,
             at_least_two_labels => Must,
-            non_ascii => NotAllow,
+            non_ascii => Disallow,
         },
         {
-            local => NotAllow,
+            local => Disallow,
             at_least_two_labels => Must,
             non_ascii => Allow,
         },
         {
-            local => NotAllow,
+            local => Disallow,
             at_least_two_labels => Must,
-            non_ascii => NotAllow,
+            non_ascii => Disallow,
         },
     }
 
@@ -439,17 +439,17 @@ fn basic() {
         {
             local => Allow,
             at_least_two_labels => Must,
-            non_ascii => NotAllow,
+            non_ascii => Disallow,
         },
         {
             local => Allow,
-            at_least_two_labels => NotAllow,
+            at_least_two_labels => Disallow,
             non_ascii => Allow,
         },
         {
             local => Allow,
-            at_least_two_labels => NotAllow,
-            non_ascii => NotAllow,
+            at_least_two_labels => Disallow,
+            non_ascii => Disallow,
         },
     }
 }

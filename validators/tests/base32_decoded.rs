@@ -1,4 +1,4 @@
-#![cfg(all(feature = "base32_decoded", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "base32_decoded"))]
 
 use validators::prelude::*;
 
@@ -67,7 +67,7 @@ fn basic() {
             padding => Must,
         },
         {
-            padding => NotAllow,
+            padding => Disallow,
         },
     }
 }

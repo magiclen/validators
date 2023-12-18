@@ -1,4 +1,4 @@
-#![cfg(all(feature = "mac_address", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "mac_address"))]
 
 use validators::prelude::*;
 
@@ -68,63 +68,63 @@ fn basic() {
     test! {
         {
             case => Any,
-            separator => Allow(colon),
+            separator => Allow(b':'),
         },
         {
             case => Upper,
-            separator => Allow(colon),
+            separator => Allow(b':'),
         },
         {
             case => Lower,
-            separator => Allow(colon),
+            separator => Allow(b':'),
         },
         {
             case => Any,
-            separator => Must(colon),
+            separator => Must(b':'),
         },
         {
             case => Upper,
-            separator => Must(colon),
+            separator => Must(b':'),
         },
         {
             case => Lower,
-            separator => Must(colon),
+            separator => Must(b':'),
         },
         {
             case => Any,
-            separator => Allow(hyphen),
+            separator => Allow(b'-'),
         },
         {
             case => Upper,
-            separator => Allow(hyphen),
+            separator => Allow(b'-'),
         },
         {
             case => Lower,
-            separator => Allow(hyphen),
+            separator => Allow(b'-'),
         },
         {
             case => Any,
-            separator => Must(hyphen),
+            separator => Must(b'-'),
         },
         {
             case => Upper,
-            separator => Must(hyphen),
+            separator => Must(b'-'),
         },
         {
             case => Lower,
-            separator => Must(hyphen),
+            separator => Must(b'-'),
         },
         {
             case => Any,
-            separator => NotAllow,
+            separator => Disallow,
         },
         {
             case => Upper,
-            separator => NotAllow,
+            separator => Disallow,
         },
         {
             case => Lower,
-            separator => NotAllow,
+            separator => Disallow,
         },
     }
 }

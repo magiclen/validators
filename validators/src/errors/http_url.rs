@@ -4,13 +4,14 @@ use std::error::Error;
 
 use crate::url;
 
+/// Error from the `http_url` validator.
 #[derive(Debug, Clone)]
 pub enum HttpURLError {
     ParseError(url::ParseError),
-    // may not be valid but it is guaranteed that the scheme (protocol) is not `http` or `https`
+    /// May not be valid, but it is guaranteed that the scheme (protocol) is not `http` or `https`.
     ProtocolError,
     LocalMust,
-    LocalNotAllow,
+    LocalDisallow,
 }
 
 impl From<url::ParseError> for HttpURLError {
@@ -24,12 +25,10 @@ impl Display for HttpURLError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            HttpURLError::ParseError(error) => Display::fmt(error, f),
-            HttpURLError::ProtocolError => {
-                f.write_str("need to use `http` or `https` as a protocol")
-            },
-            HttpURLError::LocalMust => f.write_str("must be local"),
-            HttpURLError::LocalNotAllow => f.write_str("must not be local"),
+            Self::ParseError(error) => Display::fmt(error, f),
+            Self::ProtocolError => f.write_str("need to use `http` or `https` as a protocol"),
+            Self::LocalMust => f.write_str("must be local"),
+            Self::LocalDisallow => f.write_str("must not be local"),
         }
     }
 }

@@ -1,90 +1,117 @@
-use alloc::{boxed::Box, string::String};
-use core::fmt::Debug;
+use core::{
+    fmt,
+    fmt::{Display, Formatter},
+};
+use std::fmt::Debug;
 
-use crate::Validator;
+use proc_macro2::Span;
+use syn::{spanned::Spanned, Ident, Path};
 
-#[inline]
-pub fn attribute_incorrect_format(attribute_name: &str, correct_usage: &[&str]) -> ! {
-    panic!(
-        "You are using an incorrect format of the `{}` attribute.{}",
-        attribute_name,
-        concat_string_slice_array(correct_usage)
-    )
-}
+use crate::{common::path_to_string, Validator};
 
-#[inline]
-pub fn parameter_incorrect_format(parameter_name: &str, correct_usage: &[&str]) -> ! {
-    panic!(
-        "You are using an incorrect format of the `{}` parameter.{}",
-        parameter_name,
-        concat_string_slice_array(correct_usage)
-    )
-}
+struct DisplayStringSlice<'a>(&'a [&'static str]);
 
-#[inline]
-pub fn derive_attribute_not_set_up_yet(attribute_name: &str) -> ! {
-    panic!(
-        "You are using `{}` in the `derive` attribute, but it has not been set up yet.",
-        attribute_name
-    )
-}
-
-#[allow(dead_code)]
-#[inline]
-pub fn reset_parameter(parameter_name: &str) -> ! {
-    panic!("Try to reset the `{}` parameter.", parameter_name)
-}
-
-#[allow(dead_code)]
-#[inline]
-pub fn unknown_parameter(attribute_name: &str, parameter_name: &str) -> ! {
-    panic!("Unknown parameter `{}` used in the `{}` attribute.", parameter_name, attribute_name)
-}
-
-#[inline]
-pub fn validator_only_support_for_item(validator: Validator, item: Box<dyn Debug>) -> ! {
-    panic!("This `{:?}` validator only support for {:?}.", validator, item)
-}
-
-// TODO patterns
-
-#[inline]
-pub fn validator_format_incorrect() -> ! {
-    attribute_incorrect_format("validator", &[stringify!(#[validator(validator_name)])])
-}
-
-fn concat_string_slice_array(array: &[&str]) -> String {
-    let len = array.len();
-
-    if len == 0 {
-        String::new()
-    } else {
-        let mut string = String::from(" It needs to be formed into ");
-
-        let mut iter = array.iter();
-
-        let first = iter.next().unwrap();
-
-        string.push('`');
-        string.push_str(&first.replace('\n', ""));
-        string.push('`');
-
-        if len > 2 {
-            for s in iter.take(len - 2) {
-                string.push_str(", `");
-                string.push_str(&s.replace('\n', ""));
-                string.push('`');
+impl<'a> Display for DisplayStringSlice<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if !self.0.is_empty() {
+            for &s in self.0 {
+                f.write_str("\n    ")?;
+                f.write_str(s)?;
             }
         }
 
-        if len > 1 {
-            string.push_str(", or `");
-            string.push_str(&array[len - 1].replace('\n', ""));
-            string.push('`');
+        Ok(())
+    }
+}
+
+struct DisplayValidators;
+
+impl Display for DisplayValidators {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for t in &Validator::VARIANTS[..Validator::VARIANTS.len() - 1] {
+            f.write_str("\n    ")?;
+            f.write_fmt(format_args!("{t:?}"))?;
         }
 
-        string.push('.');
-
-        string
+        Ok(())
     }
+}
+
+#[inline]
+pub(crate) fn derive_attribute_not_set_up_yet() -> syn::Error {
+    syn::Error::new(
+        Span::call_site(),
+        "you are using `Validator` in the `derive` attribute, but it has not been set up yet",
+    )
+}
+
+#[inline]
+pub(crate) fn validator_format_incorrect(span: Span) -> syn::Error {
+    syn::Error::new(span, "you are using an incorrect format of the `Validator` attribute")
+}
+
+#[inline]
+pub(crate) fn unsupported_validator(name: &Path) -> syn::Error {
+    let span = name.span();
+
+    match name.get_ident() {
+        Some(name) => syn::Error::new(
+            span,
+            format!("unsupported validator `{name}`, available validators:{}", DisplayValidators),
+        ),
+        None => {
+            let name = path_to_string(name);
+
+            syn::Error::new(
+                span,
+                format!(
+                    "unsupported validator `{name}`, available validators:{}",
+                    DisplayValidators
+                ),
+            )
+        },
+    }
+}
+
+#[inline]
+pub(crate) fn validator_only_one_at_a_time(span: Span) -> syn::Error {
+    syn::Error::new(span, "`validator` can be used only one at a time")
+}
+
+#[inline]
+pub(crate) fn validator_for_specific_item(name: &Ident, item: impl Debug) -> syn::Error {
+    syn::Error::new(
+        name.span(),
+        format!("the `{name}` validator should be implemented for\n{item:#?}"),
+    )
+}
+
+#[inline]
+pub(crate) fn attribute_incorrect_format(name: &Ident) -> syn::Error {
+    syn::Error::new(
+        name.span(),
+        format!("you are using an incorrect format of the `{name}` attribute",),
+    )
+}
+
+#[inline]
+pub(crate) fn parameter_reset(name: &Ident) -> syn::Error {
+    syn::Error::new(name.span(), format!("you are trying to reset the `{name}` parameter"))
+}
+
+#[inline]
+pub(crate) fn parameter_incorrect_format(
+    path: &Path,
+    correct_parameter: &[&'static str],
+) -> syn::Error {
+    let name = path_to_string(path);
+
+    syn::Error::new(
+        path.span(),
+        format!(
+            "unsupported parameter `{name}`, available parameters:{}",
+            DisplayStringSlice(correct_parameter)
+        ),
+    )
 }

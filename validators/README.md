@@ -3,14 +3,26 @@ Validators
 
 [![CI](https://github.com/magiclen/validators/actions/workflows/ci.yml/badge.svg)](https://github.com/magiclen/validators/actions/workflows/ci.yml)
 
-This is a library for validating and modeling user input and this crate provides models, function, traits, errors and other dependencies.
+This library is designed for validating and modeling user input. The crate includes models, functions, traits, errors, and other dependencies.
 
-## Basic Usage
+## Features
+
+By default, every validators this crate supports will be enabled. You can disable all of them by turning off the default features and enable only the validators that you want to use by adding them to the `features` explicitly.
+
+For example,
 
 ```toml
-[dependencies]
-validators = "*"
+[dependencies.validators]
+version = "*"
+features = ["base64", "url", "uuid"]
+default-features = false
 ```
+
+Certain validators do not require the use of the `std` library. However, if needed, you can explicitly enable the `std` feature.
+
+This library can support the Serde framework and the Rocket framework by enabling the `serde` and `rocket` features, respectively.
+
+## Validators
 
 ```rust
 use validators::prelude::*;
@@ -22,48 +34,13 @@ DEFINE_YOUR_STRUCT_HERE
 */
 ```
 
-When you add the `#[validator(validator_name)]` attribute for your structs, one or more traits in the `validators::traits` are implemented. They can be used for validation and deserialization.
+When you apply the `#[validator(validator_name)]` attribute to your structs, one or more traits from the `validators::traits` module are automatically implemented. These traits can then be utilized for validation and deserialization purposes.
 
-The struct used as a validator should have specific components according to its validator and the parameters of that validator. For example, a **base32** validator must be `struct(String)` and a **base32_decoded** validator must be `struct(Vec<u8>)`.
+The struct used as a validator should possess specific components corresponding to its validator type and its associated parameters. For instance, a `base32` validator must be a `struct(String)`, while a `base32_decoded` validator should be a `struct(Vec<u8>)`.
 
-The `#[validator(validator_name)]` attribute cannot be used on fields in any structs or enums. The reason that this crate uses a procedural macro to define a validator (i.e. a struct) instead of providing built-in structs for each configuration is to make the configurable validations have no overhead at runtime and also to increase the compilation speed.
+The `#[validator(validator_name)]` attribute cannot be applied to fields within any structs or enums. The decision to use a procedural macro for defining a validator (i.e., a struct) instead of offering built-in structs for each configuration is motivated by the aim to eliminate runtime overhead for configurable validations and to enhance compilation speed.
 
-### No Std
-
-Some validators such as **ip**, **ipv4**, and **ipv6** depend on std. If you don't need them, you can disable the default features to compile this crate and your validators without std.
-
-```toml
-[dependencies.validators]
-version = "*"
-default-features = false
-features = ["derive", "base32"]
-```
-
-### Serde Support
-
-Enable the `serde` feature to let your validators support the serde framework.
-
-```toml
-[dependencies.validators]
-version = "*"
-features = ["serde"]
-```
-
-### Rocket Support
-
-Enable the `rocket` feature to let your validators support the Rocket framework.
-
-```toml
-[dependencies.validators]
-version = "*"
-features = ["rocket"]
-```
-
-## Validators
-
-### base32
-
-traits: `ValidateString`, `ValidateBytes`
+#### base32
 
 ```rust
 use validators::prelude::*;
@@ -74,11 +51,13 @@ pub struct Base32WithPadding(String);
 
 assert!(Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=").is_ok());
 assert!(Base32WithPadding::parse_string("GEZDGNBVGY3TQOI").is_err());
+assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=").unwrap().0);
 ```
 
-### base32_decoded
+* Traits: `ValidateString`, `ValidateBytes`
+* By default, `padding = Allow`
 
-traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+#### base32_decoded
 
 ```rust
 use validators::prelude::*;
@@ -87,12 +66,15 @@ use validators::prelude::*;
 #[validator(base32_decoded(padding(Must)))]
 pub struct Base32WithPaddingDecoded(Vec<u8>);
 
+assert!(Base32WithPaddingDecoded::parse_string("GEZDGNBVGY3TQOI=").is_ok());
+assert!(Base32WithPaddingDecoded::parse_string("GEZDGNBVGY3TQOI").is_err());
 assert_eq!(b"123456789", Base32WithPaddingDecoded::parse_string("GEZDGNBVGY3TQOI=").unwrap().0.as_slice());
 ```
 
-### base64
+* Traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+* By default, `padding = Allow`
 
-traits: `ValidateString`, `ValidateBytes`
+#### base64
 
 ```rust
 use validators::prelude::*;
@@ -103,11 +85,13 @@ pub struct Base64WithPadding(String);
 
 assert!(Base64WithPadding::parse_string("MTIzNDU2Nzg5MA==").is_ok());
 assert!(Base64WithPadding::parse_string("MTIzNDU2Nzg5MA").is_err());
+assert_eq!("MTIzNDU2Nzg5MA==", Base64WithPadding::parse_string("MTIzNDU2Nzg5MA==").unwrap().0);
 ```
 
-### base64_decoded
+* Traits: `ValidateString`, `ValidateBytes`
+* By default, `padding = Allow`
 
-traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+#### base64_decoded
 
 ```rust
 use validators::prelude::*;
@@ -116,40 +100,66 @@ use validators::prelude::*;
 #[validator(base64_decoded(padding(Must)))]
 pub struct Base64WithPaddingDecoded(Vec<u8>);
 
+assert!(Base64WithPaddingDecoded::parse_string("MTIzNDU2Nzg5MA==").is_ok());
+assert!(Base64WithPaddingDecoded::parse_string("MTIzNDU2Nzg5MA").is_err());
 assert_eq!(b"1234567890", Base64WithPaddingDecoded::parse_string("MTIzNDU2Nzg5MA==").unwrap().0.as_slice());
 ```
 
-### base64_url
+* Traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+* By default, `padding = Allow`
 
-traits: `ValidateString`, `ValidateBytes`
-
-```rust
-use validators::prelude::*;
-
-#[derive(Validator)]
-#[validator(base64_url(padding(NotAllow)))]
-pub struct Base64WithoutPaddingUrl(String);
-
-assert!(Base64WithoutPaddingUrl::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1GW2xSBVzeno").is_ok());
-```
-
-### base64_url_decoded
-
-traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+#### base64_url
 
 ```rust
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(base64_url_decoded(padding(NotAllow)))]
-pub struct Base64WithoutPaddingUrlDecoded(Vec<u8>);
+#[validator(base64_url(padding(Disallow)))]
+pub struct Base64UrlWithoutPadding(String);
 
-assert_eq!([62, 100, 124, 132, 152, 99, 129, 83, 92, 7, 173, 115, 170, 23, 63, 7, 103, 110, 103, 185, 93, 240, 108, 181, 25, 109, 177, 72, 21, 115, 122, 122], Base64WithoutPaddingUrlDecoded::parse_string("PmR8hJhjgVNcB61zqhc_B2duZ7ld8Gy1GW2xSBVzeno").unwrap().0.as_slice());
+assert!(Base64UrlWithoutPadding::parse_string("5LmN5pqW6YKE5a-S5pmC5YCZ").is_ok());
+assert!(Base64UrlWithoutPadding::parse_string("5LmN5pqW6YKE5a+S5pmC5YCZ").is_err());
+assert_eq!("5LmN5pqW6YKE5a-S5pmC5YCZ", Base64UrlWithoutPadding::parse_string("5LmN5pqW6YKE5a-S5pmC5YCZ").unwrap().0);
 ```
 
-### boolean
+* Traits: `ValidateString`, `ValidateBytes`
+* By default, `padding = Allow`
 
-traits: `ValidateString`, `ValidateChar`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateBoolean`
+#### base64_url_decoded
+
+```rust
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(base64_url_decoded(padding(Disallow)))]
+pub struct Base64UrlWithoutPaddingDecoded(Vec<u8>);
+
+assert!(Base64UrlWithoutPaddingDecoded::parse_string("5LmN5pqW6YKE5a-S5pmC5YCZ").is_ok());
+assert!(Base64UrlWithoutPaddingDecoded::parse_string("5LmN5pqW6YKE5a+S5pmC5YCZ").is_err());
+assert_eq!("乍暖還寒時候".as_bytes(), Base64UrlWithoutPaddingDecoded::parse_string("5LmN5pqW6YKE5a-S5pmC5YCZ").unwrap().0.as_slice());
+```
+
+* Traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+* By default, `padding = Allow`
+
+#### bit
+
+```rust
+use validators::prelude::*;
+use validators::byte_unit::Bit;
+
+#[derive(Validator)]
+#[validator(bit(range(min = 1)))]
+pub struct AtLeastOneBit(Bit);
+
+assert!(AtLeastOneBit::parse_string("1kb").is_ok());
+assert!(AtLeastOneBit::parse_string("0b").is_err());
+assert_eq!(1000u64, AtLeastOneBit::parse_string("1kb").unwrap().0);
+```
+
+* Traits: `ValidateString`, `ValidateUnsignedInteger`
+
+#### boolean
 
 ```rust
 use validators::prelude::*;
@@ -172,24 +182,41 @@ assert_eq!(false, Boolean::parse_char('0').unwrap().0);
 assert_eq!(true, Boolean::parse_isize(1).unwrap().0);
 ```
 
-### domain
+* Traits: `ValidateString`, `ValidateChar`, `ValidateSignedInteger`, `ValidateUnsignedInteger`, `ValidateBoolean`
 
-traits: `ValidateString`
+#### byte
 
-additional methods: `is_fully_qualified`, `get_domain_non_fully_qualified`, `to_uri_authority_string`
+```rust
+use validators::prelude::*;
+use validators::byte_unit::Byte;
+
+#[derive(Validator)]
+#[validator(byte(range(min = 1), ignore_case = false))]
+pub struct AtLeastOneByte(Byte);
+
+assert!(AtLeastOneByte::parse_string("1KB").is_ok());
+assert!(AtLeastOneByte::parse_string("0B").is_err());
+assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0);
+```
+
+* Traits: `ValidateString`, `ValidateUnsignedInteger`
+* By default, `ignore_case = true`
+
+#### domain
 
 ```rust
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(NotAllow)))]
+#[validator(domain(ipv4(Allow), local(Allow), port(Disallow), at_least_two_labels(Allow)))]
 pub struct DomainWithoutPort(pub String);
 
 assert!(DomainWithoutPort::parse_string("example.com").is_ok());
+assert!(DomainWithoutPort::parse_string("example.com.").is_ok());
 assert_eq!("xn--fiq228c.com", DomainWithoutPort::parse_string("中文.com").unwrap().0);
 
 #[derive(Validator)]
-#[validator(domain(ipv4(Allow), local(Allow), at_least_two_labels(Allow), port(Allow)))]
+#[validator(domain(ipv4(Allow), local(Allow), port(Allow), at_least_two_labels(Allow)))]
 pub struct DomainAllowPort {
     pub domain: String,
     port: Option<u16>,
@@ -198,21 +225,21 @@ pub struct DomainAllowPort {
 assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap().port);
 ```
 
-### email
+* Traits: `ValidateString`, `QualifyDomain`, `ToUriAuthorityString`
+* By default, `ipv4 = Allow, local = Allow, port = Allow, at_least_two_labels = Allow`
 
-traits: `ValidateString`
-
-additional methods: `to_email_string`
+#### email
 
 ```rust
 use validators::prelude::*;
+use validators::models::Host;
 
 #[derive(Validator)]
 #[validator(email(comment(Allow), ip(Allow), local(Allow), at_least_two_labels(Allow), non_ascii(Allow)))]
 pub struct EmailAllowComment {
     pub local_part: String,
     pub need_quoted: bool,
-    pub domain_part: validators::models::Host,
+    pub domain_part: Host,
     pub comment_before_local_part: Option<String>,
     pub comment_after_local_part: Option<String>,
     pub comment_before_domain_part: Option<String>,
@@ -222,49 +249,51 @@ pub struct EmailAllowComment {
 assert!(EmailAllowComment::parse_string("(john)joke@example.com").is_ok());
 
 #[derive(Validator)]
-#[validator(email(comment(NotAllow), ip(Allow), local(Allow), at_least_two_labels(Allow), non_ascii(Allow)))]
-pub struct EmailNotAllowComment {
+#[validator(email(comment(Disallow), ip(Allow), local(Allow), at_least_two_labels(Allow), non_ascii(Allow)))]
+pub struct EmailWithoutComment {
     pub local_part: String,
     pub need_quoted: bool,
-    pub domain_part: validators::models::Host,
+    pub domain_part: Host,
 }
 
-assert!(EmailNotAllowComment::parse_string("(john)joke@example.com").is_err());
+assert!(EmailWithoutComment::parse_string("(john)joke@example.com").is_err());
 ```
 
-### host
+* Traits: `ValidateString`, `ToEmailString`
+* By default, `comment = Allow, ip = Allow, local = Allow, at_least_two_labels = Allow, non_ascii = Allow`
 
-traits: `ValidateString`
-
-additional methods: `to_uri_authority_string`
+#### host
 
 ```rust
 use validators::prelude::*;
+use validators::models::Host;
 
 #[derive(Validator)]
-#[validator(host(local(Allow), at_least_two_labels(Must), port(Allow)))]
+#[validator(host(local(Allow), port(Allow), at_least_two_labels(Must)))]
 pub struct HostMustAtLeastTwoLabelsAllowPort {
-    pub host: validators::models::Host,
+    pub host: Host,
     pub port: Option<u16>,
     pub is_local: bool,
 }
 
 assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example.com:8000").is_ok());
+assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example.com.").is_err());
 assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example").is_err());
 ```
 
-### http_url
+* Traits: `ValidateString`, `ToUriAuthorityString`
+* By default, `local = Allow, port = Allow, at_least_two_labels = Allow`
 
-traits: `ValidateString`
+#### http_url
 
 ```rust
 use validators::prelude::*;
-use validators_prelude::url;
+use validators::url::Url;
 
 #[derive(Validator)]
 #[validator(http_url(local(Allow)))]
 pub struct HttpURL {
-    url: url::Url,
+    url: Url,
     is_https: bool,
 }
 
@@ -273,19 +302,21 @@ assert!(HttpURL::parse_string("http://example.org/").is_ok());
 assert!(HttpURL::parse_string("ftp://example.org/").is_err());
 ```
 
-### http_ftp_url
+* Traits: `ValidateString`
+* By default, `local = Allow`
 
-traits: `ValidateString`
+#### http_ftp_url
 
 ```rust
 use validators::prelude::*;
-use validators_prelude::url;
+use validators::models::Protocol;
+use validators::url::Url;
 
 #[derive(Validator)]
 #[validator(http_ftp_url(local(Allow)))]
 pub struct HttpFtpURL {
-    url: url::Url,
-    protocol: validators::models::Protocol,
+    url: Url,
+    protocol: Protocol,
 }
 
 assert!(HttpFtpURL::parse_string("https://example.org/").is_ok());
@@ -293,11 +324,10 @@ assert!(HttpFtpURL::parse_string("http://example.org/").is_ok());
 assert!(HttpFtpURL::parse_string("ftp://example.org/").is_ok());
 ```
 
-### ip
+* Traits: `ValidateString`
+* By default, `local = Allow`
 
-traits: `ValidateString`
-
-additional methods: `to_uri_authority_string`
+#### ip
 
 ```rust
 use std::net::IpAddr;
@@ -306,20 +336,19 @@ use validators::prelude::*;
 
 #[derive(Validator)]
 #[validator(ip(local(Allow), port(Allow)))]
-pub struct IPAllowPort {
+pub struct IpAllowPort {
     pub ip: IpAddr,
     pub port: Option<u16>,
 }
 
-assert!(IPAllowPort::parse_string("127.0.0.1").is_ok());
-assert!(IPAllowPort::parse_string("[::ffff:c000:0280]:8000").is_ok());
+assert!(IpAllowPort::parse_string("127.0.0.1").is_ok());
+assert!(IpAllowPort::parse_string("[::ffff:c000:0280]:8000").is_ok());
 ```
 
-### ipv4
+* Traits: `ValidateString`, `ToUriAuthorityString`
+* By default, `local = Allow, port = Allow`
 
-traits: `ValidateString`
-
-additional methods: `to_uri_authority_string`
+#### ipv4
 
 ```rust
 use std::net::Ipv4Addr;
@@ -327,17 +356,19 @@ use std::net::Ipv4Addr;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(ipv4(local(Allow), port(NotAllow)))]
-pub struct IPv4WithoutPort(pub Ipv4Addr);
+#[validator(ipv4(local(Allow), port(Allow)))]
+pub struct Ipv4AllowPort {
+    pub ipv4: Ipv4Addr,
+    pub port: Option<u16>,
+}
 
-assert!(IPv4WithoutPort::parse_string("127.0.0.1").is_ok());
+assert!(Ipv4AllowPort::parse_string("127.0.0.1").is_ok());
 ```
 
-### ipv6
+* Traits: `ValidateString`, `ToUriAuthorityString`
+* By default, `local = Allow, port = Allow`
 
-traits: `ValidateString`
-
-additional methods: `to_uri_authority_string`
+#### ipv6
 
 ```rust
 use std::net::Ipv6Addr;
@@ -345,18 +376,20 @@ use std::net::Ipv6Addr;
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(ipv6(local(Allow), port(NotAllow)))]
-pub struct IPv6WithoutPort(pub Ipv6Addr);
+#[validator(ipv6(local(Allow), port(Allow)))]
+pub struct Ipv6AllowPort {
+    pub ipv6: Ipv6Addr,
+    pub port: Option<u16>,
+}
 
-assert!(IPv6WithoutPort::parse_string("::ffff:c000:0280").is_ok());
-assert!(IPv6WithoutPort::parse_string("[::ffff:c000:0280]").is_ok());
+assert!(Ipv6AllowPort::parse_string("::ffff:c000:0280").is_ok());
+assert!(Ipv6AllowPort::parse_string("[::ffff:c000:0280]").is_ok());
 ```
 
-### json
+* Traits: `ValidateString`, `ToUriAuthorityString`
+* By default, `local = Allow, port = Allow`
 
-traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnignedInteger`, `ValidateNumber`, `ValidateBoolean`, `ValidateJsonValue`
-
-additional methods: `to_minified_json_string`, `to_beautified_json_string`
+#### json
 
 ```rust
 use validators::prelude::*;
@@ -379,9 +412,9 @@ assert!(JSONNumber::parse_u64(123).is_ok());
 assert!(JSONBoolean::parse_bool(false).is_ok());
 ```
 
-### length
+* Traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnsignedInteger`, `ValidateNumber`, `ValidateBoolean`, `ValidateJsonValue`
 
-traits: `ValidateLength`, `CollectionLength`
+#### length
 
 ```rust
 use validators::prelude::*;
@@ -395,9 +428,10 @@ assert!(NonEmptyNotTooLongVec::parse_collection(vec![0]).is_ok());
 assert!(NonEmptyNotTooLongVec::parse_collection(vec![0, 1, 2, 3]).is_err());
 ```
 
-### line
+* Traits: `ValidateLength`, `CollectionLength`
+* By default, the length is unlimited
 
-traits: `ValidateString`
+#### line
 
 ```rust
 use validators::prelude::*;
@@ -412,34 +446,32 @@ assert!(LineNotAllowEmpty::parse_string("123\n456").is_err());
 assert!(LineNotAllowEmpty::parse_string("   ").is_err());
 ```
 
-### mac_address
+* Traits: `ValidateLength`
+* By default, the length is unlimited
 
-traits: `ValidateString`
-
-additional methods: `to_mac_address_string`
+#### mac_address
 
 ```rust
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(mac_address(case(Upper), separator(Allow(colon))))]
+#[validator(mac_address(case(Upper), separator(Allow(b':'))))]
 pub struct MacAddress(pub u64);
 
 assert!(MacAddress::parse_string("080027B246C3").is_ok());
 assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 ```
 
-The default value of the `separator` option is `Allow(colon)`.
+* Traits: `ValidateString`, `ToMacAddressString`
+* By default, `case = Any, separator(Allow(b':')`
 
-### number
-
-traits: `ValidateString`, `ValidateNumber`
+#### number
 
 ```rust
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(number(nan(NotAllow), range(NotLimited)))]
+#[validator(number(nan(Disallow), range(Unlimited)))]
 pub struct Double(pub f64);
 
 assert!(Double::parse_string("123.456").is_ok());
@@ -456,26 +488,27 @@ assert!(SinglePercentage::parse_string("1.1").is_err());
 assert!(SinglePercentage::parse_string("NaN").is_ok());
 ```
 
-### phone
+* Traits: `ValidateString`, `ValidateNumber`
+* By default, `nan = Allow, range(Unlimited)`
 
-traits: `ValidateString`
+#### phone
 
 ```rust
-use validators::prelude::*;
-use validators_prelude::phonenumber;
-
 use std::collections::HashMap;
+
+use validators::prelude::*;
+use validators_prelude::phonenumber::PhoneNumber;
 
 #[derive(Validator)]
 #[validator(phone)]
 pub struct InternationalPhone(pub phonenumber::PhoneNumber);
 
 #[derive(Validator)]
-#[validator(phone(TW))]
+#[validator(phone(countries(TW)))]
 pub struct TWPhone(pub phonenumber::PhoneNumber);
 
 #[derive(Validator)]
-#[validator(phone(TW, US))]
+#[validator(phone(countries(TW, US)))]
 pub struct TWorUSPhone(
     pub HashMap<phonenumber::country::Id, phonenumber::PhoneNumber>,
 );
@@ -493,35 +526,35 @@ assert!(TWorUSPhone::parse_string("0912345678").is_ok());
 assert!(TWorUSPhone::parse_string("+14155552671").is_ok());
 ```
 
-### regex
+* Traits: `ValidateString`
+* By default, countries is unlimited
 
-traits: `ValidateString`
+#### regex
 
 ```rust
 use validators::prelude::*;
-use validators_prelude::regex;
+use validators_prelude::regex::Regex;
 
-use lazy_static::lazy_static;
 use once_cell::sync::Lazy;
 
-lazy_static! {
-    static ref RE_NON_ZERO_NUMBERS: regex::Regex = regex::Regex::new("^[1-9]+$").unwrap();
-}
+static RE_NON_ZERO_NUMBERS: Lazy<Regex> = Lazy::new(|| {
+    Regex::new("^[1-9]+$").unwrap()
+});
 
-static RE_POKER: Lazy<regex::Regex> = Lazy::new(|| {
-    regex::Regex::new("^([AJQK1-9]|10)$").unwrap()
+static RE_POKER: Lazy<Regex> = Lazy::new(|| {
+    Regex::new("^([AJQK1-9]|10)$").unwrap()
 });
 
 #[derive(Validator)]
-#[validator(regex("^[0-9a-fA-F]+$"))]
-pub struct Hex(pub String); // this compiles the regex every time
+#[validator(regex(regex("^[0-9a-fA-F]+$")))]
+pub struct Hex(pub String); // this doesn't cache the `Regex` instance
 
 #[derive(Validator)]
-#[validator(regex(RE_NON_ZERO_NUMBERS))]
+#[validator(regex(regex(RE_NON_ZERO_NUMBERS)))]
 pub struct NonZeroNumbers(pub String);
 
 #[derive(Validator)]
-#[validator(regex(RE_POKER))]
+#[validator(regex(regex(RE_POKER)))]
 pub struct Poker(pub String);
 
 assert!(Hex::parse_string("1Ab").is_ok());
@@ -536,41 +569,42 @@ assert!(Poker::parse_string("J").is_ok());
 assert!(Poker::parse_string("0").is_err());
 ```
 
-### semver
+* Traits: `ValidateString`
+* The `regex` parameter must be set to a string literal or an expression
 
-traits: `ValidateString`
+#### semver
 
 ```rust
 use validators::prelude::*;
-use validators_prelude::semver;
+use validators_prelude::semver::Version;
 
 #[derive(Validator)]
 #[validator(semver)]
-pub struct SemVer(semver::Version);
+pub struct SemVer(Version);
 
 assert!(SemVer::parse_string("0.0.0").is_ok());
 assert!(SemVer::parse_string("0.0.0-beta.1").is_ok());
 ```
 
-### semver_req
+* Traits: `ValidateString`
 
-traits: `ValidateString`
+#### semver_req
 
 ```rust
 use validators::prelude::*;
-use validators_prelude::semver;
+use validators_prelude::semver::VersionReq;
 
 #[derive(Validator)]
 #[validator(semver_req)]
-pub struct SemVerReq(semver::VersionReq);
+pub struct SemVerReq(VersionReq);
 
 assert!(SemVerReq::parse_string("0.0.0").is_ok());
 assert!(SemVerReq::parse_string(">= 0.4").is_ok());
 ```
 
-### signed_integer
+* Traits: `ValidateString`
 
-traits: `ValidateString`, `ValidateSignedInteger`
+#### signed_integer
 
 ```rust
 use validators::prelude::*;
@@ -592,9 +626,10 @@ assert!(NonZeroShort::parse_i8(-4).is_ok());
 assert!(NonZeroShort::parse_i8(0).is_err());
 ```
 
-### text
+* Traits: `ValidateString`, `ValidateSignedInteger`
+* By default, `range(Unlimited)`
 
-traits: `ValidateString`
+#### text
 
 ```rust
 use validators::prelude::*;
@@ -609,9 +644,10 @@ assert!(TextNotAllowEmpty::parse_string("123\n456").is_ok());
 assert!(TextNotAllowEmpty::parse_string("   ").is_err());
 ```
 
-### unsigned_integer
+* Traits: `ValidateLength`
+* By default, the length is unlimited
 
-traits: `ValidateString`, `ValidateUnignedInteger`
+#### unsigned_integer
 
 ```rust
 use validators::prelude::*;
@@ -625,41 +661,91 @@ assert!(Count::parse_string("0").is_err());
 assert!(Count::parse_u8(4).is_ok());
 ```
 
-### url
+* Traits: `ValidateString`, `ValidateUnsignedInteger`
+* By default, `range(Unlimited)`
 
-traits: `ValidateString`
+#### url
 
 ```rust
 use validators::prelude::*;
-use validators_prelude::url;
+use validators_prelude::url::Url;
 
 #[derive(Validator)]
 #[validator(url)]
-pub struct URL(pub url::Url);
+pub struct URL(pub Url);
 
 assert!(URL::parse_string("https://example.org/").is_ok());
 assert!(URL::parse_string("https:example.org").is_ok());
 assert!(URL::parse_string("example:").is_ok());
 ```
 
-### uuid
+* Traits: `ValidateString`
 
-traits: `ValidateString`
-
-additional methods: `to_uuid_string`
+#### uuid
 
 ```rust
 use validators::prelude::*;
 
 #[derive(Validator)]
-#[validator(uuid(case(Upper), separator(Allow(hyphen))))]
+#[validator(uuid(case(Upper), separator(Allow(b'-'))))]
 pub struct UUID(pub u128);
 
 assert!(UUID::parse_string("A866664AF9D34DDE89CB182015FA4F41").is_ok());
 assert!(UUID::parse_string("A866664A-F9D3-4DDE-89CB-182015FA4F41").is_ok());
 ```
 
-The default value of the `separator` option is `Allow(hyphen)`.
+* Traits: `ValidateString`, `ToUuidString`
+* By default, `case = Any, separator(Allow(b'-')`
+
+## `validators::Result`
+
+When incorporating your validator type into another type, you might desire to obtain the original error instance provided by the validator.
+
+For example, when using the `number` validator with the `#[derive(FromForm)]` attribute from the Rocket framework,
+
+```rust
+use rocket::{FromForm, get};
+use validators::prelude::*;
+
+#[derive(Debug, Validator)]
+#[validator(number(range(Outside(max = 0))))]
+pub struct NonZeroNumber(f64);
+
+#[derive(Debug, FromForm)]
+struct User {
+    id:   i32,
+    number: NonZeroNumber,
+}
+
+#[get("/?<user..>")]
+fn index(user: User) -> String {
+    format!("{:?}", user)
+}
+```
+
+You may want the number field of the `User` instance to be allowed to fail. You can modify the code as follows:
+
+```rust
+use rocket::{FromForm, get};
+
+use validators::prelude::*;
+
+#[derive(Debug, Validator)]
+#[validator(number(range(Outside(max = 0))))]
+pub struct NonZeroNumber(f64);
+
+#[derive(Debug, FromForm)]
+struct User {
+    id:   i32,
+    // number: Result<NonZeroNumber, validators::errors::NumberError>, // compile error
+    number: validators::Result<NonZeroNumber, validators::errors::NumberError>,
+}
+
+#[get("/?<user..>")]
+fn index(user: User) -> String {
+    format!("{:?}", user)
+}
+```
 
 ## Crates.io
 

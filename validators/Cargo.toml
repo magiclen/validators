@@ -1,9 +1,9 @@
 [package]
 name = "validators"
-version = "0.24.4"
+version = "0.25.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
-rust-version = "1.65"
+rust-version = "1.69"
 repository = "https://github.com/magiclen/validators"
 homepage = "https://magiclen.org/validators"
 keywords = ["validator", "validation", "user", "serde", "rocket"]
@@ -12,45 +12,53 @@ description = "This is a library for validating and modeling user input and this
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
-[lib]
-doctest = false
-
 [dependencies]
-validators-options = { version = "0.24", path = "../validators-options" }
+validators-derive = { version = "0.25", path = "../validators-derive", optional = true }
 
-validators-derive = { version = "0.24", path = "../validators-derive", optional = true }
-
-data-encoding = { version = "2.2", optional = true }
-idna = { version = "0.4", optional = true }
-serde_json = { version = "1", optional = true }
-phonenumber = { version = "0.3", optional = true }
-thiserror = { version = "1", optional = true }
-regex-dep = { package = "regex", version = "1", optional = true }
-semver-dep = { package = "semver", version = "1", optional = true }
+data-encoding = { version = "2.5", default-features = false, features = ["alloc"], optional = true }
+idna = { version = "0.5", default-features = false, features = ["alloc"], optional = true }
+byte-unit = { version = "5.1", default-features = false, optional = true }
 url-dep = { package = "url", version = "2", optional = true }
 str-utils = { version = "0.1", optional = true }
+serde_json = { version = "1", default-features = false, features = ["alloc"], optional = true }
+phonenumber = { version = "0.3", optional = true }
+regex-dep = { package = "regex", version = "1", optional = true }
+semver-dep = { package = "semver", version = "1", default-features = false, optional = true }
 
-serde-dep = { package = "serde", version = "1", optional = true }
-rocket-dep = { package = "rocket", version = "0.5.0-rc.3", optional = true }
+serde = { version = "1", default-features = false, features = ["alloc"], optional = true }
+rocket = { version = "0.5", default-features = false, optional = true }
 
 [dev-dependencies]
 lazy_static = "1.4"
-once_cell = "1.4"
+once_cell = "1.19"
 
 [features]
-default = ["full", "derive"]
+default = ["std", "all-validators", "derive"]
 
-std = ["validators-derive/std"]
-derive = ["validators-derive"]
+derive = ["dep:validators-derive"]
+std = [
+    "validators-derive?/std",
+    "data-encoding?/std",
+    "idna?/std",
+    "byte-unit?/std",
+    "serde_json?/std",
+    "semver-dep?/std",
+    "serde?/std",
+]
+test = ["validators-derive?/test"]
+full = ["validators-derive?/full"]
+byte-unit-u128 = ["byte-unit?/u128"]
 
-full = [
+all-validators = [
     "base32",
     "base32_decoded",
     "base64",
     "base64_decoded",
     "base64_url",
     "base64_url_decoded",
+    "bit",
     "boolean",
+    "byte",
     "domain",
     "email",
     "host",
@@ -75,38 +83,51 @@ full = [
     "uuid",
 ]
 
-base32 = ["validators-derive/base32"]
-base32_decoded = ["validators-derive/base32_decoded", "data-encoding"]
-base64 = ["validators-derive/base64"]
-base64_decoded = ["validators-derive/base64_decoded", "data-encoding"]
-base64_url = ["validators-derive/base64_url"]
-base64_url_decoded = ["validators-derive/base64_url_decoded", "data-encoding"]
-boolean = ["validators-derive/boolean"]
-domain = ["validators-derive/domain", "std", "idna"]
-email = ["validators-derive/email", "std", "idna"]
-host = ["validators-derive/host", "std", "idna"]
-http_url = ["validators-derive/http_url", "std", "url-dep", "str-utils"]
-http_ftp_url = ["validators-derive/http_ftp_url", "std", "url-dep", "str-utils"]
-ip = ["validators-derive/ip", "std"]
-ipv4 = ["validators-derive/ipv4", "std"]
-ipv6 = ["validators-derive/ipv6", "std"]
-json = ["validators-derive/json", "serde_json"]
-length = ["validators-derive/length"]
-line = ["validators-derive/line"]
-mac_address = ["validators-derive/mac_address"]
-number = ["validators-derive/number"]
-phone = ["validators-derive/phone", "std", "phonenumber", "thiserror"]
-regex = ["validators-derive/regex", "regex-dep"]
-semver = ["validators-derive/semver", "semver-dep"]
-semver_req = ["validators-derive/semver_req", "semver-dep"]
-signed_integer = ["validators-derive/signed_integer"]
-text = ["validators-derive/text"]
-unsigned_integer = ["validators-derive/unsigned_integer"]
-url = ["validators-derive/url", "std", "url-dep"]
-uuid = ["validators-derive/uuid"]
+base32 = ["validators-derive?/base32"]
+base32_decoded = ["validators-derive?/base32_decoded", "data-encoding"]
+base64 = ["validators-derive?/base64"]
+base64_decoded = ["validators-derive?/base64_decoded", "data-encoding"]
+base64_url = ["validators-derive?/base64_url"]
+base64_url_decoded = ["validators-derive?/base64_url_decoded", "data-encoding"]
+bit = ["validators-derive?/bit", "byte-unit/bit"]
+boolean = ["validators-derive?/boolean"]
+byte = ["validators-derive?/byte", "byte-unit/byte"]
+domain = ["validators-derive?/domain", "std", "idna"]
+email = ["validators-derive?/email", "std", "idna"]
+host = ["validators-derive?/host", "std", "idna"]
+http_url = ["validators-derive?/http_url", "url", "str-utils"]
+http_ftp_url = ["validators-derive?/http_ftp_url", "url", "str-utils"]
+ip = ["validators-derive?/ip", "std"]
+ipv4 = ["validators-derive?/ipv4", "std"]
+ipv6 = ["validators-derive?/ipv6", "std"]
+json = ["validators-derive?/json", "serde_json"]
+length = ["validators-derive?/length"]
+line = ["validators-derive?/line"]
+mac_address = ["validators-derive?/mac_address"]
+number = ["validators-derive?/number"]
+phone = ["validators-derive?/phone", "phonenumber"]
+regex = ["validators-derive?/regex", "regex-dep"]
+semver = ["validators-derive?/semver", "semver-dep"]
+semver_req = ["validators-derive?/semver_req", "semver-dep"]
+signed_integer = ["validators-derive?/signed_integer"]
+text = ["validators-derive?/text"]
+unsigned_integer = ["validators-derive?/unsigned_integer"]
+url = ["validators-derive?/url", "url-dep"]
+uuid = ["validators-derive?/uuid"]
 
-serde = ["validators-derive/serde", "serde-dep", "semver-dep/serde", "url-dep/serde"]
-rocket = ["validators-derive/rocket", "std", "rocket-dep"]
+data-encoding = ["dep:data-encoding"]
+idna = ["dep:idna"]
+byte-unit = ["dep:byte-unit"]
+url-dep = ["dep:url-dep", "std"]
+str-utils = ["dep:str-utils"]
+serde_json = ["dep:serde_json", "serde"]
+phonenumber = ["dep:phonenumber", "std"]
+regex-dep = ["dep:regex-dep", "std"]
+semver-dep = ["dep:semver-dep"]
+
+serde = ["validators-derive?/serde", "dep:serde", "byte-unit?/serde", "url-dep?/serde", "semver-dep?/serde"]
+rocket = ["validators-derive?/rocket", "dep:rocket", "std", "byte-unit?/rocket"]
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

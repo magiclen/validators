@@ -1,11 +1,10 @@
-#![cfg(all(feature = "semver", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "semver"))]
 
-use validators::prelude::*;
-use validators_prelude::semver;
+use validators::{prelude::*, semver::Version};
 
 #[derive(Validator)]
 #[validator(semver)]
-pub struct Validator(pub semver::Version);
+pub struct Validator(pub Version);
 
 #[test]
 fn basic() {

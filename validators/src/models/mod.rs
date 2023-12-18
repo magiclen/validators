@@ -1,6 +1,6 @@
-#[cfg(all(feature = "std", feature = "idna"))]
+#[cfg(any(feature = "email", feature = "host"))]
 mod host;
-#[cfg(all(feature = "std", feature = "idna"))]
+#[cfg(any(feature = "email", feature = "host"))]
 pub use host::*;
 
 #[cfg(feature = "http_ftp_url")]

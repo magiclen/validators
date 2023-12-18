@@ -38,6 +38,39 @@ jobs:
           - nightly
         features:
           -
+          - --features serde
+          - --features rocket
+          - --no-default-features --features base32
+          - --no-default-features --features base32_decoded
+          - --no-default-features --features base64
+          - --no-default-features --features base64_decoded
+          - --no-default-features --features base64_url
+          - --no-default-features --features base64_url_decoded
+          - --no-default-features --features bit
+          - --no-default-features --features boolean
+          - --no-default-features --features byte
+          - --no-default-features --features domain
+          - --no-default-features --features email
+          - --no-default-features --features host
+          - --no-default-features --features http_url
+          - --no-default-features --features http_ftp_url
+          - --no-default-features --features ip
+          - --no-default-features --features ipv4
+          - --no-default-features --features ipv6
+          - --no-default-features --features json
+          - --no-default-features --features length
+          - --no-default-features --features line
+          - --no-default-features --features mac_address
+          - --no-default-features --features number
+          - --no-default-features --features phone
+          - --no-default-features --features regex
+          - --no-default-features --features semver
+          - --no-default-features --features semver_req
+          - --no-default-features --features signed_integer
+          - --no-default-features --features text
+          - --no-default-features --features unsigned_integer
+          - --no-default-features --features url
+          - --no-default-features --features uuid
     name: Test ${{ matrix.toolchain }} on ${{ matrix.os }} (${{ matrix.features }})
     runs-on: ${{ matrix.os }}
     steps:
@@ -57,9 +90,42 @@ jobs:
           - macos-latest
           - windows-latest
         toolchain:
-          - 1.65
+          - 1.69
         features:
           -
+          - --features serde
+          - --features rocket
+          - --no-default-features --features base32
+          - --no-default-features --features base32_decoded
+          - --no-default-features --features base64
+          - --no-default-features --features base64_decoded
+          - --no-default-features --features base64_url
+          - --no-default-features --features base64_url_decoded
+          - --no-default-features --features bit
+          - --no-default-features --features boolean
+          - --no-default-features --features byte
+          - --no-default-features --features domain
+          - --no-default-features --features email
+          - --no-default-features --features host
+          - --no-default-features --features http_url
+          - --no-default-features --features http_ftp_url
+          - --no-default-features --features ip
+          - --no-default-features --features ipv4
+          - --no-default-features --features ipv6
+          - --no-default-features --features json
+          - --no-default-features --features length
+          - --no-default-features --features line
+          - --no-default-features --features mac_address
+          - --no-default-features --features number
+          - --no-default-features --features phone
+          - --no-default-features --features regex
+          - --no-default-features --features semver
+          - --no-default-features --features semver_req
+          - --no-default-features --features signed_integer
+          - --no-default-features --features text
+          - --no-default-features --features unsigned_integer
+          - --no-default-features --features url
+          - --no-default-features --features uuid
     name: Test ${{ matrix.toolchain }} on ${{ matrix.os }} (${{ matrix.features }})
     runs-on: ${{ matrix.os }}
     steps:

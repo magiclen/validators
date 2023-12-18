@@ -1,4 +1,4 @@
-#![cfg(all(feature = "json", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "json"))]
 
 use validators::prelude::*;
 

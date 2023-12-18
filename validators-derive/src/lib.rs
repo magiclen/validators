@@ -1,175 +1,220 @@
 /*!
 # Validators Derive
 
-This crate provides a procedural macro to define validators with optional parameters. See the [`validators`](https://crates.io/crates/validators) crate.
+The provided crate offers a procedural macro for defining validators, including optional parameters. See the [`validators`](https://crates.io/crates/validators) crate.
  */
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
 
-extern crate alloc;
-
-#[macro_use]
-extern crate enum_ordinalize;
-
-#[allow(unused_imports)]
-#[macro_use]
-extern crate educe;
-
+mod common;
+#[allow(unused)]
 mod panic;
-mod support_validators;
-mod syn_validator_options;
-mod type_enum;
+mod supported_validators;
 mod validator_handlers;
 
-use alloc::string::ToString;
-
 use proc_macro::TokenStream;
-use quote::ToTokens;
-use support_validators::Validator;
-use syn::{DeriveInput, Meta, NestedMeta};
-#[allow(unused_imports)]
-use syn_validator_options::*;
-use type_enum::*;
-use validator_handlers::*;
-#[allow(unused_imports)]
-use validators_options::*;
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_macro_input,
+    spanned::Spanned,
+    DeriveInput, Meta,
+};
+#[allow(unused)]
+use validator_handlers::ValidatorHandler;
 
-fn derive_input_handler(ast: DeriveInput) -> TokenStream {
+use crate::supported_validators::Validator;
+
+fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
+    let mut use_validator: Option<(Validator, Meta)> = None;
+
     for attr in ast.attrs.iter() {
-        if let Some(attr_meta_name) = attr.path.get_ident() {
-            if attr_meta_name == "validator" {
-                let attr_meta = attr.parse_meta().unwrap();
+        let path = attr.path();
 
-                match attr_meta {
-                    Meta::List(list) => {
-                        if list.nested.len() == 1 {
-                            let p = list.nested.into_iter().next().unwrap();
+        if path.is_ident("validator") {
+            if let Meta::List(list) = &attr.meta {
+                let meta: Meta = list.parse_args()?;
 
-                            match p {
-                                NestedMeta::Meta(meta) => {
-                                    let meta_name = meta.path().into_token_stream().to_string();
+                let path = meta.path();
 
-                                    match Validator::from_str(meta_name) {
-                                        #[cfg(feature = "base32")]
-                                        Validator::base32 => {
-                                            return base32::base32_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "base32_decoded")]
-                                        Validator::base32_decoded => {
-                                            return base32_decoded::base32_decoded_handler(
-                                                ast, meta,
-                                            )
-                                        },
-                                        #[cfg(feature = "base64")]
-                                        Validator::base64 => {
-                                            return base64::base64_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "base64_decoded")]
-                                        Validator::base64_decoded => {
-                                            return base64_decoded::base64_decoded_handler(
-                                                ast, meta,
-                                            )
-                                        },
-                                        #[cfg(feature = "base64_url")]
-                                        Validator::base64_url => {
-                                            return base64_url::base64_url_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "base64_url_decoded")]
-                                        Validator::base64_url_decoded => {
-                                            return base64_url_decoded::base64_url_decoded_handler(
-                                                ast, meta,
-                                            )
-                                        },
-                                        #[cfg(feature = "boolean")]
-                                        Validator::boolean => {
-                                            return boolean::boolean_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "domain")]
-                                        Validator::domain => {
-                                            return domain::domain_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "email")]
-                                        Validator::email => return email::email_handler(ast, meta),
-                                        #[cfg(feature = "host")]
-                                        Validator::host => return host::host_handler(ast, meta),
-                                        #[cfg(feature = "http_url")]
-                                        Validator::http_url => {
-                                            return http_url::http_url_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "http_ftp_url")]
-                                        Validator::http_ftp_url => {
-                                            return http_ftp_url::http_ftp_url_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "ip")]
-                                        Validator::ip => return ip::ip_handler(ast, meta),
-                                        #[cfg(feature = "ipv4")]
-                                        Validator::ipv4 => return ipv4::ipv4_handler(ast, meta),
-                                        #[cfg(feature = "ipv6")]
-                                        Validator::ipv6 => return ipv6::ipv6_handler(ast, meta),
-                                        #[cfg(feature = "json")]
-                                        Validator::json => return json::json_handler(ast, meta),
-                                        #[cfg(feature = "length")]
-                                        Validator::length => {
-                                            return length::length_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "line")]
-                                        Validator::line => return line::line_handler(ast, meta),
-                                        #[cfg(feature = "mac_address")]
-                                        Validator::mac_address => {
-                                            return mac_address::mac_address_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "number")]
-                                        Validator::number => {
-                                            return number::number_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "phone")]
-                                        Validator::phone => return phone::phone_handler(ast, meta),
-                                        #[cfg(feature = "regex")]
-                                        Validator::regex => return regex::regex_handler(ast, meta),
-                                        #[cfg(feature = "semver")]
-                                        Validator::semver => {
-                                            return semver::semver_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "semver_req")]
-                                        Validator::semver_req => {
-                                            return semver_req::semver_req_handler(ast, meta)
-                                        },
-                                        #[cfg(feature = "signed_integer")]
-                                        Validator::signed_integer => {
-                                            return signed_integer::signed_integer_handler(
-                                                ast, meta,
-                                            )
-                                        },
-                                        #[cfg(feature = "text")]
-                                        Validator::text => return text::text_handler(ast, meta),
-                                        #[cfg(feature = "unsigned_integer")]
-                                        Validator::unsigned_integer => {
-                                            return unsigned_integer::unsigned_integer_handler(
-                                                ast, meta,
-                                            )
-                                        },
-                                        #[cfg(feature = "url")]
-                                        Validator::url => return url::url_handler(ast, meta),
-                                        #[cfg(feature = "uuid")]
-                                        Validator::uuid => return uuid::uuid_handler(ast, meta),
-                                    }
-                                },
-                                NestedMeta::Lit(_) => panic::validator_format_incorrect(),
-                            }
-                        } else {
-                            panic::validator_format_incorrect()
-                        }
-                    },
-                    _ => panic::validator_format_incorrect(),
+                if let Some(validator) = Validator::from_path(path) {
+                    if use_validator.is_some() {
+                        return Err(panic::validator_only_one_at_a_time(path.span()));
+                    }
+
+                    use_validator = Some((validator, meta));
+                } else {
+                    return Err(panic::unsupported_validator(path));
                 }
+            } else {
+                return Err(panic::validator_format_incorrect(path.span()));
             }
         }
     }
 
-    panic::derive_attribute_not_set_up_yet("Validator")
+    if let Some((validator, meta)) = use_validator {
+        match validator {
+            #[cfg(feature = "base32")]
+            Validator::base32 => {
+                return validator_handlers::base32::Base32Handler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "base32_decoded")]
+            Validator::base32_decoded => {
+                return validator_handlers::base32_decoded::Base32DecodedHandler::meta_handler(
+                    ast, meta,
+                );
+            },
+            #[cfg(feature = "base64")]
+            Validator::base64 => {
+                return validator_handlers::base64::Base64Handler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "base64_decoded")]
+            Validator::base64_decoded => {
+                return validator_handlers::base64_decoded::Base64DecodedHandler::meta_handler(
+                    ast, meta,
+                );
+            },
+            #[cfg(feature = "base64_url")]
+            Validator::base64_url => {
+                return validator_handlers::base64_url::Base64UrlHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "base64_url_decoded")]
+            Validator::base64_url_decoded => {
+                return validator_handlers::base64_url_decoded::Base64UrlDecodedHandler::meta_handler(
+                    ast, meta,
+                );
+            },
+            #[cfg(feature = "bit")]
+            Validator::bit => {
+                return validator_handlers::bit::BitHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "boolean")]
+            Validator::boolean => {
+                return validator_handlers::boolean::BooleanHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "byte")]
+            Validator::byte => {
+                return validator_handlers::byte::ByteHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "domain")]
+            Validator::domain => {
+                return validator_handlers::domain::DomainHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "email")]
+            Validator::email => {
+                return validator_handlers::email::EmailHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "host")]
+            Validator::host => {
+                return validator_handlers::host::HostHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "http_url")]
+            Validator::http_url => {
+                return validator_handlers::http_url::HttpUrlHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "http_ftp_url")]
+            Validator::http_ftp_url => {
+                return validator_handlers::http_ftp_url::HttpFtpUrlHandler::meta_handler(
+                    ast, meta,
+                );
+            },
+            #[cfg(feature = "ip")]
+            Validator::ip => {
+                return validator_handlers::ip::IpHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "ipv4")]
+            Validator::ipv4 => {
+                return validator_handlers::ipv4::Ipv4Handler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "ipv6")]
+            Validator::ipv6 => {
+                return validator_handlers::ipv6::Ipv6Handler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "json")]
+            Validator::json => {
+                return validator_handlers::json::JsonHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "length")]
+            Validator::length => {
+                return validator_handlers::length::LengthHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "line")]
+            Validator::line => {
+                return validator_handlers::line::LineHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "mac_address")]
+            Validator::mac_address => {
+                return validator_handlers::mac_address::MacAddressHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "number")]
+            Validator::number => {
+                return validator_handlers::number::NumberHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "phone")]
+            Validator::phone => {
+                return validator_handlers::phone::PhoneHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "regex")]
+            Validator::regex => {
+                return validator_handlers::regex::RegexHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "semver")]
+            Validator::semver => {
+                return validator_handlers::semver::SemverHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "semver_req")]
+            Validator::semver_req => {
+                return validator_handlers::semver_req::SemverReqHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "signed_integer")]
+            Validator::signed_integer => {
+                return validator_handlers::signed_integer::SignedIntegerHandler::meta_handler(
+                    ast, meta,
+                );
+            },
+            #[cfg(feature = "text")]
+            Validator::text => {
+                return validator_handlers::text::TextHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "unsigned_integer")]
+            Validator::unsigned_integer => {
+                return validator_handlers::unsigned_integer::UnsignedIntegerHandler::meta_handler(
+                    ast, meta,
+                );
+            },
+            #[cfg(feature = "url")]
+            Validator::url => {
+                return validator_handlers::url::UrlHandler::meta_handler(ast, meta);
+            },
+            #[cfg(feature = "uuid")]
+            Validator::uuid => {
+                return validator_handlers::uuid::UuidHandler::meta_handler(ast, meta);
+            },
+            Validator::_Nothing => {
+                // avoid unused warnings
+                let _ = meta;
+                unreachable!();
+            },
+        }
+    }
+
+    Err(panic::derive_attribute_not_set_up_yet())
 }
 
 #[proc_macro_derive(Validator, attributes(validator))]
 pub fn validator_derive(input: TokenStream) -> TokenStream {
-    derive_input_handler(syn::parse(input).unwrap())
+    struct MyDeriveInput(proc_macro2::TokenStream);
+
+    impl Parse for MyDeriveInput {
+        #[inline]
+        fn parse(input: ParseStream) -> syn::Result<Self> {
+            let token_stream = derive_input_handler(input.parse::<DeriveInput>()?)?;
+
+            Ok(Self(token_stream))
+        }
+    }
+
+    // Parse the token stream
+    let derive_input = parse_macro_input!(input as MyDeriveInput);
+
+    derive_input.0.into()
 }

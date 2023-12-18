@@ -5,6 +5,7 @@ use core::{
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `unsigned_integer` validator.
 #[derive(Debug, Clone)]
 pub enum UnsignedIntegerError {
     ParseIntError(ParseIntError),
@@ -16,7 +17,7 @@ pub enum UnsignedIntegerError {
 impl From<ParseIntError> for UnsignedIntegerError {
     #[inline]
     fn from(error: ParseIntError) -> Self {
-        UnsignedIntegerError::ParseIntError(error)
+        Self::ParseIntError(error)
     }
 }
 
@@ -24,10 +25,10 @@ impl Display for UnsignedIntegerError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            UnsignedIntegerError::ParseIntError(error) => Display::fmt(error, f),
-            UnsignedIntegerError::TooLarge => f.write_str("integer is too large"),
-            UnsignedIntegerError::TooSmall => f.write_str("integer is too small"),
-            UnsignedIntegerError::Forbidden => f.write_str("integer is forbidden"),
+            Self::ParseIntError(error) => Display::fmt(error, f),
+            Self::TooLarge => f.write_str("integer is too large"),
+            Self::TooSmall => f.write_str("integer is too small"),
+            Self::Forbidden => f.write_str("integer is forbidden"),
         }
     }
 }

@@ -2,23 +2,24 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `mac_address` validator.
 #[derive(Debug, Clone)]
 pub enum MacAddressError {
-    /// including the violation of the case rule
+    /// Including the violation of the case rule.
     Invalid,
-    /// may not be valid but missing separators is guaranteed
+    /// May not be valid, but missing separators is guaranteed.
     SeparatorMust,
-    /// may not be valid but separators seem to exist
-    SeparatorNotAllow,
+    /// May not be valid, but separators seem to exist.
+    SeparatorDisallow,
 }
 
 impl Display for MacAddressError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            MacAddressError::Invalid => f.write_str("invalid mac address"),
-            MacAddressError::SeparatorMust => f.write_str("separators not found"),
-            MacAddressError::SeparatorNotAllow => f.write_str("separators not allowed"),
+            Self::Invalid => f.write_str("invalid mac address"),
+            Self::SeparatorMust => f.write_str("separators not found"),
+            Self::SeparatorDisallow => f.write_str("separators not allowed"),
         }
     }
 }

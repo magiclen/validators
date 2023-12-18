@@ -1,11 +1,10 @@
-#![cfg(all(feature = "url", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "url"))]
 
-use validators::prelude::*;
-use validators_prelude::url;
+use validators::{prelude::*, url::Url};
 
 #[derive(Validator)]
 #[validator(url)]
-pub struct Validator(pub url::Url);
+pub struct Validator(pub Url);
 
 #[test]
 fn basic() {

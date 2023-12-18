@@ -2,15 +2,16 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
+/// Error from the `base64_decoded` validator.
 #[derive(Debug, Clone)]
 pub enum Base64DecodedError {
-    /// the fallback variant
+    /// Incorrect Base64-encoded data.
     Invalid,
-    /// may not be valid but missing the padding part is guaranteed
+    /// May not be valid, but the absence of padding is guaranteed.
     PaddingMust,
-    /// may not be valid and the padding part seems to exist
-    PaddingNotAllow,
-    /// may be valid but errors happen when decoding (missing padding? having padding?)
+    /// May not be valid, but it appears that the padding part exists.
+    PaddingDisallow,
+    /// May be valid but errors happen when decoding (missing padding? having padding?).
     Decode,
 }
 
@@ -18,10 +19,10 @@ impl Display for Base64DecodedError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            Base64DecodedError::Invalid => f.write_str("invalid Base64"),
-            Base64DecodedError::PaddingMust => f.write_str("padding not found"),
-            Base64DecodedError::PaddingNotAllow => f.write_str("padding not allowed"),
-            Base64DecodedError::Decode => f.write_str("decoded incorrectly"),
+            Self::Invalid => f.write_str("invalid Base64"),
+            Self::PaddingMust => f.write_str("padding not found"),
+            Self::PaddingDisallow => f.write_str("padding not allowed"),
+            Self::Decode => f.write_str("decoded incorrectly"),
         }
     }
 }

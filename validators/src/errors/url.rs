@@ -4,17 +4,18 @@ use std::error::Error;
 
 use crate::url;
 
+/// Error from the `url` validator.
 #[derive(Debug, Clone)]
-pub struct URLError(pub url::ParseError);
+pub struct UrlError(pub url::ParseError);
 
-impl From<url::ParseError> for URLError {
+impl From<url::ParseError> for UrlError {
     #[inline]
     fn from(error: url::ParseError) -> Self {
-        URLError(error)
+        Self(error)
     }
 }
 
-impl Display for URLError {
+impl Display for UrlError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         Display::fmt(&self.0, f)
@@ -22,4 +23,4 @@ impl Display for URLError {
 }
 
 #[cfg(feature = "std")]
-impl Error for URLError {}
+impl Error for UrlError {}

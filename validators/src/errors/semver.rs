@@ -2,19 +2,18 @@ use core::fmt::{self, Display, Formatter};
 #[cfg(feature = "std")]
 use std::error::Error;
 
-use crate::semver;
-
+/// Error from the `semver` and `semver_req` validator.
 #[derive(Debug)]
-pub struct SemVerError(pub semver::Error);
+pub struct SemverError(pub semver::Error);
 
-impl From<semver::Error> for SemVerError {
+impl From<semver::Error> for SemverError {
     #[inline]
     fn from(error: semver::Error) -> Self {
-        SemVerError(error)
+        Self(error)
     }
 }
 
-impl Display for SemVerError {
+impl Display for SemverError {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         Display::fmt(&self.0, f)
@@ -22,4 +21,4 @@ impl Display for SemVerError {
 }
 
 #[cfg(feature = "std")]
-impl Error for SemVerError {}
+impl Error for SemverError {}

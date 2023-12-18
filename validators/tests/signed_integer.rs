@@ -1,12 +1,13 @@
-#![cfg(all(feature = "signed_integer", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "signed_integer"))]
 
-use validators::{prelude::*, validators_options::ValidatorRangeOption};
+use validators::prelude::{validators_prelude::RangeOption, *};
 
-fn check_range<T: PartialOrd>(v: T, range: ValidatorRangeOption<T>) -> bool {
+fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
-        ValidatorRangeOption::Inside {
+        RangeOption::Inside {
             max,
             min,
+            inclusive,
         } => {
             if let Some(min) = min {
                 if v < min {
@@ -15,27 +16,44 @@ fn check_range<T: PartialOrd>(v: T, range: ValidatorRangeOption<T>) -> bool {
             }
 
             if let Some(max) = max {
-                if v > max {
+                if inclusive {
+                    if v > max {
+                        return false;
+                    }
+                } else if v >= max {
                     return false;
                 }
             }
 
             true
         },
-        ValidatorRangeOption::Outside {
+        RangeOption::Outside {
             max,
             min,
+            inclusive,
         } => match min {
             Some(min) => match max {
-                Some(max) => !(v >= min && v <= max),
+                Some(max) => {
+                    if inclusive {
+                        !(v >= min && v <= max)
+                    } else {
+                        !(v >= min && v < max)
+                    }
+                },
                 None => v < min,
             },
             None => match max {
-                Some(max) => v > max,
+                Some(max) => {
+                    if inclusive {
+                        v > max
+                    } else {
+                        v >= max
+                    }
+                },
                 None => true,
             },
         },
-        ValidatorRangeOption::NotLimited => true,
+        RangeOption::Unlimited => true,
     }
 }
 
@@ -151,7 +169,7 @@ fn basic() {
 
     test! {
         {
-            range => NotLimited,
+            range => Unlimited,
         },
         {
             range => Inside(min = 0),
@@ -164,12 +182,21 @@ fn basic() {
         },
         {
             range => Outside(min = 0, max = 0),
+        },
+        {
+            range => Inside(min = -1, max = 1),
+        },
+        {
+            range => Outside(min = -1, max = 1),
+        },
+        {
+            range => Outside(min = 0, max = 1, inclusive = false),
         },
     }
 
     test2! {
         {
-            range => NotLimited,
+            range => Unlimited,
         },
         {
             range => Inside(min = 0),
@@ -182,12 +209,21 @@ fn basic() {
         },
         {
             range => Outside(min = 0, max = 0),
+        },
+        {
+            range => Inside(min = -1, max = 1),
+        },
+        {
+            range => Outside(min = -1, max = 1),
+        },
+        {
+            range => Outside(min = 0, max = 1, inclusive = false),
         },
     }
 
     test3! {
         {
-            range => NotLimited,
+            range => Unlimited,
         },
         {
             range => Inside(min = 0),
@@ -200,6 +236,15 @@ fn basic() {
         },
         {
             range => Outside(min = 0, max = 0),
+        },
+        {
+            range => Inside(min = -1, max = 1),
+        },
+        {
+            range => Outside(min = -1, max = 1),
+        },
+        {
+            range => Outside(min = 0, max = 1, inclusive = false),
         },
     }
 }

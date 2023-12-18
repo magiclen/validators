@@ -1,4 +1,4 @@
-#![cfg(all(feature = "semver_req", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "semver_req"))]
 
 use validators::prelude::*;
 use validators_prelude::semver;

@@ -1,4 +1,4 @@
-#![cfg(all(feature = "base64", feature = "derive"))]
+#![cfg(all(feature = "test", feature = "derive", feature = "base64"))]
 
 use validators::prelude::*;
 
@@ -49,7 +49,7 @@ fn basic() {
             padding => Must,
         },
         {
-            padding => NotAllow,
+            padding => Disallow,
         },
     }
 }
