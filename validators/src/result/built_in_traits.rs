@@ -45,13 +45,6 @@ impl<T, E> DerefMut for Result<T, E> {
     }
 }
 
-impl<T, E> AsRef<core::result::Result<T, E>> for Result<T, E> {
-    #[inline]
-    fn as_ref(&self) -> &core::result::Result<T, E> {
-        &self.0
-    }
-}
-
 // ------
 
 impl<T: ValidateString<Error = E>, E> FromStr for Result<T, E> {
