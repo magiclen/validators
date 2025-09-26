@@ -13,10 +13,12 @@ use crate::{
 pub(crate) struct Ipv6Handler;
 
 #[derive(Debug)]
+#[allow(dead_code)] // Used for parsing
 pub struct Struct(TypeEnum);
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowPort {
     ipv6: TypeEnum,
     port: TypeEnum,

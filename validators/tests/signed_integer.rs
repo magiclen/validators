@@ -1,3 +1,4 @@
+#![allow(unexpected_cfgs)] // target_pointer_widths are deliberate
 #![cfg(all(feature = "test", feature = "derive", feature = "signed_integer"))]
 
 use validators::prelude::{validators_prelude::RangeOption, *};
@@ -108,6 +109,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(signed_integer($($p($v),)*))]
                     pub struct I8(i8);
@@ -129,6 +131,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(signed_integer($($p($v),)*))]
                     pub struct Isize(isize);
@@ -150,6 +153,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(signed_integer($($p($v),)*))]
                     pub struct I128(i128);

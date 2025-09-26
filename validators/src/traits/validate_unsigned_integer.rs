@@ -1,3 +1,4 @@
+#![allow(unexpected_cfgs)] // pointer widths intentional
 /// Validate and deserialize unsigned integers.
 pub trait ValidateUnsignedInteger: Sized {
     type Error;

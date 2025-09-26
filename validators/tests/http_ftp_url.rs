@@ -8,6 +8,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(http_ftp_url($($p($v),)*))]
                     pub struct Validator {

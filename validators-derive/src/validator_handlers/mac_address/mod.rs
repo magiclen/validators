@@ -13,6 +13,7 @@ use crate::{
 pub(crate) struct MacAddressHandler;
 
 #[derive(Debug)]
+#[allow(dead_code)] // Used for parsing
 pub struct Struct(TypeEnum);
 
 const ITEM: Struct = Struct(TypeEnum::U64);

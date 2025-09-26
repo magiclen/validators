@@ -1,3 +1,4 @@
+#![allow(unexpected_cfgs)] // pointer widths intentional
 /// Validate and deserialize signed integers.
 pub trait ValidateSignedInteger: Sized {
     type Error;

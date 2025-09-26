@@ -14,10 +14,12 @@ use crate::{
 pub(crate) struct HostHandler;
 
 #[derive(Debug)]
+#[allow(dead_code)] // Used for parsing
 pub struct Struct(TypeEnum);
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowLocal {
     host:     TypeEnum,
     is_local: TypeEnum,
@@ -25,6 +27,7 @@ pub struct StructAllowLocal {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowPort {
     host: TypeEnum,
     port: TypeEnum,
@@ -32,6 +35,7 @@ pub struct StructAllowPort {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowPortAllowLocal {
     host:     TypeEnum,
     is_local: TypeEnum,

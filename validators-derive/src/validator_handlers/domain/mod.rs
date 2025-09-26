@@ -14,10 +14,12 @@ use crate::{
 pub(crate) struct DomainHandler;
 
 #[derive(Debug)]
+#[allow(dead_code)] // Used for parsing
 pub struct Struct(TypeEnum);
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowLocal {
     domain:   TypeEnum,
     is_local: TypeEnum,
@@ -25,6 +27,7 @@ pub struct StructAllowLocal {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowPort {
     domain: TypeEnum,
     port:   TypeEnum,
@@ -32,6 +35,7 @@ pub struct StructAllowPort {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowPortAllowLocal {
     domain:   TypeEnum,
     is_local: TypeEnum,
@@ -40,6 +44,7 @@ pub struct StructAllowPortAllowLocal {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowIPv4 {
     domain:  TypeEnum,
     is_ipv4: TypeEnum,
@@ -47,6 +52,7 @@ pub struct StructAllowIPv4 {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowIPv4AllowLocal {
     domain:   TypeEnum,
     is_ipv4:  TypeEnum,
@@ -55,6 +61,7 @@ pub struct StructAllowIPv4AllowLocal {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowIPv4AllowPort {
     domain:  TypeEnum,
     is_ipv4: TypeEnum,
@@ -63,6 +70,7 @@ pub struct StructAllowIPv4AllowPort {
 
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
+#[allow(dead_code)] // Used for parsing
 pub struct StructAllowIPv4AllowPortAllowLocal {
     domain:   TypeEnum,
     is_ipv4:  TypeEnum,

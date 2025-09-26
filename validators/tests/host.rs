@@ -128,6 +128,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*))]
                     pub struct HostAllowPort {
@@ -135,6 +136,7 @@ fn basic() {
                         pub port: Option<u16>,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Must)))]
                     pub struct HostWithPort {
@@ -142,6 +144,7 @@ fn basic() {
                         pub port: u16,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Disallow)))]
                     pub struct HostWithoutPort(pub validators::models::Host);
@@ -165,6 +168,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*))]
                     pub struct HostAllowPortIsLocal {
@@ -173,6 +177,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Must)))]
                     pub struct HostWithPortIsLocal {
@@ -181,6 +186,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Disallow)))]
                     pub struct HostWithoutPortIsLocal {

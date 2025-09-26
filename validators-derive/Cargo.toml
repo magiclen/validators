@@ -22,7 +22,7 @@ proc-macro2 = "1"
 
 enum-ordinalize = { version = "4.2", default-features = false, features = ["derive"] }
 
-educe = { version = "0.5", default-features = false, features = ["Debug"], optional = true }
+educe = { version = "0.6", default-features = false, features = ["Debug"], optional = true }
 phonenumber = { version = "0.3", optional = true }
 regex = { version = "1", optional = true }
 

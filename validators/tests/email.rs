@@ -191,6 +191,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(Disallow)))]
                     pub struct EmailAllowIP {
@@ -199,6 +200,7 @@ fn basic() {
                         pub domain_part: validators::models::Host,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(Disallow), ip(Must), conflict(Allow)))]
                     pub struct EmailIP {
@@ -207,6 +209,7 @@ fn basic() {
                         pub domain_part: std::net::IpAddr,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(Disallow), ip(Disallow)))]
                     pub struct EmailNonIP {
@@ -215,6 +218,7 @@ fn basic() {
                         pub domain_part: String,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*))]
                     pub struct EmailAllowCommentAllowIP {
@@ -227,6 +231,7 @@ fn basic() {
                         pub comment_after_domain_part: Option<String>,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*ip(Must), conflict(Allow)))]
                     pub struct EmailAllowCommentIP {
@@ -239,6 +244,7 @@ fn basic() {
                         pub comment_after_domain_part: Option<String>,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*ip(Disallow)))]
                     pub struct EmailAllowCommentNonIP {
@@ -273,6 +279,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(Disallow)))]
                     pub struct EmailAllowIPIsLocal {
@@ -282,6 +289,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(Disallow), ip(Must), conflict(Allow)))]
                     pub struct EmailIPIsLocal {
@@ -291,6 +299,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*comment(Disallow), ip(Disallow)))]
                     pub struct EmailNonIPIsLocal {
@@ -300,6 +309,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*))]
                     pub struct EmailAllowCommentAllowIPIsLocal {
@@ -313,6 +323,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*ip(Must), conflict(Allow)))]
                     pub struct EmailAllowCommentIPIsLocal {
@@ -326,6 +337,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)] // ignore spurious dead code
                     #[derive(Validator)]
                     #[validator(email($($p($v),)*ip(Disallow)))]
                     pub struct EmailAllowCommentNonIPIsLocal {
