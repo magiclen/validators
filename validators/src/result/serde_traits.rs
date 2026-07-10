@@ -68,10 +68,8 @@ impl<'de, T: ValidateString<Error = Base32Error> + ValidateBytes<Error = Base32E
 }
 
 #[cfg(feature = "base32_decoded")]
-impl<
-        'de,
-        T: ValidateString<Error = Base32DecodedError> + ValidateBytes<Error = Base32DecodedError>,
-    > serde::Deserialize<'de> for Result<T, Base32DecodedError>
+impl<'de, T: ValidateString<Error = Base32DecodedError> + ValidateBytes<Error = Base32DecodedError>>
+    serde::Deserialize<'de> for Result<T, Base32DecodedError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -80,10 +78,9 @@ impl<
         struct MyVisitor<T>(PhantomData<T>);
 
         impl<
-                'de,
-                T: ValidateString<Error = Base32DecodedError>
-                    + ValidateBytes<Error = Base32DecodedError>,
-            > Visitor<'de> for MyVisitor<T>
+            'de,
+            T: ValidateString<Error = Base32DecodedError> + ValidateBytes<Error = Base32DecodedError>,
+        > Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, Base32DecodedError>;
 
@@ -179,10 +176,8 @@ impl<'de, T: ValidateString<Error = Base64Error> + ValidateBytes<Error = Base64E
 }
 
 #[cfg(feature = "base64_decoded")]
-impl<
-        'de,
-        T: ValidateString<Error = Base64DecodedError> + ValidateBytes<Error = Base64DecodedError>,
-    > serde::Deserialize<'de> for Result<T, Base64DecodedError>
+impl<'de, T: ValidateString<Error = Base64DecodedError> + ValidateBytes<Error = Base64DecodedError>>
+    serde::Deserialize<'de> for Result<T, Base64DecodedError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -191,10 +186,9 @@ impl<
         struct MyVisitor<T>(PhantomData<T>);
 
         impl<
-                'de,
-                T: ValidateString<Error = Base64DecodedError>
-                    + ValidateBytes<Error = Base64DecodedError>,
-            > Visitor<'de> for MyVisitor<T>
+            'de,
+            T: ValidateString<Error = Base64DecodedError> + ValidateBytes<Error = Base64DecodedError>,
+        > Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, Base64DecodedError>;
 
@@ -246,10 +240,8 @@ impl<'de, T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base
         D: Deserializer<'de>, {
         struct MyVisitor<T>(PhantomData<T>);
 
-        impl<
-                'de,
-                T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base64UrlError>,
-            > Visitor<'de> for MyVisitor<T>
+        impl<'de, T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base64UrlError>>
+            Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, Base64UrlError>;
 
@@ -293,10 +285,9 @@ impl<'de, T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base
 
 #[cfg(feature = "base64_url_decoded")]
 impl<
-        'de,
-        T: ValidateString<Error = Base64UrlDecodedError>
-            + ValidateBytes<Error = Base64UrlDecodedError>,
-    > serde::Deserialize<'de> for Result<T, Base64UrlDecodedError>
+    'de,
+    T: ValidateString<Error = Base64UrlDecodedError> + ValidateBytes<Error = Base64UrlDecodedError>,
+> serde::Deserialize<'de> for Result<T, Base64UrlDecodedError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -305,10 +296,10 @@ impl<
         struct MyVisitor<T>(PhantomData<T>);
 
         impl<
-                'de,
-                T: ValidateString<Error = Base64UrlDecodedError>
-                    + ValidateBytes<Error = Base64UrlDecodedError>,
-            > Visitor<'de> for MyVisitor<T>
+            'de,
+            T: ValidateString<Error = Base64UrlDecodedError>
+                + ValidateBytes<Error = Base64UrlDecodedError>,
+        > Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, Base64UrlDecodedError>;
 
@@ -372,13 +363,13 @@ impl<'de, T: ValidateString<Error = BitError> + ValidateUnsignedInteger<Error = 
 
 #[cfg(feature = "boolean")]
 impl<
-        'de,
-        T: ValidateString<Error = BooleanError>
-            + ValidateChar<Error = BooleanError>
-            + ValidateSignedInteger<Error = BooleanError>
-            + ValidateUnsignedInteger<Error = BooleanError>
-            + ValidateBoolean<Error = BooleanError>,
-    > serde::Deserialize<'de> for Result<T, BooleanError>
+    'de,
+    T: ValidateString<Error = BooleanError>
+        + ValidateChar<Error = BooleanError>
+        + ValidateSignedInteger<Error = BooleanError>
+        + ValidateUnsignedInteger<Error = BooleanError>
+        + ValidateBoolean<Error = BooleanError>,
+> serde::Deserialize<'de> for Result<T, BooleanError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -387,13 +378,13 @@ impl<
         struct MyVisitor<T>(PhantomData<T>);
 
         impl<
-                'de,
-                T: ValidateString<Error = BooleanError>
-                    + ValidateChar<Error = BooleanError>
-                    + ValidateSignedInteger<Error = BooleanError>
-                    + ValidateUnsignedInteger<Error = BooleanError>
-                    + ValidateBoolean<Error = BooleanError>,
-            > Visitor<'de> for MyVisitor<T>
+            'de,
+            T: ValidateString<Error = BooleanError>
+                + ValidateChar<Error = BooleanError>
+                + ValidateSignedInteger<Error = BooleanError>
+                + ValidateUnsignedInteger<Error = BooleanError>
+                + ValidateBoolean<Error = BooleanError>,
+        > Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, BooleanError>;
 
@@ -721,14 +712,14 @@ impl<'de, T: ValidateString<Error = Ipv6Error>> serde::Deserialize<'de> for Resu
 
 #[cfg(feature = "json")]
 impl<
-        'de,
-        T: ValidateString<Error = JsonError>
-            + ValidateSignedInteger<Error = JsonError>
-            + ValidateUnsignedInteger<Error = JsonError>
-            + ValidateNumber<Error = JsonError>
-            + ValidateBoolean<Error = JsonError>
-            + ValidateJsonValue<Error = JsonError>,
-    > serde::Deserialize<'de> for Result<T, JsonError>
+    'de,
+    T: ValidateString<Error = JsonError>
+        + ValidateSignedInteger<Error = JsonError>
+        + ValidateUnsignedInteger<Error = JsonError>
+        + ValidateNumber<Error = JsonError>
+        + ValidateBoolean<Error = JsonError>
+        + ValidateJsonValue<Error = JsonError>,
+> serde::Deserialize<'de> for Result<T, JsonError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -742,11 +733,8 @@ impl<
 }
 
 #[cfg(feature = "length")]
-impl<
-        'de,
-        C: CollectionLength + serde::Deserialize<'de>,
-        T: ValidateLength<C, Error = LengthError>,
-    > serde::Deserialize<'de> for Result<T, LengthError, C>
+impl<'de, C: CollectionLength + serde::Deserialize<'de>, T: ValidateLength<C, Error = LengthError>>
+    serde::Deserialize<'de> for Result<T, LengthError, C>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -969,10 +957,9 @@ impl<'de, T: ValidateString<Error = SemverError>> serde::Deserialize<'de>
 
 #[cfg(feature = "signed_integer")]
 impl<
-        'de,
-        T: ValidateString<Error = SignedIntegerError>
-            + ValidateSignedInteger<Error = SignedIntegerError>,
-    > serde::Deserialize<'de> for Result<T, SignedIntegerError>
+    'de,
+    T: ValidateString<Error = SignedIntegerError> + ValidateSignedInteger<Error = SignedIntegerError>,
+> serde::Deserialize<'de> for Result<T, SignedIntegerError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -981,10 +968,10 @@ impl<
         struct MyVisitor<T>(PhantomData<T>);
 
         impl<
-                'de,
-                T: ValidateString<Error = SignedIntegerError>
-                    + ValidateSignedInteger<Error = SignedIntegerError>,
-            > Visitor<'de> for MyVisitor<T>
+            'de,
+            T: ValidateString<Error = SignedIntegerError>
+                + ValidateSignedInteger<Error = SignedIntegerError>,
+        > Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, SignedIntegerError>;
 
@@ -1084,10 +1071,10 @@ impl<'de, T: ValidateString<Error = TextError>> serde::Deserialize<'de> for Resu
 
 #[cfg(feature = "unsigned_integer")]
 impl<
-        'de,
-        T: ValidateString<Error = UnsignedIntegerError>
-            + ValidateUnsignedInteger<Error = UnsignedIntegerError>,
-    > serde::Deserialize<'de> for Result<T, UnsignedIntegerError>
+    'de,
+    T: ValidateString<Error = UnsignedIntegerError>
+        + ValidateUnsignedInteger<Error = UnsignedIntegerError>,
+> serde::Deserialize<'de> for Result<T, UnsignedIntegerError>
 {
     #[inline]
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
@@ -1096,10 +1083,10 @@ impl<
         struct MyVisitor<T>(PhantomData<T>);
 
         impl<
-                'de,
-                T: ValidateString<Error = UnsignedIntegerError>
-                    + ValidateUnsignedInteger<Error = UnsignedIntegerError>,
-            > Visitor<'de> for MyVisitor<T>
+            'de,
+            T: ValidateString<Error = UnsignedIntegerError>
+                + ValidateUnsignedInteger<Error = UnsignedIntegerError>,
+        > Visitor<'de> for MyVisitor<T>
         {
             type Value = Result<T, UnsignedIntegerError>;
 

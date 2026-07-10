@@ -29,61 +29,62 @@ impl ValidatorHandler for HttpUrlHandler {
 
         if let Data::Struct(data) = ast.data
             && let Fields::Named(_) = &data.fields
-                && data.fields.len() == 2 {
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            && data.fields.len() == 2
+        {
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::HttpURLError }).unwrap();
+            let error_path: Path =
+                syn::parse2(quote! { validators_prelude::HttpURLError }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let v_local = type_attribute.local;
+            #[cfg(feature = "test")]
+            {
+                let v_local = type_attribute.local;
 
-                        token_stream.extend(quote! {
-                            impl #name {
-                                pub(crate) const V_LOCAL: validators_prelude::TriAllow = #v_local;
-                            }
-                        });
+                token_stream.extend(quote! {
+                    impl #name {
+                        pub(crate) const V_LOCAL: validators_prelude::TriAllow = #v_local;
                     }
+                });
+            }
 
-                    let handle_local = {
-                        match type_attribute.local {
-                            TriAllow::Allow => {
-                                quote! {}
-                            },
-                            _ => {
-                                let check_local = if type_attribute.local.disallow() {
-                                    quote! {
-                                        if is_local {
-                                            return Err(#error_path::LocalDisallow);
-                                        }
-                                    }
-                                } else {
-                                    quote! {
-                                        if !is_local {
-                                            return Err(#error_path::LocalMust);
-                                        }
-                                    }
-                                };
-
-                                quote! {
-                                    let is_local = {
-                                        match url.host().unwrap() {
-                                            validators_prelude::url::Host::Domain(domain) => validators_prelude::is_local_domain(domain),
-                                            validators_prelude::url::Host::Ipv4(ip) => validators_prelude::is_local_ipv4(ip),
-                                            validators_prelude::url::Host::Ipv6(ip) => validators_prelude::is_local_ipv6(ip),
-                                        }
-                                    };
-
-                                    #check_local
+            let handle_local = {
+                match type_attribute.local {
+                    TriAllow::Allow => {
+                        quote! {}
+                    },
+                    _ => {
+                        let check_local = if type_attribute.local.disallow() {
+                            quote! {
+                                if is_local {
+                                    return Err(#error_path::LocalDisallow);
                                 }
-                            },
-                        }
-                    };
+                            }
+                        } else {
+                            quote! {
+                                if !is_local {
+                                    return Err(#error_path::LocalMust);
+                                }
+                            }
+                        };
 
-                    token_stream.extend(quote! {
+                        quote! {
+                            let is_local = {
+                                match url.host().unwrap() {
+                                    validators_prelude::url::Host::Domain(domain) => validators_prelude::is_local_domain(domain),
+                                    validators_prelude::url::Host::Ipv4(ip) => validators_prelude::is_local_ipv4(ip),
+                                    validators_prelude::url::Host::Ipv6(ip) => validators_prelude::is_local_ipv6(ip),
+                                }
+                            };
+
+                            #check_local
+                        }
+                    },
+                }
+            };
+
+            token_stream.extend(quote! {
                         impl #name {
                             fn v_parse_str(s: &str) -> Result<(validators_prelude::url::Url, bool), #error_path> {
                                 let is_https = {
@@ -109,7 +110,7 @@ impl ValidatorHandler for HttpUrlHandler {
                         }
                     });
 
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -142,10 +143,10 @@ impl ValidatorHandler for HttpUrlHandler {
                         }
                     });
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
                                 impl validators_prelude::serde::Serialize for #name {
                                     #[inline]
                                     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -155,26 +156,26 @@ impl ValidatorHandler for HttpUrlHandler {
                                     }
                                 }
                             });
+                }
+
+                if type_attribute.serde_options.deserialize {
+                    let expect = {
+                        let mut s = String::from("a http/https url");
+
+                        match type_attribute.local {
+                            TriAllow::Allow => (),
+                            TriAllow::Must => {
+                                s.push_str(" which must be local");
+                            },
+                            TriAllow::Disallow => {
+                                s.push_str(" which must not be local");
+                            },
                         }
 
-                        if type_attribute.serde_options.deserialize {
-                            let expect = {
-                                let mut s = String::from("a http/https url");
+                        s
+                    };
 
-                                match type_attribute.local {
-                                    TriAllow::Allow => (),
-                                    TriAllow::Must => {
-                                        s.push_str(" which must be local");
-                                    },
-                                    TriAllow::Disallow => {
-                                        s.push_str(" which must not be local");
-                                    },
-                                }
-
-                                s
-                            };
-
-                            token_stream.extend(quote! {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -202,26 +203,22 @@ impl ValidatorHandler for HttpUrlHandler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

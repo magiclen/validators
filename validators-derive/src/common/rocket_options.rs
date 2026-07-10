@@ -1,4 +1,4 @@
-use syn::{punctuated::Punctuated, spanned::Spanned, Expr, Ident, Lit, Meta, Token};
+use syn::{Expr, Ident, Lit, Meta, Token, punctuated::Punctuated, spanned::Spanned};
 
 use crate::panic;
 
@@ -35,22 +35,22 @@ impl RocketOptions {
             },
             Meta::NameValue(name_value) => {
                 if let Expr::Lit(lit) = &name_value.value
-                    && let Lit::Bool(lit) = &lit.lit {
-                        let b = lit.value;
+                    && let Lit::Bool(lit) = &lit.lit
+                {
+                    let b = lit.value;
 
-                        #[cfg(not(feature = "rocket"))]
-                        if b {
-                            return Err(syn::Error::new(
-                                lit.span(),
-                                "the `rocket` feature is not enabled, so the value cannot be \
-                                 `true`",
-                            ));
-                        }
-
-                        return Ok(Self {
-                            from_form_field: b, from_param: b
-                        });
+                    #[cfg(not(feature = "rocket"))]
+                    if b {
+                        return Err(syn::Error::new(
+                            lit.span(),
+                            "the `rocket` feature is not enabled, so the value cannot be `true`",
+                        ));
                     }
+
+                    return Ok(Self {
+                        from_form_field: b, from_param: b
+                    });
+                }
 
                 Err(syn::Error::new(name_value.value.span(), "expected a bool"))
             },

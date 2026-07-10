@@ -2,7 +2,7 @@ use std::{collections::HashSet, str::FromStr};
 
 use phonenumber::country::Id;
 use proc_macro2::Ident;
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Token};
+use syn::{Meta, Token, punctuated::Punctuated, spanned::Spanned};
 
 use crate::{
     common::{rocket_options::RocketOptions, serde_options::SerdeOptions},

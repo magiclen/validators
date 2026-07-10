@@ -1,14 +1,12 @@
 #![cfg(all(feature = "test", feature = "derive", feature = "regex"))]
 
-use lazy_static::lazy_static;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
 use validators::{prelude::*, regex::Regex};
 
-lazy_static! {
-    static ref RE_NON_ZERO_NUMBERS: Regex = Regex::new("^[1-9]+$").unwrap();
-}
+static RE_NON_ZERO_NUMBERS: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[1-9]+$").unwrap());
 
-static RE_POKER: Lazy<Regex> = Lazy::new(|| Regex::new("^([AJQK1-9]|10)$").unwrap());
+static RE_POKER: LazyLock<Regex> = LazyLock::new(|| Regex::new("^([AJQK1-9]|10)$").unwrap());
 
 #[derive(Validator)]
 #[validator(regex(regex = "^[0-9a-fA-F]+$"))]

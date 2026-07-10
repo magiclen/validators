@@ -1,4 +1,4 @@
-use syn::{spanned::Spanned, Expr, Lit, LitByte, Meta};
+use syn::{Expr, Lit, LitByte, Meta, spanned::Spanned};
 
 use crate::common::path_to_string;
 
@@ -51,15 +51,17 @@ impl SeparatorOption {
                         match ident.to_string().as_str() {
                             "Must" => {
                                 if let Expr::Lit(lit) = &name_value.value
-                                    && let Lit::Byte(lit) = &lit.lit {
-                                        return Ok(Self::Must(lit.value()));
-                                    }
+                                    && let Lit::Byte(lit) = &lit.lit
+                                {
+                                    return Ok(Self::Must(lit.value()));
+                                }
                             },
                             "Allow" => {
                                 if let Expr::Lit(lit) = &name_value.value
-                                    && let Lit::Byte(lit) = &lit.lit {
-                                        return Ok(Self::Allow(lit.value()));
-                                    }
+                                    && let Lit::Byte(lit) = &lit.lit
+                                {
+                                    return Ok(Self::Allow(lit.value()));
+                                }
                             },
                             _ => (),
                         }

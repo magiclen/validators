@@ -5,9 +5,9 @@ use core::{
 use std::fmt::Debug;
 
 use proc_macro2::Span;
-use syn::{spanned::Spanned, Ident, Path};
+use syn::{Ident, Path, spanned::Spanned};
 
-use crate::{common::path_to_string, Validator};
+use crate::{Validator, common::path_to_string};
 
 struct DisplayStringSlice<'a>(&'a [&'static str]);
 

@@ -24,229 +24,229 @@ impl ValidatorHandler for UuidHandler {
 
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
-                && data.fields.len() == 1 {
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            && data.fields.len() == 1
+        {
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::UuidError }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::UuidError }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let v_case = type_attribute.case;
-                        let v_separator = type_attribute.separator;
+            #[cfg(feature = "test")]
+            {
+                let v_case = type_attribute.case;
+                let v_separator = type_attribute.separator;
 
-                        token_stream.extend(quote! {
+                token_stream.extend(quote! {
                             impl #name {
                                 pub(crate) const V_CASE: validators_prelude::CaseOption = #v_case;
                                 pub(crate) const V_SEPARATOR: validators_prelude::SeparatorOption = #v_separator;
                             }
                         });
+            }
+
+            let handle_iter = {
+                match type_attribute.separator {
+                    SeparatorOption::Allow(separator) => {
+                        quote! {
+                            if !(32..=36).contains(&length) {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            let time_low = &bytes[0..8];
+
+                            let mut no_hyphen_counter = if bytes[8] != #separator {
+                                1
+                            } else {
+                                0
+                            };
+
+                            let time_mid = &bytes[(9 - no_hyphen_counter)..(13 - no_hyphen_counter)];
+
+                            if bytes[13 - no_hyphen_counter] != #separator {
+                                no_hyphen_counter += 1;
+                            }
+
+                            let time_high_and_version =
+                                &bytes[(14 - no_hyphen_counter)..(18 - no_hyphen_counter)];
+
+                            if bytes[18 - no_hyphen_counter] != #separator {
+                                no_hyphen_counter += 1;
+                            }
+
+                            let clock_seq = &bytes[(19 - no_hyphen_counter)..(23 - no_hyphen_counter)];
+
+                            if bytes[23 - no_hyphen_counter] != #separator {
+                                no_hyphen_counter += 1;
+                            }
+
+                            let node = &bytes[(24 - no_hyphen_counter)..];
+
+                            if node.len() != 12 {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
+                        }
+                    },
+                    SeparatorOption::Must(separator) => {
+                        quote! {
+                            if length != 36 {
+                                return Err(#error_path::SeparatorMust);
+                            }
+
+                            if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            let time_low = &bytes[0..8];
+                            let time_mid = &bytes[9..13];
+                            let time_high_and_version = &bytes[14..18];
+                            let clock_seq = &bytes[19..23];
+                            let node = &bytes[24..];
+
+                            time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
+                        }
+                    },
+                    SeparatorOption::Disallow => {
+                        quote! {
+                            if length != 32 {
+                                return Err(#error_path::SeparatorDisallow);
+                            }
+
+                            bytes.iter().copied()
+                        }
+                    },
+                }
+            };
+
+            let handle_decode = {
+                match type_attribute.case {
+                    CaseOption::Any => {
+                        quote! {
+                            for e in iter {
+                                uuid_decoded <<= 4;
+
+                                match e {
+                                    b'0'..=b'9' => {
+                                        uuid_decoded |= u128::from(e - b'0');
+                                    }
+                                    b'a'..=b'f' => {
+                                        uuid_decoded |= u128::from(e - (b'a' - 10));
+                                    }
+                                    b'A'..=b'F' => {
+                                        uuid_decoded |= u128::from(e - (b'A' - 10));
+                                    }
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Upper => {
+                        quote! {
+                            for e in iter {
+                                uuid_decoded <<= 4;
+
+                                match e {
+                                    b'0'..=b'9' => {
+                                        uuid_decoded |= u128::from(e - b'0');
+                                    }
+                                    b'A'..=b'F' => {
+                                        uuid_decoded |= u128::from(e - (b'A' - 10));
+                                    }
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Lower => {
+                        quote! {
+                            for e in iter {
+                                uuid_decoded <<= 4;
+
+                                match e {
+                                    b'0'..=b'9' => {
+                                        uuid_decoded |= u128::from(e - b'0');
+                                    }
+                                    b'a'..=b'f' => {
+                                        uuid_decoded |= u128::from(e - (b'a' - 10));
+                                    }
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                }
+            };
+
+            let handle_check = {
+                match type_attribute.case {
+                    CaseOption::Any => {
+                        quote! {
+                            for e in iter {
+                                match e {
+                                    b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Upper => {
+                        quote! {
+                            for e in iter {
+                                match e {
+                                    b'0'..=b'9' | b'A'..=b'F' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Lower => {
+                        quote! {
+                            for e in iter {
+                                match e {
+                                    b'0'..=b'9' | b'a'..=b'f' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                }
+            };
+
+            token_stream.extend(quote! {
+                impl #name {
+                    fn v_parse_str(s: &str) -> Result<u128, #error_path> {
+                        let bytes = s.as_bytes();
+                        let length = bytes.len();
+
+                        let iter = {
+                            #handle_iter
+                        };
+
+                        let mut uuid_decoded = 0u128;
+
+                        #handle_decode
+
+                        Ok(uuid_decoded)
                     }
 
-                    let handle_iter = {
-                        match type_attribute.separator {
-                            SeparatorOption::Allow(separator) => {
-                                quote! {
-                                    if !(32..=36).contains(&length) {
-                                        return Err(#error_path::Invalid);
-                                    }
+                    fn v_validate_str(s: &str) -> Result<(), #error_path> {
+                        let bytes = s.as_bytes();
+                        let length = bytes.len();
 
-                                    let time_low = &bytes[0..8];
+                        let iter = {
+                            #handle_iter
+                        };
 
-                                    let mut no_hyphen_counter = if bytes[8] != #separator {
-                                        1
-                                    } else {
-                                        0
-                                    };
+                        #handle_check
 
-                                    let time_mid = &bytes[(9 - no_hyphen_counter)..(13 - no_hyphen_counter)];
+                        Ok(())
+                    }
+                }
+            });
 
-                                    if bytes[13 - no_hyphen_counter] != #separator {
-                                        no_hyphen_counter += 1;
-                                    }
-
-                                    let time_high_and_version =
-                                        &bytes[(14 - no_hyphen_counter)..(18 - no_hyphen_counter)];
-
-                                    if bytes[18 - no_hyphen_counter] != #separator {
-                                        no_hyphen_counter += 1;
-                                    }
-
-                                    let clock_seq = &bytes[(19 - no_hyphen_counter)..(23 - no_hyphen_counter)];
-
-                                    if bytes[23 - no_hyphen_counter] != #separator {
-                                        no_hyphen_counter += 1;
-                                    }
-
-                                    let node = &bytes[(24 - no_hyphen_counter)..];
-
-                                    if node.len() != 12 {
-                                        return Err(#error_path::Invalid);
-                                    }
-
-                                    time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
-                                }
-                            },
-                            SeparatorOption::Must(separator) => {
-                                quote! {
-                                    if length != 36 {
-                                        return Err(#error_path::SeparatorMust);
-                                    }
-
-                                    if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
-                                        return Err(#error_path::Invalid);
-                                    }
-
-                                    let time_low = &bytes[0..8];
-                                    let time_mid = &bytes[9..13];
-                                    let time_high_and_version = &bytes[14..18];
-                                    let clock_seq = &bytes[19..23];
-                                    let node = &bytes[24..];
-
-                                    time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
-                                }
-                            },
-                            SeparatorOption::Disallow => {
-                                quote! {
-                                    if length != 32 {
-                                        return Err(#error_path::SeparatorDisallow);
-                                    }
-
-                                    bytes.iter().copied()
-                                }
-                            },
-                        }
-                    };
-
-                    let handle_decode = {
-                        match type_attribute.case {
-                            CaseOption::Any => {
-                                quote! {
-                                    for e in iter {
-                                        uuid_decoded <<= 4;
-
-                                        match e {
-                                            b'0'..=b'9' => {
-                                                uuid_decoded |= u128::from(e - b'0');
-                                            }
-                                            b'a'..=b'f' => {
-                                                uuid_decoded |= u128::from(e - (b'a' - 10));
-                                            }
-                                            b'A'..=b'F' => {
-                                                uuid_decoded |= u128::from(e - (b'A' - 10));
-                                            }
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Upper => {
-                                quote! {
-                                    for e in iter {
-                                        uuid_decoded <<= 4;
-
-                                        match e {
-                                            b'0'..=b'9' => {
-                                                uuid_decoded |= u128::from(e - b'0');
-                                            }
-                                            b'A'..=b'F' => {
-                                                uuid_decoded |= u128::from(e - (b'A' - 10));
-                                            }
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Lower => {
-                                quote! {
-                                    for e in iter {
-                                        uuid_decoded <<= 4;
-
-                                        match e {
-                                            b'0'..=b'9' => {
-                                                uuid_decoded |= u128::from(e - b'0');
-                                            }
-                                            b'a'..=b'f' => {
-                                                uuid_decoded |= u128::from(e - (b'a' - 10));
-                                            }
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                        }
-                    };
-
-                    let handle_check = {
-                        match type_attribute.case {
-                            CaseOption::Any => {
-                                quote! {
-                                    for e in iter {
-                                        match e {
-                                            b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Upper => {
-                                quote! {
-                                    for e in iter {
-                                        match e {
-                                            b'0'..=b'9' | b'A'..=b'F' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Lower => {
-                                quote! {
-                                    for e in iter {
-                                        match e {
-                                            b'0'..=b'9' | b'a'..=b'f' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                        }
-                    };
-
-                    token_stream.extend(quote! {
-                        impl #name {
-                            fn v_parse_str(s: &str) -> Result<u128, #error_path> {
-                                let bytes = s.as_bytes();
-                                let length = bytes.len();
-
-                                let iter = {
-                                    #handle_iter
-                                };
-
-                                let mut uuid_decoded = 0u128;
-
-                                #handle_decode
-
-                                Ok(uuid_decoded)
-                            }
-
-                            fn v_validate_str(s: &str) -> Result<(), #error_path> {
-                                let bytes = s.as_bytes();
-                                let length = bytes.len();
-
-                                let iter = {
-                                    #handle_iter
-                                };
-
-                                #handle_check
-
-                                Ok(())
-                            }
-                        }
-                    });
-
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -269,7 +269,7 @@ impl ValidatorHandler for UuidHandler {
                         }
                     });
 
-                    token_stream.extend(if type_attribute.case.upper() {
+            token_stream.extend(if type_attribute.case.upper() {
                         if let Some(separator) = type_attribute.separator.allow() {
                             quote! {
                                 impl ToUuidString for #name {
@@ -351,61 +351,58 @@ impl ValidatorHandler for UuidHandler {
                         }
                     });
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
-                                impl validators_prelude::serde::Serialize for #name {
-                                    #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                                        where
-                                            S: validators_prelude::serde::Serializer, {
-                                        serializer.serialize_str(&ToUuidString::to_uuid_string(self))
-                                    }
-                                }
-                            });
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
+                        impl validators_prelude::serde::Serialize for #name {
+                            #[inline]
+                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                where
+                                    S: validators_prelude::serde::Serializer, {
+                                serializer.serialize_str(&ToUuidString::to_uuid_string(self))
+                            }
+                        }
+                    });
+                }
+
+                if type_attribute.serde_options.deserialize {
+                    use std::fmt::Write;
+
+                    let expect = {
+                        let mut s = String::from("a valid ");
+
+                        match type_attribute.case {
+                            CaseOption::Any => (),
+                            CaseOption::Upper => {
+                                s.push_str("upper-case ");
+                            },
+                            CaseOption::Lower => {
+                                s.push_str("lower-case ");
+                            },
                         }
 
-                        if type_attribute.serde_options.deserialize {
-                            use std::fmt::Write;
+                        s.push_str("UUID string");
 
-                            let expect = {
-                                let mut s = String::from("a valid ");
+                        match type_attribute.separator {
+                            SeparatorOption::Must(e) => {
+                                s.write_fmt(format_args!(" with separators {:?}", e as char))
+                                    .unwrap();
+                            },
+                            SeparatorOption::Allow(e) => {
+                                s.write_fmt(format_args!(
+                                    " with optional separators {:?}",
+                                    e as char
+                                ))
+                                .unwrap();
+                            },
+                            SeparatorOption::Disallow => s.push_str(" without separators"),
+                        }
 
-                                match type_attribute.case {
-                                    CaseOption::Any => (),
-                                    CaseOption::Upper => {
-                                        s.push_str("upper-case ");
-                                    },
-                                    CaseOption::Lower => {
-                                        s.push_str("lower-case ");
-                                    },
-                                }
+                        s
+                    };
 
-                                s.push_str("UUID string");
-
-                                match type_attribute.separator {
-                                    SeparatorOption::Must(e) => {
-                                        s.write_fmt(format_args!(
-                                            " with separators {:?}",
-                                            e as char
-                                        ))
-                                        .unwrap();
-                                    },
-                                    SeparatorOption::Allow(e) => {
-                                        s.write_fmt(format_args!(
-                                            " with optional separators {:?}",
-                                            e as char
-                                        ))
-                                        .unwrap();
-                                    },
-                                    SeparatorOption::Disallow => s.push_str(" without separators"),
-                                }
-
-                                s
-                            };
-
-                            token_stream.extend(quote! {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -433,26 +430,22 @@ impl ValidatorHandler for UuidHandler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

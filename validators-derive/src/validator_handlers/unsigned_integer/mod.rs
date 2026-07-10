@@ -1,4 +1,4 @@
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use super::ValidatorHandler;
@@ -31,191 +31,188 @@ impl ValidatorHandler for UnsignedIntegerHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
-                && data.fields.len() == 1 {
-                    let data_type = data.fields.into_iter().next().unwrap().ty;
+            && data.fields.len() == 1
+        {
+            let data_type = data.fields.into_iter().next().unwrap().ty;
 
-                    let unsigned_integer_type = {
-                        let data_type_name = data_type.to_token_stream().to_string();
+            let unsigned_integer_type = {
+                let data_type_name = data_type.to_token_stream().to_string();
 
-                        match data_type_name.as_str() {
-                            "usize" => UnsignedIntegerType::Usize,
-                            "u8" => UnsignedIntegerType::U8,
-                            "u16" => UnsignedIntegerType::U16,
-                            "u32" => UnsignedIntegerType::U32,
-                            "u64" => UnsignedIntegerType::U64,
-                            "u128" => UnsignedIntegerType::U128,
-                            _ => {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
-                                    ITEM,
-                                ))
-                            },
-                        }
-                    };
+                match data_type_name.as_str() {
+                    "usize" => UnsignedIntegerType::Usize,
+                    "u8" => UnsignedIntegerType::U8,
+                    "u16" => UnsignedIntegerType::U16,
+                    "u32" => UnsignedIntegerType::U32,
+                    "u64" => UnsignedIntegerType::U64,
+                    "u128" => UnsignedIntegerType::U128,
+                    _ => {
+                        return Err(panic::validator_for_specific_item(
+                            meta.path().get_ident().unwrap(),
+                            ITEM,
+                        ));
+                    },
+                }
+            };
 
-                    let type_attribute = match unsigned_integer_type {
-                        UnsignedIntegerType::U128 => {
-                            RangeAttribute::build_from_meta::<u128>(&meta)?
-                        },
-                        UnsignedIntegerType::U64 => RangeAttribute::build_from_meta::<u64>(&meta)?,
-                        UnsignedIntegerType::U32 => RangeAttribute::build_from_meta::<u32>(&meta)?,
-                        UnsignedIntegerType::U16 => RangeAttribute::build_from_meta::<u16>(&meta)?,
-                        UnsignedIntegerType::U8 => RangeAttribute::build_from_meta::<u8>(&meta)?,
-                        UnsignedIntegerType::Usize => {
-                            RangeAttribute::build_from_meta::<usize>(&meta)?
-                        },
-                    };
+            let type_attribute = match unsigned_integer_type {
+                UnsignedIntegerType::U128 => RangeAttribute::build_from_meta::<u128>(&meta)?,
+                UnsignedIntegerType::U64 => RangeAttribute::build_from_meta::<u64>(&meta)?,
+                UnsignedIntegerType::U32 => RangeAttribute::build_from_meta::<u32>(&meta)?,
+                UnsignedIntegerType::U16 => RangeAttribute::build_from_meta::<u16>(&meta)?,
+                UnsignedIntegerType::U8 => RangeAttribute::build_from_meta::<u8>(&meta)?,
+                UnsignedIntegerType::Usize => RangeAttribute::build_from_meta::<usize>(&meta)?,
+            };
 
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::UnsignedIntegerError }).unwrap();
+            let error_path: Path =
+                syn::parse2(quote! { validators_prelude::UnsignedIntegerError }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let v_range = &type_attribute.range;
+            #[cfg(feature = "test")]
+            {
+                let v_range = &type_attribute.range;
 
-                        token_stream.extend(quote! {
+                token_stream.extend(quote! {
                             impl #name {
                                 pub(crate) const V_RANGE: validators_prelude::RangeOption<#data_type> = #v_range;
                             }
                         });
-                    }
+            }
 
-                    let handle_range = {
-                        match &type_attribute.range {
-                            RangeTokenStream::Inside {
-                                min,
-                                max,
-                                inclusive,
-                                equal,
-                            } => {
-                                if *equal {
+            let handle_range = {
+                match &type_attribute.range {
+                    RangeTokenStream::Inside {
+                        min,
+                        max,
+                        inclusive,
+                        equal,
+                    } => {
+                        if *equal {
+                            quote! {
+                                match ::core::cmp::Ord::cmp(&u, &#min) {
+                                    ::core::cmp::Ordering::Equal => (),
+                                    ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
+                                    ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
+                                }
+                            }
+                        } else {
+                            let mut token_stream = proc_macro2::TokenStream::new();
+
+                            if let Some(min) = min {
+                                token_stream.extend(quote! {
+                                    if u < #min {
+                                        return Err(#error_path::TooSmall);
+                                    }
+                                });
+                            }
+
+                            if let Some(max) = max {
+                                token_stream.extend(if *inclusive {
                                     quote! {
-                                        match ::core::cmp::Ord::cmp(&u, &#min) {
-                                            ::core::cmp::Ordering::Equal => (),
-                                            ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
-                                            ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
+                                        if u > #max {
+                                            return Err(#error_path::TooLarge);
                                         }
                                     }
                                 } else {
-                                    let mut token_stream = proc_macro2::TokenStream::new();
-
-                                    if let Some(min) = min {
-                                        token_stream.extend(quote! {
-                                            if u < #min {
-                                                return Err(#error_path::TooSmall);
-                                            }
-                                        });
+                                    quote! {
+                                        if u >= #max {
+                                            return Err(#error_path::TooLarge);
+                                        }
                                     }
+                                });
+                            }
 
-                                    if let Some(max) = max {
-                                        token_stream.extend(if *inclusive {
+                            token_stream
+                        }
+                    },
+                    RangeTokenStream::Outside {
+                        min,
+                        max,
+                        inclusive,
+                        equal,
+                    } => {
+                        if *equal {
+                            quote! {
+                                if u == #min {
+                                    return Err(#error_path::Forbidden);
+                                }
+                            }
+                        } else {
+                            match min {
+                                Some(min) => match max {
+                                    Some(max) => {
+                                        if *inclusive {
                                             quote! {
-                                                if u > #max {
-                                                    return Err(#error_path::TooLarge);
+                                                if (#min..=#max).contains(&i) {
+                                                    return Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
-                                                if u >= #max {
-                                                    return Err(#error_path::TooLarge);
+                                                if (#min..#max).contains(&i) {
+                                                    return Err(#error_path::Forbidden);
                                                 }
                                             }
-                                        });
-                                    }
-
-                                    token_stream
-                                }
-                            },
-                            RangeTokenStream::Outside {
-                                min,
-                                max,
-                                inclusive,
-                                equal,
-                            } => {
-                                if *equal {
-                                    quote! {
-                                        if u == #min {
-                                            return Err(#error_path::Forbidden);
                                         }
-                                    }
-                                } else {
-                                    match min {
-                                        Some(min) => match max {
-                                            Some(max) => {
-                                                if *inclusive {
-                                                    quote! {
-                                                        if (#min..=#max).contains(&i) {
-                                                            return Err(#error_path::Forbidden);
-                                                        }
-                                                    }
-                                                } else {
-                                                    quote! {
-                                                        if (#min..#max).contains(&i) {
-                                                            return Err(#error_path::Forbidden);
-                                                        }
-                                                    }
+                                    },
+                                    None => {
+                                        quote! {
+                                            if u >= #min {
+                                                return Err(#error_path::Forbidden);
+                                            }
+                                        }
+                                    },
+                                },
+                                None => match max {
+                                    Some(max) => {
+                                        if *inclusive {
+                                            quote! {
+                                                if u <= #max {
+                                                    return Err(#error_path::Forbidden);
                                                 }
-                                            },
-                                            None => {
-                                                quote! {
-                                                    if u >= #min {
-                                                        return Err(#error_path::Forbidden);
-                                                    }
+                                            }
+                                        } else {
+                                            quote! {
+                                                if u < #max {
+                                                    return Err(#error_path::Forbidden);
                                                 }
-                                            },
-                                        },
-                                        None => match max {
-                                            Some(max) => {
-                                                if *inclusive {
-                                                    quote! {
-                                                        if u <= #max {
-                                                            return Err(#error_path::Forbidden);
-                                                        }
-                                                    }
-                                                } else {
-                                                    quote! {
-                                                        if u < #max {
-                                                            return Err(#error_path::Forbidden);
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            None => {
-                                                quote! {}
-                                            },
-                                        },
-                                    }
-                                }
-                            },
-                            RangeTokenStream::Unlimited => quote! {},
-                        }
-                    };
-
-                    token_stream.extend(quote! {
-                        impl #name {
-                            fn v_parse_str(s: &str) -> Result<#data_type, #error_path> {
-                                use ::core::str::FromStr;
-
-                                let u = FromStr::from_str(s)?;
-
-                                Self::v_parse_u(u)?;
-
-                                Ok(u)
-                            }
-
-                            fn v_parse_u(u: #data_type) -> Result<(), #error_path> {
-                                #handle_range
-
-                                Ok(())
+                                            }
+                                        }
+                                    },
+                                    None => {
+                                        quote! {}
+                                    },
+                                },
                             }
                         }
-                    });
+                    },
+                    RangeTokenStream::Unlimited => quote! {},
+                }
+            };
 
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
+                impl #name {
+                    fn v_parse_str(s: &str) -> Result<#data_type, #error_path> {
+                        use ::core::str::FromStr;
+
+                        let u = FromStr::from_str(s)?;
+
+                        Self::v_parse_u(u)?;
+
+                        Ok(u)
+                    }
+
+                    fn v_parse_u(u: #data_type) -> Result<(), #error_path> {
+                        #handle_range
+
+                        Ok(())
+                    }
+                }
+            });
+
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -238,336 +235,336 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                         }
                     });
 
-                    token_stream.extend(match unsigned_integer_type {
-                        UnsignedIntegerType::U128 => {
-                            quote! {
-                                impl ValidateUnsignedInteger for #name {
-                                    type Error = #error_path;
+            token_stream.extend(match unsigned_integer_type {
+                UnsignedIntegerType::U128 => {
+                    quote! {
+                        impl ValidateUnsignedInteger for #name {
+                            type Error = #error_path;
 
-                                    #[inline]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        Self::v_parse_u(u)?;
+                            #[inline]
+                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                                Self::v_parse_u(u)?;
 
-                                        Ok(Self(u))
-                                    }
+                                Ok(Self(u))
+                            }
 
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        Self::v_parse_u(u)?;
+                            #[inline]
+                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                                Self::v_parse_u(u)?;
 
-                                        Ok(())
-                                    }
+                                Ok(())
+                            }
+                        }
+                    }
+                },
+                UnsignedIntegerType::U64 => {
+                    quote! {
+                        impl ValidateUnsignedInteger for #name {
+                            type Error = #error_path;
+
+                            #[inline]
+                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                                if u > u64::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::parse_u64(u as u64)
                                 }
                             }
-                        },
-                        UnsignedIntegerType::U64 => {
-                            quote! {
-                                impl ValidateUnsignedInteger for #name {
-                                    type Error = #error_path;
 
-                                    #[inline]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        if u > u64::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::parse_u64(u as u64)
-                                        }
-                                    }
-
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        if u > u64::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::validate_u64(u as u64)
-                                        }
-                                    }
-
-                                    #[inline]
-                                    fn parse_u64(u: u64) -> Result<Self, Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(Self(u))
-                                    }
-
-                                    #[inline]
-                                    fn validate_u64(u: u64) -> Result<(), Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(())
-                                    }
+                            #[inline]
+                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                                if u > u64::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::validate_u64(u as u64)
                                 }
                             }
-                        },
-                        UnsignedIntegerType::U32 => {
-                            quote! {
-                                impl ValidateUnsignedInteger for #name {
-                                    type Error = #error_path;
 
-                                    #[inline]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        if u > u32::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::parse_u32(u as u32)
-                                        }
-                                    }
+                            #[inline]
+                            fn parse_u64(u: u64) -> Result<Self, Self::Error> {
+                                Self::v_parse_u(u)?;
 
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        if u > u32::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::validate_u32(u as u32)
-                                        }
-                                    }
+                                Ok(Self(u))
+                            }
 
-                                    #[inline]
-                                    fn parse_u32(u: u32) -> Result<Self, Self::Error> {
-                                        Self::v_parse_u(u)?;
+                            #[inline]
+                            fn validate_u64(u: u64) -> Result<(), Self::Error> {
+                                Self::v_parse_u(u)?;
 
-                                        Ok(Self(u))
-                                    }
+                                Ok(())
+                            }
+                        }
+                    }
+                },
+                UnsignedIntegerType::U32 => {
+                    quote! {
+                        impl ValidateUnsignedInteger for #name {
+                            type Error = #error_path;
 
-                                    #[inline]
-                                    fn validate_u32(u: u32) -> Result<(), Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(())
-                                    }
+                            #[inline]
+                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                                if u > u32::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::parse_u32(u as u32)
                                 }
                             }
-                        },
-                        UnsignedIntegerType::U16 => {
-                            quote! {
-                                impl ValidateUnsignedInteger for #name {
-                                    type Error = #error_path;
 
-                                    #[inline]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        if u > u16::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::parse_u16(u as u16)
-                                        }
-                                    }
-
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        if u > u16::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::validate_u16(u as u16)
-                                        }
-                                    }
-
-                                    #[inline]
-                                    fn parse_u16(u: u16) -> Result<Self, Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(Self(u))
-                                    }
-
-                                    #[inline]
-                                    fn validate_u16(u: u16) -> Result<(), Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(())
-                                    }
+                            #[inline]
+                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                                if u > u32::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::validate_u32(u as u32)
                                 }
                             }
-                        },
-                        UnsignedIntegerType::U8 => {
-                            quote! {
-                                impl ValidateUnsignedInteger for #name {
-                                    type Error = #error_path;
 
-                                    #[inline]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        if u > u8::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::parse_u8(u as u8)
-                                        }
-                                    }
+                            #[inline]
+                            fn parse_u32(u: u32) -> Result<Self, Self::Error> {
+                                Self::v_parse_u(u)?;
 
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        if u > u8::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::validate_u8(u as u8)
-                                        }
-                                    }
+                                Ok(Self(u))
+                            }
 
-                                    #[inline]
-                                    fn parse_u8(u: u8) -> Result<Self, Self::Error> {
-                                        Self::v_parse_u(u)?;
+                            #[inline]
+                            fn validate_u32(u: u32) -> Result<(), Self::Error> {
+                                Self::v_parse_u(u)?;
 
-                                        Ok(Self(u))
-                                    }
+                                Ok(())
+                            }
+                        }
+                    }
+                },
+                UnsignedIntegerType::U16 => {
+                    quote! {
+                        impl ValidateUnsignedInteger for #name {
+                            type Error = #error_path;
 
-                                    #[inline]
-                                    fn validate_u8(u: u8) -> Result<(), Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(())
-                                    }
+                            #[inline]
+                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                                if u > u16::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::parse_u16(u as u16)
                                 }
                             }
-                        },
-                        UnsignedIntegerType::Usize => {
-                            quote! {
-                                impl ValidateUnsignedInteger for #name {
-                                    type Error = #error_path;
 
-                                    #[allow(unexpected_cfgs)]
-                                    #[inline]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        if u > usize::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::parse_usize(u as usize)
-                                        }
-                                    }
-
-                                    #[allow(unexpected_cfgs)]
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
-                                        if u > usize::MAX as u128 {
-                                            Err(#error_path::TooLarge)
-                                        } else {
-                                            Self::validate_usize(u as usize)
-                                        }
-                                    }
-
-                                    #[inline]
-                                    fn parse_usize(u: usize) -> Result<Self, Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(Self(u))
-                                    }
-
-                                    #[inline]
-                                    fn validate_usize(u: usize) -> Result<(), Self::Error> {
-                                        Self::v_parse_u(u)?;
-
-                                        Ok(())
-                                    }
-
-                                    #[cfg(target_pointer_width = "16")]
-                                    #[inline]
-                                    fn parse_u16(u: u16) -> Result<Self, Self::Error> {
-                                        Self::parse_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "32")]
-                                    #[inline]
-                                    fn parse_u32(u: u32) -> Result<Self, Self::Error> {
-                                        Self::parse_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "64")]
-                                    #[inline]
-                                    fn parse_u64(u: u64) -> Result<Self, Self::Error> {
-                                        Self::parse_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "16")]
-                                    #[inline]
-                                    fn validate_u16(u: u16) -> Result<(), Self::Error> {
-                                        Self::validate_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "32")]
-                                    #[inline]
-                                    fn validate_u32(u: u32) -> Result<(), Self::Error> {
-                                        Self::validate_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "64")]
-                                    #[inline]
-                                    fn validate_u64(u: u64) -> Result<(), Self::Error> {
-                                        Self::validate_usize(u as usize)
-                                    }
+                            #[inline]
+                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                                if u > u16::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::validate_u16(u as u16)
                                 }
                             }
-                        },
+
+                            #[inline]
+                            fn parse_u16(u: u16) -> Result<Self, Self::Error> {
+                                Self::v_parse_u(u)?;
+
+                                Ok(Self(u))
+                            }
+
+                            #[inline]
+                            fn validate_u16(u: u16) -> Result<(), Self::Error> {
+                                Self::v_parse_u(u)?;
+
+                                Ok(())
+                            }
+                        }
+                    }
+                },
+                UnsignedIntegerType::U8 => {
+                    quote! {
+                        impl ValidateUnsignedInteger for #name {
+                            type Error = #error_path;
+
+                            #[inline]
+                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                                if u > u8::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::parse_u8(u as u8)
+                                }
+                            }
+
+                            #[inline]
+                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                                if u > u8::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::validate_u8(u as u8)
+                                }
+                            }
+
+                            #[inline]
+                            fn parse_u8(u: u8) -> Result<Self, Self::Error> {
+                                Self::v_parse_u(u)?;
+
+                                Ok(Self(u))
+                            }
+
+                            #[inline]
+                            fn validate_u8(u: u8) -> Result<(), Self::Error> {
+                                Self::v_parse_u(u)?;
+
+                                Ok(())
+                            }
+                        }
+                    }
+                },
+                UnsignedIntegerType::Usize => {
+                    quote! {
+                        impl ValidateUnsignedInteger for #name {
+                            type Error = #error_path;
+
+                            #[allow(unexpected_cfgs)]
+                            #[inline]
+                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                                if u > usize::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::parse_usize(u as usize)
+                                }
+                            }
+
+                            #[allow(unexpected_cfgs)]
+                            #[inline]
+                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                                if u > usize::MAX as u128 {
+                                    Err(#error_path::TooLarge)
+                                } else {
+                                    Self::validate_usize(u as usize)
+                                }
+                            }
+
+                            #[inline]
+                            fn parse_usize(u: usize) -> Result<Self, Self::Error> {
+                                Self::v_parse_u(u)?;
+
+                                Ok(Self(u))
+                            }
+
+                            #[inline]
+                            fn validate_usize(u: usize) -> Result<(), Self::Error> {
+                                Self::v_parse_u(u)?;
+
+                                Ok(())
+                            }
+
+                            #[cfg(target_pointer_width = "16")]
+                            #[inline]
+                            fn parse_u16(u: u16) -> Result<Self, Self::Error> {
+                                Self::parse_usize(u as usize)
+                            }
+
+                            #[cfg(target_pointer_width = "32")]
+                            #[inline]
+                            fn parse_u32(u: u32) -> Result<Self, Self::Error> {
+                                Self::parse_usize(u as usize)
+                            }
+
+                            #[cfg(target_pointer_width = "64")]
+                            #[inline]
+                            fn parse_u64(u: u64) -> Result<Self, Self::Error> {
+                                Self::parse_usize(u as usize)
+                            }
+
+                            #[cfg(target_pointer_width = "16")]
+                            #[inline]
+                            fn validate_u16(u: u16) -> Result<(), Self::Error> {
+                                Self::validate_usize(u as usize)
+                            }
+
+                            #[cfg(target_pointer_width = "32")]
+                            #[inline]
+                            fn validate_u32(u: u32) -> Result<(), Self::Error> {
+                                Self::validate_usize(u as usize)
+                            }
+
+                            #[cfg(target_pointer_width = "64")]
+                            #[inline]
+                            fn validate_u64(u: u64) -> Result<(), Self::Error> {
+                                Self::validate_usize(u as usize)
+                            }
+                        }
+                    }
+                },
+            });
+
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
+                        impl validators_prelude::serde::Serialize for #name {
+                            #[inline]
+                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                where
+                                    S: validators_prelude::serde::Serializer, {
+                                validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                            }
+                        }
                     });
+                }
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
-                                impl validators_prelude::serde::Serialize for #name {
-                                    #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                                        where
-                                            S: validators_prelude::serde::Serializer, {
-                                        validators_prelude::serde::Serialize::serialize(&self.0, serializer)
-                                    }
+                if type_attribute.serde_options.deserialize {
+                    use std::fmt::Write;
+
+                    let expect = {
+                        let mut s = String::from("a unsigned integer");
+
+                        match &type_attribute.range {
+                            RangeTokenStream::Inside {
+                                min,
+                                max,
+                                inclusive,
+                                equal: _,
+                            } => {
+                                s.push_str(" in ");
+
+                                if let Some(min) = min {
+                                    s.write_fmt(format_args!("{min}")).unwrap();
                                 }
-                            });
+
+                                s.push_str("..");
+
+                                if let Some(max) = max {
+                                    if *inclusive {
+                                        s.push('=');
+                                    }
+
+                                    s.write_fmt(format_args!("{max}")).unwrap();
+                                }
+                            },
+                            RangeTokenStream::Outside {
+                                min,
+                                max,
+                                inclusive,
+                                equal: _,
+                            } => {
+                                s.push_str(" not in ");
+
+                                if let Some(min) = min {
+                                    s.write_fmt(format_args!("{min}")).unwrap();
+                                }
+
+                                s.push_str("..");
+
+                                if let Some(max) = max {
+                                    if *inclusive {
+                                        s.push('=');
+                                    }
+
+                                    s.write_fmt(format_args!("{max}")).unwrap();
+                                }
+                            },
+                            RangeTokenStream::Unlimited => (),
                         }
 
-                        if type_attribute.serde_options.deserialize {
-                            use std::fmt::Write;
+                        s
+                    };
 
-                            let expect = {
-                                let mut s = String::from("a unsigned integer");
-
-                                match &type_attribute.range {
-                                    RangeTokenStream::Inside {
-                                        min,
-                                        max,
-                                        inclusive,
-                                        equal: _,
-                                    } => {
-                                        s.push_str(" in ");
-
-                                        if let Some(min) = min {
-                                            s.write_fmt(format_args!("{min}")).unwrap();
-                                        }
-
-                                        s.push_str("..");
-
-                                        if let Some(max) = max {
-                                            if *inclusive {
-                                                s.push('=');
-                                            }
-
-                                            s.write_fmt(format_args!("{max}")).unwrap();
-                                        }
-                                    },
-                                    RangeTokenStream::Outside {
-                                        min,
-                                        max,
-                                        inclusive,
-                                        equal: _,
-                                    } => {
-                                        s.push_str(" not in ");
-
-                                        if let Some(min) = min {
-                                            s.write_fmt(format_args!("{min}")).unwrap();
-                                        }
-
-                                        s.push_str("..");
-
-                                        if let Some(max) = max {
-                                            if *inclusive {
-                                                s.push('=');
-                                            }
-
-                                            s.write_fmt(format_args!("{max}")).unwrap();
-                                        }
-                                    },
-                                    RangeTokenStream::Unlimited => (),
-                                }
-
-                                s
-                            };
-
-                            token_stream.extend(quote! {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -636,26 +633,22 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

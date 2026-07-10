@@ -1,6 +1,6 @@
 use quote::quote;
 use regex::Regex;
-use syn::{punctuated::Punctuated, spanned::Spanned, Expr, ExprLit, Lit, Meta, Token};
+use syn::{Expr, ExprLit, Lit, Meta, Token, punctuated::Punctuated, spanned::Spanned};
 
 use crate::{
     common::{rocket_options::RocketOptions, serde_options::SerdeOptions},
@@ -131,7 +131,7 @@ fn meta_2_regex_expr(meta: &Meta) -> syn::Result<Expr> {
                 expr_lit_2_regex_expr(lit)
             } else {
                 Ok(name_value.value.clone())
-            }
+            };
         },
         Meta::List(list) => {
             let expr: Expr = list.parse_args()?;

@@ -1,4 +1,4 @@
-use syn::{spanned::Spanned, Expr, Lit, LitBool, Meta};
+use syn::{Expr, Lit, LitBool, Meta, spanned::Spanned};
 
 use crate::common::path_to_string;
 
@@ -14,9 +14,10 @@ pub(crate) fn meta_2_bool(meta: &Meta) -> syn::Result<bool> {
             Expr::Group(group) => {
                 // should not use this, but macro rules will end up here...
                 if let Expr::Lit(lit) = group.expr.as_ref()
-                    && let Lit::Bool(lit) = &lit.lit {
-                        return Ok(lit.value);
-                    }
+                    && let Lit::Bool(lit) = &lit.lit
+                {
+                    return Ok(lit.value);
+                }
             },
             _ => (),
         },

@@ -21,124 +21,124 @@ impl ValidatorHandler for Base32Handler {
 
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
-                && data.fields.len() == 1 {
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            && data.fields.len() == 1
+        {
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::Base32Error }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::Base32Error }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let v_padding = type_attribute.padding;
+            #[cfg(feature = "test")]
+            {
+                let v_padding = type_attribute.padding;
 
-                        token_stream.extend(quote! {
-                            impl #name {
-                                pub(crate) const V_PADDING: validators_prelude::TriAllow = #v_padding;
+                token_stream.extend(quote! {
+                    impl #name {
+                        pub(crate) const V_PADDING: validators_prelude::TriAllow = #v_padding;
+                    }
+                });
+            }
+
+            let check_last_length = if type_attribute.padding.must() {
+                quote! {
+                    if last_length != 8 {
+                        return Err(#error_path::PaddingMust);
+                    }
+                }
+            } else {
+                quote! {}
+            };
+
+            let handle_padding = if type_attribute.padding.disallow() {
+                quote! {
+                    return Err(#error_path::PaddingDisallow);
+                }
+            } else {
+                quote! {
+                    match p {
+                        2 | 4 | 5 | 7 => {
+                            if last_length != 8 {
+                                // has padding
+                                return Err(#error_path::Invalid);
                             }
-                        });
+
+                            for e in last_bytes[p + 1..].iter().copied() {
+                                if e != b'=' {
+                                    return Err(#error_path::Invalid);
+                                }
+                            }
+
+                            return Ok(());
+                        }
+                        _ => return Err(#error_path::Invalid),
+                    }
+                }
+            };
+
+            token_stream.extend(quote! {
+                impl #name {
+                    #[inline]
+                    fn v_parse_str(s: &str) -> Result<(), #error_path> {
+                        Self::v_parse_u8_slice(s.as_bytes())
                     }
 
-                    let check_last_length = if type_attribute.padding.must() {
-                        quote! {
-                            if last_length != 8 {
-                                return Err(#error_path::PaddingMust);
+                    fn v_parse_u8_slice(v: &[u8]) -> Result<(), #error_path> {
+                        let length = v.len();
+
+                        if length == 0 {
+                            return Err(#error_path::Invalid);
+                        }
+
+                        let last_length = {
+                            let l = length & 0b111;
+
+                            if l == 0 {
+                                8
+                            } else {
+                                l
                             }
-                        }
-                    } else {
-                        quote! {}
-                    };
+                        };
 
-                    let handle_padding = if type_attribute.padding.disallow() {
-                        quote! {
-                            return Err(#error_path::PaddingDisallow);
-                        }
-                    } else {
-                        quote! {
-                            match p {
-                                2 | 4 | 5 | 7 => {
-                                    if last_length != 8 {
-                                        // has padding
-                                        return Err(#error_path::Invalid);
-                                    }
+                        #check_last_length
 
-                                    for e in last_bytes[p + 1..].iter().copied() {
-                                        if e != b'=' {
-                                            return Err(#error_path::Invalid);
-                                        }
-                                    }
+                        let last_bytes = if length > 8 {
+                            for e in v.iter().copied().take(length - last_length) {
+                                match e {
+                                    b'A'..=b'Z' | b'2'..=b'7' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
 
-                                    return Ok(());
+                            &v[(length - last_length)..]
+                        } else {
+                            v.as_ref()
+                        };
+
+                        let mut p = 0;
+
+                        loop {
+                            if p == last_length {
+                                return Ok(());
+                            }
+
+                            let e = last_bytes[p];
+
+                            match e {
+                                b'A'..=b'Z' | b'2'..=b'7' => (),
+                                b'=' => {
+                                    #handle_padding
                                 }
                                 _ => return Err(#error_path::Invalid),
                             }
+
+                            p += 1;
                         }
-                    };
+                    }
+                }
+            });
 
-                    token_stream.extend(quote! {
-                        impl #name {
-                            #[inline]
-                            fn v_parse_str(s: &str) -> Result<(), #error_path> {
-                                Self::v_parse_u8_slice(s.as_bytes())
-                            }
-
-                            fn v_parse_u8_slice(v: &[u8]) -> Result<(), #error_path> {
-                                let length = v.len();
-
-                                if length == 0 {
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                let last_length = {
-                                    let l = length & 0b111;
-
-                                    if l == 0 {
-                                        8
-                                    } else {
-                                        l
-                                    }
-                                };
-
-                                #check_last_length
-
-                                let last_bytes = if length > 8 {
-                                    for e in v.iter().copied().take(length - last_length) {
-                                        match e {
-                                            b'A'..=b'Z' | b'2'..=b'7' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-
-                                    &v[(length - last_length)..]
-                                } else {
-                                    v.as_ref()
-                                };
-
-                                let mut p = 0;
-
-                                loop {
-                                    if p == last_length {
-                                        return Ok(());
-                                    }
-
-                                    let e = last_bytes[p];
-
-                                    match e {
-                                        b'A'..=b'Z' | b'2'..=b'7' => (),
-                                        b'=' => {
-                                            #handle_padding
-                                        }
-                                        _ => return Err(#error_path::Invalid),
-                                    }
-
-                                    p += 1;
-                                }
-                            }
-                        }
-                    });
-
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -198,31 +198,31 @@ impl ValidatorHandler for Base32Handler {
                         }
                     });
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
-                                impl validators_prelude::serde::Serialize for #name {
-                                    #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                                        where
-                                            S: validators_prelude::serde::Serializer, {
-                                        serializer.serialize_str(self.0.as_str())
-                                    }
-                                }
-                            });
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
+                        impl validators_prelude::serde::Serialize for #name {
+                            #[inline]
+                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                where
+                                    S: validators_prelude::serde::Serializer, {
+                                serializer.serialize_str(self.0.as_str())
+                            }
                         }
+                    });
+                }
 
-                        if type_attribute.serde_options.deserialize {
-                            use crate::common::tri_allow::TriAllow;
+                if type_attribute.serde_options.deserialize {
+                    use crate::common::tri_allow::TriAllow;
 
-                            let expect = match type_attribute.padding {
-                                TriAllow::Allow => "a Base32 string or data",
-                                TriAllow::Must => "a Base32 string or data with padding",
-                                TriAllow::Disallow => "a Base32 string or data without padding",
-                            };
+                    let expect = match type_attribute.padding {
+                        TriAllow::Allow => "a Base32 string or data",
+                        TriAllow::Must => "a Base32 string or data with padding",
+                        TriAllow::Disallow => "a Base32 string or data without padding",
+                    };
 
-                            token_stream.extend(quote! {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -271,26 +271,22 @@ impl ValidatorHandler for Base32Handler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

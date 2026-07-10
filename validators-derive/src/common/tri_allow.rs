@@ -1,5 +1,5 @@
 use proc_macro2::Ident;
-use syn::{spanned::Spanned, Expr, Meta};
+use syn::{Expr, Meta, spanned::Spanned};
 
 use crate::common::path_to_string;
 
@@ -57,9 +57,10 @@ impl TriAllow {
         match meta {
             Meta::NameValue(name_value) => {
                 if let Expr::Path(path) = &name_value.value
-                    && let Some(ident) = path.path.get_ident() {
-                        return Self::from_ident(ident);
-                    }
+                    && let Some(ident) = path.path.get_ident()
+                {
+                    return Self::from_ident(ident);
+                }
             },
             Meta::List(list) => {
                 if let Ok(ident) = list.parse_args::<Ident>() {

@@ -24,73 +24,73 @@ impl ValidatorHandler for BitHandler {
 
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
-                && data.fields.len() == 1 {
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            && data.fields.len() == 1
+        {
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::BitError }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::BitError }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let v_range = &type_attribute.range;
+            #[cfg(feature = "test")]
+            {
+                let v_range = &type_attribute.range;
 
-                        token_stream.extend(quote! {
-                            impl #name {
-                                pub(crate) const V_RANGE: validators_prelude::RangeOption<u128> = #v_range;
-                            }
-                        });
+                token_stream.extend(quote! {
+                    impl #name {
+                        pub(crate) const V_RANGE: validators_prelude::RangeOption<u128> = #v_range;
                     }
+                });
+            }
 
-                    let equal = range_equal(
-                        type_attribute.range.min,
-                        type_attribute.range.max,
-                        type_attribute.range.inclusive,
-                    );
+            let equal = range_equal(
+                type_attribute.range.min,
+                type_attribute.range.max,
+                type_attribute.range.inclusive,
+            );
 
-                    let handle_range = if equal {
-                        let min = type_attribute.range.min.unwrap();
+            let handle_range = if equal {
+                let min = type_attribute.range.min.unwrap();
 
+                quote! {
+                    match ::core::cmp::PartialOrd::partial_cmp(&v, &#min) {
+                        Some(::core::cmp::Ordering::Equal) => (),
+                        Some(::core::cmp::Ordering::Less) => return Err(#error_path::TooSmall),
+                        Some(::core::cmp::Ordering::Greater) => return Err(#error_path::TooLarge),
+                        None => unreachable!(),
+                    }
+                }
+            } else {
+                let mut token_stream = proc_macro2::TokenStream::new();
+
+                if let Some(min) = type_attribute.range.min {
+                    token_stream.extend(quote! {
+                        if v < #min {
+                            return Err(#error_path::TooSmall);
+                        }
+                    });
+                }
+
+                if let Some(max) = type_attribute.range.max {
+                    token_stream.extend(if type_attribute.range.inclusive {
                         quote! {
-                            match ::core::cmp::PartialOrd::partial_cmp(&v, &#min) {
-                                Some(::core::cmp::Ordering::Equal) => (),
-                                Some(::core::cmp::Ordering::Less) => return Err(#error_path::TooSmall),
-                                Some(::core::cmp::Ordering::Greater) => return Err(#error_path::TooLarge),
-                                None => unreachable!(),
+                            if v > #max {
+                                return Err(#error_path::TooLarge);
                             }
                         }
                     } else {
-                        let mut token_stream = proc_macro2::TokenStream::new();
-
-                        if let Some(min) = type_attribute.range.min {
-                            token_stream.extend(quote! {
-                                if v < #min {
-                                    return Err(#error_path::TooSmall);
-                                }
-                            });
+                        quote! {
+                            if v >= #max {
+                                return Err(#error_path::TooLarge);
+                            }
                         }
+                    });
+                }
 
-                        if let Some(max) = type_attribute.range.max {
-                            token_stream.extend(if type_attribute.range.inclusive {
-                                quote! {
-                                    if v > #max {
-                                        return Err(#error_path::TooLarge);
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    if v >= #max {
-                                        return Err(#error_path::TooLarge);
-                                    }
-                                }
-                            });
-                        }
+                token_stream
+            };
 
-                        token_stream
-                    };
-
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl #name {
                             fn v_parse_str(s: &str) -> Result<validators_prelude::byte_unit::Bit, #error_path> {
                                 let v = validators_prelude::byte_unit::Bit::parse_str(s)?;
@@ -108,7 +108,7 @@ impl ValidatorHandler for BitHandler {
                         }
                     });
 
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -131,7 +131,7 @@ impl ValidatorHandler for BitHandler {
                         }
                     });
 
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
 
@@ -173,23 +173,23 @@ impl ValidatorHandler for BitHandler {
                         }
                     });
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
-                                impl validators_prelude::serde::Serialize for #name {
-                                    #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                                        where
-                                            S: validators_prelude::serde::Serializer, {
-                                        validators_prelude::serde::Serialize::serialize(&self.0, serializer)
-                                    }
-                                }
-                            });
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
+                        impl validators_prelude::serde::Serialize for #name {
+                            #[inline]
+                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                where
+                                    S: validators_prelude::serde::Serializer, {
+                                validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                            }
                         }
+                    });
+                }
 
-                        if type_attribute.serde_options.deserialize {
-                            token_stream.extend(quote! {
+                if type_attribute.serde_options.deserialize {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -203,26 +203,22 @@ impl ValidatorHandler for BitHandler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

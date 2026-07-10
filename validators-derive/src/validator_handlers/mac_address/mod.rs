@@ -24,240 +24,241 @@ impl ValidatorHandler for MacAddressHandler {
 
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
-                && data.fields.len() == 1 {
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            && data.fields.len() == 1
+        {
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::MacAddressError }).unwrap();
+            let error_path: Path =
+                syn::parse2(quote! { validators_prelude::MacAddressError }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let v_case = type_attribute.case;
-                        let v_separator = type_attribute.separator;
+            #[cfg(feature = "test")]
+            {
+                let v_case = type_attribute.case;
+                let v_separator = type_attribute.separator;
 
-                        token_stream.extend(quote! {
+                token_stream.extend(quote! {
                             impl #name {
                                 pub(crate) const V_CASE: validators_prelude::CaseOption = #v_case;
                                 pub(crate) const V_SEPARATOR: validators_prelude::SeparatorOption = #v_separator;
                             }
                         });
+            }
+
+            let handle_iter = {
+                match type_attribute.separator {
+                    SeparatorOption::Allow(separator) => {
+                        quote! {
+                            if !(12..=17).contains(&length) {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            let first = &bytes[0..2];
+
+                            let mut no_colon_counter = if bytes[2] != #separator {
+                                1
+                            } else {
+                                0
+                            };
+
+                            let second = &bytes[(3 - no_colon_counter)..(5 - no_colon_counter)];
+
+                            if bytes[5 - no_colon_counter] != #separator {
+                                no_colon_counter += 1;
+                            }
+
+                            let third = &bytes[(6 - no_colon_counter)..(8 - no_colon_counter)];
+
+                            if bytes[8 - no_colon_counter] != #separator {
+                                no_colon_counter += 1;
+                            }
+
+                            let forth = &bytes[(9 - no_colon_counter)..(11 - no_colon_counter)];
+
+                            if bytes[11 - no_colon_counter] != #separator {
+                                no_colon_counter += 1;
+                            }
+
+                            let fifth = &bytes[(12 - no_colon_counter)..(14 - no_colon_counter)];
+
+                            if bytes[14 - no_colon_counter] != #separator {
+                                no_colon_counter += 1;
+                            }
+
+                            let sixth = &bytes[(15 - no_colon_counter)..];
+
+                            if sixth.len() != 2 {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
+                        }
+                    },
+                    SeparatorOption::Must(separator) => {
+                        quote! {
+                            if length != 17 {
+                                return Err(#error_path::SeparatorMust);
+                            }
+
+                            if bytes[2] != #separator
+                                || bytes[5] != #separator
+                                || bytes[8] != #separator
+                                || bytes[11] != #separator
+                                || bytes[14] != #separator
+                            {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            let first = &bytes[0..2];
+                            let second = &bytes[3..5];
+                            let third = &bytes[6..8];
+                            let forth = &bytes[9..11];
+                            let fifth = &bytes[12..14];
+                            let sixth = &bytes[15..];
+
+                            first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
+                        }
+                    },
+                    SeparatorOption::Disallow => {
+                        quote! {
+                            if length != 12 {
+                                return Err(#error_path::SeparatorDisallow);
+                            }
+
+                            bytes.iter().copied()
+                        }
+                    },
+                }
+            };
+
+            let handle_decode = {
+                match type_attribute.case {
+                    CaseOption::Any => {
+                        quote! {
+                            for e in iter {
+                                mac_address_decoded <<= 4;
+
+                                match e {
+                                    b'0'..=b'9' => {
+                                        mac_address_decoded |= u64::from(e - b'0');
+                                    }
+                                    b'a'..=b'f' => {
+                                        mac_address_decoded |= u64::from(e - (b'a' - 10));
+                                    }
+                                    b'A'..=b'F' => {
+                                        mac_address_decoded |= u64::from(e - (b'A' - 10));
+                                    }
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Upper => {
+                        quote! {
+                            for e in iter {
+                                mac_address_decoded <<= 4;
+
+                                match e {
+                                    b'0'..=b'9' => {
+                                        mac_address_decoded |= u64::from(e - b'0');
+                                    }
+                                    b'A'..=b'F' => {
+                                        mac_address_decoded |= u64::from(e - (b'A' - 10));
+                                    }
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Lower => {
+                        quote! {
+                            for e in iter {
+                                mac_address_decoded <<= 4;
+
+                                match e {
+                                    b'0'..=b'9' => {
+                                        mac_address_decoded |= u64::from(e - b'0');
+                                    }
+                                    b'a'..=b'f' => {
+                                        mac_address_decoded |= u64::from(e - (b'a' - 10));
+                                    }
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                }
+            };
+
+            let handle_check = {
+                match type_attribute.case {
+                    CaseOption::Any => {
+                        quote! {
+                            for e in iter {
+                                match e {
+                                    b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Upper => {
+                        quote! {
+                            for e in iter {
+                                match e {
+                                    b'0'..=b'9' | b'A'..=b'F' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                    CaseOption::Lower => {
+                        quote! {
+                            for e in iter {
+                                match e {
+                                    b'0'..=b'9' | b'a'..=b'f' => (),
+                                    _ => return Err(#error_path::Invalid),
+                                }
+                            }
+                        }
+                    },
+                }
+            };
+
+            token_stream.extend(quote! {
+                impl #name {
+                    fn v_parse_str(s: &str) -> Result<u64, #error_path> {
+                        let bytes = s.as_bytes();
+                        let length = bytes.len();
+
+                        let iter = {
+                            #handle_iter
+                        };
+
+                        let mut mac_address_decoded = 0u64;
+
+                        #handle_decode
+
+                        Ok(mac_address_decoded)
                     }
 
-                    let handle_iter = {
-                        match type_attribute.separator {
-                            SeparatorOption::Allow(separator) => {
-                                quote! {
-                                    if !(12..=17).contains(&length) {
-                                        return Err(#error_path::Invalid);
-                                    }
+                    fn v_validate_str(s: &str) -> Result<(), #error_path> {
+                        let bytes = s.as_bytes();
+                        let length = bytes.len();
 
-                                    let first = &bytes[0..2];
+                        let iter = {
+                            #handle_iter
+                        };
 
-                                    let mut no_colon_counter = if bytes[2] != #separator {
-                                        1
-                                    } else {
-                                        0
-                                    };
+                        #handle_check
 
-                                    let second = &bytes[(3 - no_colon_counter)..(5 - no_colon_counter)];
+                        Ok(())
+                    }
+                }
+            });
 
-                                    if bytes[5 - no_colon_counter] != #separator {
-                                        no_colon_counter += 1;
-                                    }
-
-                                    let third = &bytes[(6 - no_colon_counter)..(8 - no_colon_counter)];
-
-                                    if bytes[8 - no_colon_counter] != #separator {
-                                        no_colon_counter += 1;
-                                    }
-
-                                    let forth = &bytes[(9 - no_colon_counter)..(11 - no_colon_counter)];
-
-                                    if bytes[11 - no_colon_counter] != #separator {
-                                        no_colon_counter += 1;
-                                    }
-
-                                    let fifth = &bytes[(12 - no_colon_counter)..(14 - no_colon_counter)];
-
-                                    if bytes[14 - no_colon_counter] != #separator {
-                                        no_colon_counter += 1;
-                                    }
-
-                                    let sixth = &bytes[(15 - no_colon_counter)..];
-
-                                    if sixth.len() != 2 {
-                                        return Err(#error_path::Invalid);
-                                    }
-
-                                    first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
-                                }
-                            },
-                            SeparatorOption::Must(separator) => {
-                                quote! {
-                                    if length != 17 {
-                                        return Err(#error_path::SeparatorMust);
-                                    }
-
-                                    if bytes[2] != #separator
-                                        || bytes[5] != #separator
-                                        || bytes[8] != #separator
-                                        || bytes[11] != #separator
-                                        || bytes[14] != #separator
-                                    {
-                                        return Err(#error_path::Invalid);
-                                    }
-
-                                    let first = &bytes[0..2];
-                                    let second = &bytes[3..5];
-                                    let third = &bytes[6..8];
-                                    let forth = &bytes[9..11];
-                                    let fifth = &bytes[12..14];
-                                    let sixth = &bytes[15..];
-
-                                    first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
-                                }
-                            },
-                            SeparatorOption::Disallow => {
-                                quote! {
-                                    if length != 12 {
-                                        return Err(#error_path::SeparatorDisallow);
-                                    }
-
-                                    bytes.iter().copied()
-                                }
-                            },
-                        }
-                    };
-
-                    let handle_decode = {
-                        match type_attribute.case {
-                            CaseOption::Any => {
-                                quote! {
-                                    for e in iter {
-                                        mac_address_decoded <<= 4;
-
-                                        match e {
-                                            b'0'..=b'9' => {
-                                                mac_address_decoded |= u64::from(e - b'0');
-                                            }
-                                            b'a'..=b'f' => {
-                                                mac_address_decoded |= u64::from(e - (b'a' - 10));
-                                            }
-                                            b'A'..=b'F' => {
-                                                mac_address_decoded |= u64::from(e - (b'A' - 10));
-                                            }
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Upper => {
-                                quote! {
-                                    for e in iter {
-                                        mac_address_decoded <<= 4;
-
-                                        match e {
-                                            b'0'..=b'9' => {
-                                                mac_address_decoded |= u64::from(e - b'0');
-                                            }
-                                            b'A'..=b'F' => {
-                                                mac_address_decoded |= u64::from(e - (b'A' - 10));
-                                            }
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Lower => {
-                                quote! {
-                                    for e in iter {
-                                        mac_address_decoded <<= 4;
-
-                                        match e {
-                                            b'0'..=b'9' => {
-                                                mac_address_decoded |= u64::from(e - b'0');
-                                            }
-                                            b'a'..=b'f' => {
-                                                mac_address_decoded |= u64::from(e - (b'a' - 10));
-                                            }
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                        }
-                    };
-
-                    let handle_check = {
-                        match type_attribute.case {
-                            CaseOption::Any => {
-                                quote! {
-                                    for e in iter {
-                                        match e {
-                                            b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Upper => {
-                                quote! {
-                                    for e in iter {
-                                        match e {
-                                            b'0'..=b'9' | b'A'..=b'F' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                            CaseOption::Lower => {
-                                quote! {
-                                    for e in iter {
-                                        match e {
-                                            b'0'..=b'9' | b'a'..=b'f' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-                                }
-                            },
-                        }
-                    };
-
-                    token_stream.extend(quote! {
-                        impl #name {
-                            fn v_parse_str(s: &str) -> Result<u64, #error_path> {
-                                let bytes = s.as_bytes();
-                                let length = bytes.len();
-
-                                let iter = {
-                                    #handle_iter
-                                };
-
-                                let mut mac_address_decoded = 0u64;
-
-                                #handle_decode
-
-                                Ok(mac_address_decoded)
-                            }
-
-                            fn v_validate_str(s: &str) -> Result<(), #error_path> {
-                                let bytes = s.as_bytes();
-                                let length = bytes.len();
-
-                                let iter = {
-                                    #handle_iter
-                                };
-
-                                #handle_check
-
-                                Ok(())
-                            }
-                        }
-                    });
-
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -280,7 +281,7 @@ impl ValidatorHandler for MacAddressHandler {
                         }
                     });
 
-                    token_stream.extend(if type_attribute.case.upper() {
+            token_stream.extend(if type_attribute.case.upper() {
                         if let Some(separator) = type_attribute.separator.allow() {
                             quote! {
                                 impl ToMacAddressString for #name {
@@ -330,10 +331,10 @@ impl ValidatorHandler for MacAddressHandler {
                         }
                     });
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
                                 impl validators_prelude::serde::Serialize for #name {
                                     #[inline]
                                     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -343,48 +344,45 @@ impl ValidatorHandler for MacAddressHandler {
                                     }
                                 }
                             });
+                }
+
+                if type_attribute.serde_options.deserialize {
+                    use std::fmt::Write;
+
+                    let expect = {
+                        let mut s = String::from("a valid ");
+
+                        match type_attribute.case {
+                            CaseOption::Any => (),
+                            CaseOption::Upper => {
+                                s.push_str("upper-case ");
+                            },
+                            CaseOption::Lower => {
+                                s.push_str("lower-case ");
+                            },
                         }
 
-                        if type_attribute.serde_options.deserialize {
-                            use std::fmt::Write;
+                        s.push_str("MacAddress string");
 
-                            let expect = {
-                                let mut s = String::from("a valid ");
+                        match type_attribute.separator {
+                            SeparatorOption::Must(e) => {
+                                s.write_fmt(format_args!(" with separators {:?}", e as char))
+                                    .unwrap();
+                            },
+                            SeparatorOption::Allow(e) => {
+                                s.write_fmt(format_args!(
+                                    " with optional separators {:?}",
+                                    e as char
+                                ))
+                                .unwrap();
+                            },
+                            SeparatorOption::Disallow => s.push_str(" without separators"),
+                        }
 
-                                match type_attribute.case {
-                                    CaseOption::Any => (),
-                                    CaseOption::Upper => {
-                                        s.push_str("upper-case ");
-                                    },
-                                    CaseOption::Lower => {
-                                        s.push_str("lower-case ");
-                                    },
-                                }
+                        s
+                    };
 
-                                s.push_str("MacAddress string");
-
-                                match type_attribute.separator {
-                                    SeparatorOption::Must(e) => {
-                                        s.write_fmt(format_args!(
-                                            " with separators {:?}",
-                                            e as char
-                                        ))
-                                        .unwrap();
-                                    },
-                                    SeparatorOption::Allow(e) => {
-                                        s.write_fmt(format_args!(
-                                            " with optional separators {:?}",
-                                            e as char
-                                        ))
-                                        .unwrap();
-                                    },
-                                    SeparatorOption::Disallow => s.push_str(" without separators"),
-                                }
-
-                                s
-                            };
-
-                            token_stream.extend(quote! {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -412,26 +410,22 @@ impl ValidatorHandler for MacAddressHandler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

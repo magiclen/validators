@@ -1,9 +1,9 @@
 use std::{fmt::Display, ops::Add, str::FromStr};
 
 use quote::ToTokens;
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Token};
 #[cfg(feature = "full")]
 use syn::{Expr, ExprRange, RangeLimits};
+use syn::{Meta, Token, punctuated::Punctuated, spanned::Spanned};
 
 #[cfg(feature = "full")]
 use crate::common::number::expr_lit_2_number;
@@ -207,21 +207,22 @@ where
         }
 
         if let Some(min) = min
-            && let Some(max) = max {
-                if inclusive {
-                    if min > max {
-                        return Err(syn::Error::new(
-                            meta.path().span(),
-                            format!("{min} > {max} (min > max)"),
-                        ));
-                    }
-                } else if min >= max {
+            && let Some(max) = max
+        {
+            if inclusive {
+                if min > max {
                     return Err(syn::Error::new(
                         meta.path().span(),
-                        format!("{min} >= {max} (min >= max)"),
+                        format!("{min} > {max} (min > max)"),
                     ));
                 }
+            } else if min >= max {
+                return Err(syn::Error::new(
+                    meta.path().span(),
+                    format!("{min} >= {max} (min >= max)"),
+                ));
             }
+        }
 
         Ok(Self {
             min,

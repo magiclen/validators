@@ -14,10 +14,10 @@ mod validator_handlers;
 
 use proc_macro::TokenStream;
 use syn::{
+    DeriveInput, Meta,
     parse::{Parse, ParseStream},
     parse_macro_input,
     spanned::Spanned,
-    DeriveInput, Meta,
 };
 #[allow(unused)]
 use validator_handlers::ValidatorHandler;

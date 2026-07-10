@@ -1,7 +1,7 @@
 #![cfg(all(feature = "test", feature = "derive", feature = "phone"))]
 
 use validators::{
-    phonenumber::{country::Id, PhoneNumber},
+    phonenumber::{PhoneNumber, country::Id},
     prelude::*,
 };
 

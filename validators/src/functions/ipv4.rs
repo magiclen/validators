@@ -1,4 +1,4 @@
-use core::str::{from_utf8_unchecked, FromStr};
+use core::str::{FromStr, from_utf8_unchecked};
 use std::net::{AddrParseError, Ipv4Addr};
 
 /// Determine whether the input `Ipv4Addr` is local.

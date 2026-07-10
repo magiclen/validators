@@ -1,10 +1,10 @@
 use std::{fmt::Display, str::FromStr};
 
-use syn::{spanned::Spanned, Meta};
+use syn::{Meta, spanned::Spanned};
 
 use crate::common::{
     path_to_string,
-    range::{range_equal, Range, RangedNumber},
+    range::{Range, RangedNumber, range_equal},
 };
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]

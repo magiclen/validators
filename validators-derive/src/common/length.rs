@@ -1,4 +1,4 @@
-use syn::{punctuated::Punctuated, spanned::Spanned, Meta, Token};
+use syn::{Meta, Token, punctuated::Punctuated, spanned::Spanned};
 
 use crate::{common::number::meta_2_number, panic};
 
@@ -92,30 +92,33 @@ impl Length {
 
         if let Some(min) = min {
             if let Some(trimmed_min) = trimmed_min
-                && trimmed_min > min {
-                    return Err(syn::Error::new(
-                        meta.path().span(),
-                        format!("{trimmed_min} > {min} (trimmed_min > min)"),
-                    ));
-                }
+                && trimmed_min > min
+            {
+                return Err(syn::Error::new(
+                    meta.path().span(),
+                    format!("{trimmed_min} > {min} (trimmed_min > min)"),
+                ));
+            }
 
             if let Some(max) = max
-                && min > max {
-                    return Err(syn::Error::new(
-                        meta.path().span(),
-                        format!("{min} > {max} (min > max)"),
-                    ));
-                }
+                && min > max
+            {
+                return Err(syn::Error::new(
+                    meta.path().span(),
+                    format!("{min} > {max} (min > max)"),
+                ));
+            }
         }
 
         if let Some(trimmed_min) = trimmed_min
             && let Some(max) = max
-                && trimmed_min > max {
-                    return Err(syn::Error::new(
-                        meta.path().span(),
-                        format!("{trimmed_min} > {max} (trimmed_min > max)"),
-                    ));
-                }
+            && trimmed_min > max
+        {
+            return Err(syn::Error::new(
+                meta.path().span(),
+                format!("{trimmed_min} > {max} (trimmed_min > max)"),
+            ));
+        }
 
         Ok(Self {
             min,

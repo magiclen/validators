@@ -24,31 +24,31 @@ impl ValidatorHandler for PhoneHandler {
 
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
-                && data.fields.len() == 1 {
-                    let mut token_stream = proc_macro2::TokenStream::new();
+            && data.fields.len() == 1
+        {
+            let mut token_stream = proc_macro2::TokenStream::new();
 
-                    let name = ast.ident;
+            let name = ast.ident;
 
-                    let error_path: Path =
-                        syn::parse2(quote! { validators_prelude::PhoneError }).unwrap();
+            let error_path: Path = syn::parse2(quote! { validators_prelude::PhoneError }).unwrap();
 
-                    #[cfg(feature = "test")]
-                    {
-                        let c: Vec<proc_macro2::TokenStream> = type_attribute
-                            .countries
-                            .iter()
-                            .map(|id| proc_macro2::TokenStream::from_str(id.as_ref()).unwrap())
-                            .collect();
-                        let size = c.len();
+            #[cfg(feature = "test")]
+            {
+                let c: Vec<proc_macro2::TokenStream> = type_attribute
+                    .countries
+                    .iter()
+                    .map(|id| proc_macro2::TokenStream::from_str(id.as_ref()).unwrap())
+                    .collect();
+                let size = c.len();
 
-                        token_stream.extend(quote! {
+                token_stream.extend(quote! {
                             impl #name {
                                 pub(crate) const V_COUNTRIES: [validators_prelude::phonenumber::country::Id; #size] = [#(validators_prelude::phonenumber::country::Id::#c, )*];
                             }
                         });
-                    }
+            }
 
-                    token_stream.extend(match type_attribute.countries.len() {
+            token_stream.extend(match type_attribute.countries.len() {
                         0 => {
                             quote! {
                                 impl #name {
@@ -121,7 +121,7 @@ impl ValidatorHandler for PhoneHandler {
                         }
                     });
 
-                    token_stream.extend(quote! {
+            token_stream.extend(quote! {
                         impl ValidateString for #name {
                             type Error = #error_path;
 
@@ -144,40 +144,39 @@ impl ValidatorHandler for PhoneHandler {
                         }
                     });
 
-                    #[cfg(feature = "serde")]
-                    {
-                        if type_attribute.serde_options.serialize {
-                            token_stream.extend(quote! {
-                                impl validators_prelude::serde::Serialize for #name {
-                                    #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                                        where
-                                            S: validators_prelude::serde::Serializer, {
-                                        validators_prelude::serde::Serialize::serialize(&self.0, serializer)
-                                    }
-                                }
-                            });
+            #[cfg(feature = "serde")]
+            {
+                if type_attribute.serde_options.serialize {
+                    token_stream.extend(quote! {
+                        impl validators_prelude::serde::Serialize for #name {
+                            #[inline]
+                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                where
+                                    S: validators_prelude::serde::Serializer, {
+                                validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                            }
+                        }
+                    });
+                }
+
+                if type_attribute.serde_options.deserialize {
+                    use std::fmt::Write;
+
+                    let expect = {
+                        let mut s = String::new();
+
+                        if type_attribute.countries.is_empty() {
+                            s.push_str("an international phone number");
+                        } else {
+                            s.push_str("a phone number in ");
+
+                            s.write_fmt(format_args!("{:?}", type_attribute.countries)).unwrap();
                         }
 
-                        if type_attribute.serde_options.deserialize {
-                            use std::fmt::Write;
+                        s
+                    };
 
-                            let expect = {
-                                let mut s = String::new();
-
-                                if type_attribute.countries.is_empty() {
-                                    s.push_str("an international phone number");
-                                } else {
-                                    s.push_str("a phone number in ");
-
-                                    s.write_fmt(format_args!("{:?}", type_attribute.countries))
-                                        .unwrap();
-                                }
-
-                                s
-                            };
-
-                            token_stream.extend(quote! {
+                    token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
                                     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -205,26 +204,22 @@ impl ValidatorHandler for PhoneHandler {
                                     }
                                 }
                             });
-                        }
-                    }
-
-                    #[cfg(feature = "rocket")]
-                    {
-                        if type_attribute.rocket_options.from_form_field {
-                            crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
-                        }
-
-                        if type_attribute.rocket_options.from_param {
-                            crate::common::rocket::impl_from_param(
-                                &mut token_stream,
-                                &name,
-                                &error_path,
-                            );
-                        }
-                    }
-
-                    return Ok(token_stream);
                 }
+            }
+
+            #[cfg(feature = "rocket")]
+            {
+                if type_attribute.rocket_options.from_form_field {
+                    crate::common::rocket::impl_from_form_field(&mut token_stream, &name);
+                }
+
+                if type_attribute.rocket_options.from_param {
+                    crate::common::rocket::impl_from_param(&mut token_stream, &name, &error_path);
+                }
+            }
+
+            return Ok(token_stream);
+        }
 
         if type_attribute.countries.len() > 1 {
             Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM_MAP))

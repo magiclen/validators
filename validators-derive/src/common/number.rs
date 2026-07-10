@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use syn::{spanned::Spanned, Expr, ExprLit, Lit, LitFloat, LitInt, Meta, UnOp};
+use syn::{Expr, ExprLit, Lit, LitFloat, LitInt, Meta, UnOp, spanned::Spanned};
 
 use crate::common::path_to_string;
 
@@ -27,27 +27,28 @@ where
         Expr::Lit(lit) => return expr_lit_2_number(lit),
         Expr::Unary(unary) => {
             if let UnOp::Neg(_) = unary.op
-                && let Expr::Lit(lit) = unary.expr.as_ref() {
-                    match &lit.lit {
-                        Lit::Int(lit) => {
-                            let s = format!("-{}", lit.base10_digits());
+                && let Expr::Lit(lit) = unary.expr.as_ref()
+            {
+                match &lit.lit {
+                    Lit::Int(lit) => {
+                        let s = format!("-{}", lit.base10_digits());
 
-                            let n = <T as FromStr>::from_str(&s)
-                                .map_err(|err| syn::Error::new(lit.span(), err))?;
+                        let n = <T as FromStr>::from_str(&s)
+                            .map_err(|err| syn::Error::new(lit.span(), err))?;
 
-                            return Ok(n);
-                        },
-                        Lit::Float(lit) => {
-                            let s = format!("-{}", lit.base10_digits());
+                        return Ok(n);
+                    },
+                    Lit::Float(lit) => {
+                        let s = format!("-{}", lit.base10_digits());
 
-                            let n = <T as FromStr>::from_str(&s)
-                                .map_err(|err| syn::Error::new(lit.span(), err))?;
+                        let n = <T as FromStr>::from_str(&s)
+                            .map_err(|err| syn::Error::new(lit.span(), err))?;
 
-                            return Ok(n);
-                        },
-                        _ => (),
-                    }
+                        return Ok(n);
+                    },
+                    _ => (),
                 }
+            }
         },
         Expr::Group(group) => {
             // should not use this, but macro rules will end up here...

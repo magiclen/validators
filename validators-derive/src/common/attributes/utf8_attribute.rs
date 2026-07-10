@@ -1,4 +1,4 @@
-use syn::{punctuated::Punctuated, Meta, Token};
+use syn::{Meta, Token, punctuated::Punctuated};
 
 use crate::{
     common::{length::Length, rocket_options::RocketOptions, serde_options::SerdeOptions},

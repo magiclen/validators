@@ -602,16 +602,16 @@ assert!(TWorUSPhone::parse_string("+14155552671").is_ok());
 ```rust
 # #[cfg(all(feature = "derive", feature = "regex"))]
 # {
+use std::sync::LazyLock;
+
 use validators::prelude::*;
 use validators_prelude::regex::Regex;
 
-use once_cell::sync::Lazy;
-
-static RE_NON_ZERO_NUMBERS: Lazy<Regex> = Lazy::new(|| {
+static RE_NON_ZERO_NUMBERS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new("^[1-9]+$").unwrap()
 });
 
-static RE_POKER: Lazy<Regex> = Lazy::new(|| {
+static RE_POKER: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new("^([AJQK1-9]|10)$").unwrap()
 });
 
@@ -934,7 +934,7 @@ pub mod prelude {
         pub use crate::{functions::*, models::*};
     }
 
-    pub use crate::traits::*;
     #[cfg(feature = "derive")]
     pub use crate::Validator;
+    pub use crate::traits::*;
 }
