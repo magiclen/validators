@@ -34,8 +34,8 @@ impl RocketOptions {
                 }
             },
             Meta::NameValue(name_value) => {
-                if let Expr::Lit(lit) = &name_value.value {
-                    if let Lit::Bool(lit) = &lit.lit {
+                if let Expr::Lit(lit) = &name_value.value
+                    && let Lit::Bool(lit) = &lit.lit {
                         let b = lit.value;
 
                         #[cfg(not(feature = "rocket"))]
@@ -51,7 +51,6 @@ impl RocketOptions {
                             from_form_field: b, from_param: b
                         });
                     }
-                }
 
                 Err(syn::Error::new(name_value.value.span(), "expected a bool"))
             },

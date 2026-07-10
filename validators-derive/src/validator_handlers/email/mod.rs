@@ -3,7 +3,7 @@ mod email_attribute;
 use educe::Educe;
 use email_attribute::EmailAttribute;
 use quote::quote;
-use syn::{spanned::Spanned, Data, DeriveInput, Fields, Meta, Path};
+use syn::{Data, DeriveInput, Fields, Meta, Path, spanned::Spanned};
 
 use super::ValidatorHandler;
 use crate::{
@@ -13,6 +13,7 @@ use crate::{
 
 pub(crate) struct EmailHandler;
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct Struct {
@@ -21,6 +22,7 @@ pub struct Struct {
     domain_part: TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowComment {
@@ -33,6 +35,7 @@ pub struct StructAllowComment {
     comment_after_domain_part:  TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowLocal {
@@ -42,6 +45,7 @@ pub struct StructAllowLocal {
     is_local:    TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowCommentAllowLocal {

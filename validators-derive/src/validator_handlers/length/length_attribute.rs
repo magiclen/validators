@@ -93,16 +93,14 @@ impl LengthAttribute {
             },
         }
 
-        if let Some(min) = min {
-            if let Some(max) = max {
-                if min > max {
+        if let Some(min) = min
+            && let Some(max) = max
+                && min > max {
                     return Err(syn::Error::new(
                         meta.path().span(),
                         format!("{min} > {max} (min > max)"),
                     ));
                 }
-            }
-        }
 
         Ok(Self {
             min,

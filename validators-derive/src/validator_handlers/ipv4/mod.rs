@@ -16,6 +16,7 @@ pub(crate) struct Ipv4Handler;
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPort {

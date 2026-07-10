@@ -17,6 +17,7 @@ pub(crate) struct HostHandler;
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowLocal {
@@ -24,6 +25,7 @@ pub struct StructAllowLocal {
     is_local: TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPort {
@@ -31,6 +33,7 @@ pub struct StructAllowPort {
     port: TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPortAllowLocal {

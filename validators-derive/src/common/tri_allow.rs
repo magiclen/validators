@@ -56,11 +56,10 @@ impl TriAllow {
     pub(crate) fn from_meta(meta: &Meta) -> syn::Result<Self> {
         match meta {
             Meta::NameValue(name_value) => {
-                if let Expr::Path(path) = &name_value.value {
-                    if let Some(ident) = path.path.get_ident() {
+                if let Expr::Path(path) = &name_value.value
+                    && let Some(ident) = path.path.get_ident() {
                         return Self::from_ident(ident);
                     }
-                }
             },
             Meta::List(list) => {
                 if let Ok(ident) = list.parse_args::<Ident>() {

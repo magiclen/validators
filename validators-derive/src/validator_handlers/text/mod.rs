@@ -19,9 +19,9 @@ impl ValidatorHandler for TextHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
         let type_attribute = Utf8Attribute::build_from_meta(&meta)?;
 
-        if let Data::Struct(data) = ast.data {
-            if let Fields::Unnamed(_) = &data.fields {
-                if data.fields.len() == 1 {
+        if let Data::Struct(data) = ast.data
+            && let Fields::Unnamed(_) = &data.fields
+                && data.fields.len() == 1 {
                     let mut token_stream = proc_macro2::TokenStream::new();
 
                     let name = ast.ident;
@@ -857,8 +857,6 @@ impl ValidatorHandler for TextHandler {
 
                     return Ok(token_stream);
                 }
-            }
-        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }

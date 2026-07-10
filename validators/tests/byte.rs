@@ -12,11 +12,10 @@ fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
         inclusive,
     } = range
     {
-        if let Some(min) = min {
-            if v < min {
+        if let Some(min) = min
+            && v < min {
                 return false;
             }
-        }
 
         if let Some(max) = max {
             if inclusive {

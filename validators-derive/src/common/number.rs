@@ -26,8 +26,8 @@ where
     match expr {
         Expr::Lit(lit) => return expr_lit_2_number(lit),
         Expr::Unary(unary) => {
-            if let UnOp::Neg(_) = unary.op {
-                if let Expr::Lit(lit) = unary.expr.as_ref() {
+            if let UnOp::Neg(_) = unary.op
+                && let Expr::Lit(lit) = unary.expr.as_ref() {
                     match &lit.lit {
                         Lit::Int(lit) => {
                             let s = format!("-{}", lit.base10_digits());
@@ -48,7 +48,6 @@ where
                         _ => (),
                     }
                 }
-            }
         },
         Expr::Group(group) => {
             // should not use this, but macro rules will end up here...

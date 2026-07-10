@@ -11,23 +11,20 @@ fn check_char_length(
     let length = s.chars().count();
     let trimmed_length = s.trim().chars().count();
 
-    if let Some(min) = min {
-        if length < min {
+    if let Some(min) = min
+        && length < min {
             return false;
         }
-    }
 
-    if let Some(max) = max {
-        if length > max {
+    if let Some(max) = max
+        && length > max {
             return false;
         }
-    }
 
-    if let Some(trimmed_min) = trimmed_min {
-        if trimmed_length < trimmed_min {
+    if let Some(trimmed_min) = trimmed_min
+        && trimmed_length < trimmed_min {
             return false;
         }
-    }
 
     true
 }
@@ -41,23 +38,20 @@ fn check_byte_length(
     let length = s.len();
     let trimmed_length = s.trim().len();
 
-    if let Some(min) = min {
-        if length < min {
+    if let Some(min) = min
+        && length < min {
             return false;
         }
-    }
 
-    if let Some(max) = max {
-        if length > max {
+    if let Some(max) = max
+        && length > max {
             return false;
         }
-    }
 
-    if let Some(trimmed_min) = trimmed_min {
-        if trimmed_length < trimmed_min {
+    if let Some(trimmed_min) = trimmed_min
+        && trimmed_length < trimmed_min {
             return false;
         }
-    }
 
     true
 }

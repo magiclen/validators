@@ -206,8 +206,8 @@ where
             },
         }
 
-        if let Some(min) = min {
-            if let Some(max) = max {
+        if let Some(min) = min
+            && let Some(max) = max {
                 if inclusive {
                     if min > max {
                         return Err(syn::Error::new(
@@ -222,7 +222,6 @@ where
                     ));
                 }
             }
-        }
 
         Ok(Self {
             min,

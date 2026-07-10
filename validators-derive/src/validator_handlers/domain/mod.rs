@@ -3,7 +3,7 @@ mod domain_attribute;
 use domain_attribute::DomainAttribute;
 use educe::Educe;
 use quote::quote;
-use syn::{spanned::Spanned, Data, DeriveInput, Fields, Meta, Path};
+use syn::{Data, DeriveInput, Fields, Meta, Path, spanned::Spanned};
 
 use super::ValidatorHandler;
 use crate::{
@@ -17,6 +17,7 @@ pub(crate) struct DomainHandler;
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowLocal {
@@ -24,6 +25,7 @@ pub struct StructAllowLocal {
     is_local: TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPort {
@@ -31,6 +33,7 @@ pub struct StructAllowPort {
     port:   TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowPortAllowLocal {
@@ -47,6 +50,7 @@ pub struct StructAllowIPv4 {
     is_ipv4: TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4AllowLocal {
@@ -64,6 +68,7 @@ pub struct StructAllowIPv4AllowPort {
     port:    TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4AllowPortAllowLocal {

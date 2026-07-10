@@ -13,11 +13,10 @@ pub(crate) fn meta_2_bool(meta: &Meta) -> syn::Result<bool> {
             },
             Expr::Group(group) => {
                 // should not use this, but macro rules will end up here...
-                if let Expr::Lit(lit) = group.expr.as_ref() {
-                    if let Lit::Bool(lit) = &lit.lit {
+                if let Expr::Lit(lit) = group.expr.as_ref()
+                    && let Lit::Bool(lit) = &lit.lit {
                         return Ok(lit.value);
                     }
-                }
             },
             _ => (),
         },

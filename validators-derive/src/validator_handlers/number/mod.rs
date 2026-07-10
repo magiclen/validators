@@ -25,9 +25,9 @@ enum NumberType {
 
 impl ValidatorHandler for NumberHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
-        if let Data::Struct(data) = ast.data {
-            if let Fields::Unnamed(_) = &data.fields {
-                if data.fields.len() == 1 {
+        if let Data::Struct(data) = ast.data
+            && let Fields::Unnamed(_) = &data.fields
+                && data.fields.len() == 1 {
                     let data_type = data.fields.into_iter().next().unwrap().ty;
 
                     let number_type = {
@@ -462,8 +462,6 @@ impl ValidatorHandler for NumberHandler {
 
                     return Ok(token_stream);
                 }
-            }
-        }
 
         Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
     }
