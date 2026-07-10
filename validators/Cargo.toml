@@ -21,8 +21,8 @@ byte-unit = { version = "5.1", default-features = false, optional = true }
 url-dep = { package = "url", version = "2", optional = true }
 str-utils = { version = "0.3", optional = true }
 serde_json = { version = "1.0.45", default-features = false, features = ["alloc"], optional = true }
-phonenumber = { version = "0.3", optional = true }
-regex-dep = { package = "regex", version = "1.3.9", optional = true }
+phonenumber = { version = "0.3.10", optional = true }
+regex-dep = { package = "regex", version = "1.7", optional = true }
 semver-dep = { package = "semver", version = "1", default-features = false, optional = true }
 
 serde = { version = "1.0.119", default-features = false, features = ["alloc"], optional = true }
