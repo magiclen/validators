@@ -12,6 +12,7 @@ use crate::{
 
 pub(crate) struct SignedIntegerHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
@@ -434,7 +435,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                                 impl ValidateSignedInteger for #name {
                                     type Error = #error_path;
 
-                                    #[cfg(not(target_pointer_width = "128"))]
+                                    #[allow(unexpected_cfgs)]
                                     #[inline]
                                     fn parse_i128(i: i128) -> Result<Self, Self::Error> {
                                         if i > isize::MAX as i128 {
@@ -446,7 +447,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                                         }
                                     }
 
-                                    #[cfg(not(target_pointer_width = "128"))]
+                                    #[allow(unexpected_cfgs)]
                                     #[inline]
                                     fn validate_i128(i: i128) -> Result<(), Self::Error> {
                                         if i > isize::MAX as i128 {
@@ -472,11 +473,6 @@ impl ValidatorHandler for SignedIntegerHandler {
                                         Ok(())
                                     }
 
-                                    #[cfg(target_pointer_width = "8")]
-                                    fn parse_i8(i: i8) -> Result<Self, Self::Error> {
-                                        Self::parse_isize(i as isize)
-                                    }
-
                                     #[cfg(target_pointer_width = "16")]
                                     fn parse_i16(i: i16) -> Result<Self, Self::Error> {
                                         Self::parse_isize(i as isize)
@@ -490,17 +486,6 @@ impl ValidatorHandler for SignedIntegerHandler {
                                     #[cfg(target_pointer_width = "64")]
                                     fn parse_i64(i: i64) -> Result<Self, Self::Error> {
                                         Self::parse_isize(i as isize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "128")]
-                                    fn parse_i128(i: i128) -> Result<Self, Self::Error> {
-                                        Self::parse_isize(i as isize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "8")]
-                                    #[inline]
-                                    fn validate_i8(i: i8) -> Result<(), Self::Error> {
-                                        Self::validate_isize(i as isize)
                                     }
 
                                     #[cfg(target_pointer_width = "16")]
@@ -518,12 +503,6 @@ impl ValidatorHandler for SignedIntegerHandler {
                                     #[cfg(target_pointer_width = "64")]
                                     #[inline]
                                     fn validate_i64(i: i64) -> Result<(), Self::Error> {
-                                        Self::validate_isize(i as isize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "128")]
-                                    #[inline]
-                                    fn validate_i128(i: i128) -> Result<(), Self::Error> {
                                         Self::validate_isize(i as isize)
                                     }
                                 }

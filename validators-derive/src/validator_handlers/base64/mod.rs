@@ -9,6 +9,7 @@ use crate::{
 
 pub(crate) struct Base64Handler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

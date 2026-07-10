@@ -13,6 +13,7 @@ use crate::{
 
 pub(crate) struct HostHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

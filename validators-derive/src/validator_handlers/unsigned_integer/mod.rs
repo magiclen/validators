@@ -12,6 +12,7 @@ use crate::{
 
 pub(crate) struct UnsignedIntegerHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
@@ -420,7 +421,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                 impl ValidateUnsignedInteger for #name {
                                     type Error = #error_path;
 
-                                    #[cfg(not(target_pointer_width = "128"))]
+                                    #[allow(unexpected_cfgs)]
                                     #[inline]
                                     fn parse_u128(u: u128) -> Result<Self, Self::Error> {
                                         if u > usize::MAX as u128 {
@@ -430,7 +431,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                         }
                                     }
 
-                                    #[cfg(not(target_pointer_width = "128"))]
+                                    #[allow(unexpected_cfgs)]
                                     #[inline]
                                     fn validate_u128(u: u128) -> Result<(), Self::Error> {
                                         if u > usize::MAX as u128 {
@@ -454,35 +455,22 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                         Ok(())
                                     }
 
-                                    #[cfg(target_pointer_width = "8")]
-                                    fn parse_u8(u: u8) -> Result<Self, Self::Error> {
-                                        Self::parse_usize(u as usize)
-                                    }
-
                                     #[cfg(target_pointer_width = "16")]
+                                    #[inline]
                                     fn parse_u16(u: u16) -> Result<Self, Self::Error> {
                                         Self::parse_usize(u as usize)
                                     }
 
                                     #[cfg(target_pointer_width = "32")]
+                                    #[inline]
                                     fn parse_u32(u: u32) -> Result<Self, Self::Error> {
                                         Self::parse_usize(u as usize)
                                     }
 
                                     #[cfg(target_pointer_width = "64")]
+                                    #[inline]
                                     fn parse_u64(u: u64) -> Result<Self, Self::Error> {
                                         Self::parse_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "128")]
-                                    fn parse_u128(u: u128) -> Result<Self, Self::Error> {
-                                        Self::parse_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "8")]
-                                    #[inline]
-                                    fn validate_u8(u: u8) -> Result<(), Self::Error> {
-                                        Self::validate_usize(u as usize)
                                     }
 
                                     #[cfg(target_pointer_width = "16")]
@@ -500,12 +488,6 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                     #[cfg(target_pointer_width = "64")]
                                     #[inline]
                                     fn validate_u64(u: u64) -> Result<(), Self::Error> {
-                                        Self::validate_usize(u as usize)
-                                    }
-
-                                    #[cfg(target_pointer_width = "128")]
-                                    #[inline]
-                                    fn validate_u128(u: u128) -> Result<(), Self::Error> {
                                         Self::validate_usize(u as usize)
                                     }
                                 }

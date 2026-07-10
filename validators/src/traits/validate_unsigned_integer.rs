@@ -6,17 +6,9 @@ pub trait ValidateUnsignedInteger: Sized {
 
     fn validate_u128(u: u128) -> Result<(), Self::Error>;
 
-    #[cfg(target_pointer_width = "128")]
-    #[inline]
-    fn parse_usize(u: usize) -> Result<Self, Self::Error> {
-        Self::parse_u128(u as u128)
-    }
-
     #[cfg(not(any(
-        target_pointer_width = "128",
         target_pointer_width = "32",
         target_pointer_width = "16",
-        target_pointer_width = "8"
     )))]
     #[inline]
     fn parse_usize(u: usize) -> Result<Self, Self::Error> {
@@ -33,12 +25,6 @@ pub trait ValidateUnsignedInteger: Sized {
     #[inline]
     fn parse_usize(u: usize) -> Result<Self, Self::Error> {
         Self::parse_u16(u as u16)
-    }
-
-    #[cfg(target_pointer_width = "8")]
-    #[inline]
-    fn parse_usize(u: usize) -> Result<Self, Self::Error> {
-        Self::parse_u8(u as u8)
     }
 
     #[inline]
@@ -61,17 +47,9 @@ pub trait ValidateUnsignedInteger: Sized {
         Self::parse_u16(u as u16)
     }
 
-    #[cfg(target_pointer_width = "128")]
-    #[inline]
-    fn validate_usize(u: usize) -> Result<(), Self::Error> {
-        Self::validate_u128(u as u128)
-    }
-
     #[cfg(not(any(
-        target_pointer_width = "128",
         target_pointer_width = "32",
         target_pointer_width = "16",
-        target_pointer_width = "8"
     )))]
     #[inline]
     fn validate_usize(u: usize) -> Result<(), Self::Error> {
@@ -88,12 +66,6 @@ pub trait ValidateUnsignedInteger: Sized {
     #[inline]
     fn validate_usize(u: usize) -> Result<(), Self::Error> {
         Self::validate_u16(u as u16)
-    }
-
-    #[cfg(target_pointer_width = "8")]
-    #[inline]
-    fn validate_usize(u: usize) -> Result<(), Self::Error> {
-        Self::validate_u8(u as u8)
     }
 
     #[inline]

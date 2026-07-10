@@ -13,6 +13,7 @@ use crate::{
 
 pub(crate) struct DomainHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
@@ -38,6 +39,7 @@ pub struct StructAllowPortAllowLocal {
     port:     TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4 {
@@ -53,6 +55,7 @@ pub struct StructAllowIPv4AllowLocal {
     is_local: TypeEnum,
 }
 
+#[allow(dead_code)]
 #[derive(Educe)]
 #[educe(Debug(name = "Struct"))]
 pub struct StructAllowIPv4AllowPort {

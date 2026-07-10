@@ -62,7 +62,7 @@ impl RocketOptions {
                 let mut from_form_field = false;
                 let mut from_param = false;
 
-                for p in result {
+                if let Some(p) = result.into_iter().next() {
                     match p.to_string().as_str() {
                         "FromFormField" => {
                             if from_form_field {

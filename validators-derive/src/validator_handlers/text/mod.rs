@@ -9,6 +9,7 @@ use crate::{
 
 pub(crate) struct TextHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

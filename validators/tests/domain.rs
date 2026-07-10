@@ -223,6 +223,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*))]
                     pub struct DomainAllowIPv4AllowPortIsLocal {
@@ -232,6 +233,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*port(Must)))]
                     pub struct DomainAllowIPv4WithPortIsLocal {
@@ -241,6 +243,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*port(Disallow)))]
                     #[allow(dead_code)]
@@ -250,6 +253,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), conflict(Allow)))]
                     pub struct DomainIPv4AllowPortIsLocal {
@@ -258,6 +262,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), port(Must), conflict(Allow)))]
                     pub struct DomainIPv4WithPortIsLocal {
@@ -266,6 +271,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Must), port(Disallow), conflict(Allow)))]
                     #[allow(dead_code)]
@@ -274,6 +280,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Disallow)))]
                     pub struct DomainNonIPv4AllowPortIsLocal {
@@ -282,6 +289,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Disallow), port(Must)))]
                     pub struct DomainNonIPv4WithPortIsLocal {
@@ -290,6 +298,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(domain($($p($v),)*ipv4(Disallow), port(Disallow)))]
                     #[allow(dead_code)]

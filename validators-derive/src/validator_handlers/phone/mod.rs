@@ -11,6 +11,7 @@ use crate::{common::type_enum::TypeEnum, panic};
 
 pub(crate) struct PhoneHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

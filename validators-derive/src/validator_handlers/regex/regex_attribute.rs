@@ -103,7 +103,7 @@ impl RegexAttribute {
                 rocket_options,
             })
         } else {
-            return Err(syn::Error::new(meta.path().span(), "the `regex` parameter is not set"));
+            Err(syn::Error::new(meta.path().span(), "the `regex` parameter is not set"))
         }
     }
 }

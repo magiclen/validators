@@ -165,6 +165,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*))]
                     pub struct HostAllowPortIsLocal {
@@ -173,6 +174,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Must)))]
                     pub struct HostWithPortIsLocal {
@@ -181,6 +183,7 @@ fn basic() {
                         pub is_local: bool,
                     }
 
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(host($($p($v),)*port(Disallow)))]
                     pub struct HostWithoutPortIsLocal {

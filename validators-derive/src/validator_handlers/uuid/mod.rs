@@ -12,6 +12,7 @@ use crate::{
 
 pub(crate) struct UuidHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

@@ -9,6 +9,7 @@ use crate::{
 
 pub(crate) struct SemverReqHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

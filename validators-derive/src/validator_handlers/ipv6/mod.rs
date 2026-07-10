@@ -12,6 +12,7 @@ use crate::{
 
 pub(crate) struct Ipv6Handler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

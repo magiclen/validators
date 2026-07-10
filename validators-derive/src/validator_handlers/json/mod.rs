@@ -9,6 +9,7 @@ use crate::{
 
 pub(crate) struct JsonHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

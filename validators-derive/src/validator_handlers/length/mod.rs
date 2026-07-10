@@ -9,6 +9,7 @@ use crate::{common::type_enum::TypeEnum, panic};
 
 pub(crate) struct LengthHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 

@@ -11,6 +11,7 @@ use crate::{
 
 pub(crate) struct Base64DecodedHandler;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
