@@ -18,7 +18,7 @@ default-features = false
 
 Certain validators do not require the use of the `std` library. However, if needed, you can explicitly enable the `std` feature.
 
-This library can support the Serde framework and the Rocket framework by enabling the `serde` and `rocket` features, respectively.
+This library can support the Serde framework, the Rocket framework and the Axum framework by enabling the `serde`, `rocket` and `axum` features, respectively.
 
 ## Validators
 
@@ -844,6 +844,92 @@ fn index(user: User) -> String {
 }
 # }
 ```
+
+## Axum
+
+The `axum` feature also enables the `serde` feature, so validators can be used in the `Json`, `Query`, `Form` or `Path` extractors directly, and the validation is performed during deserialization.
+
+```rust
+# #[cfg(all(feature = "derive", feature = "unsigned_integer", feature = "serde_json", feature = "axum"))]
+# {
+use validators::prelude::*;
+
+#[derive(Debug, Validator)]
+#[validator(unsigned_integer(range(Inside(min = 1, max = 65535))))]
+pub struct Port(u16);
+
+// The validation is performed during deserialization, so extractors reject invalid input automatically.
+assert!(validators::serde_json::from_str::<Port>("8080").is_ok());
+assert!(validators::serde_json::from_str::<Port>("0").is_err());
+
+// A `validators::Result` field captures the validation error instead of failing the whole request.
+let r: validators::Result<Port, validators::errors::UnsignedIntegerError> =
+    validators::serde_json::from_str("0").unwrap();
+assert!(r.into_std_result().is_err());
+# }
+```
+
+In an Axum application, it looks like this:
+
+```rust,ignore
+use axum::{
+    Router,
+    extract::{Json, Path},
+    routing::{get, post},
+};
+use serde::Deserialize;
+use validators::prelude::*;
+
+#[derive(Debug, Validator)]
+#[validator(unsigned_integer(range(Inside(min = 1, max = 65535))))]
+pub struct Port(u16);
+
+#[derive(Debug, Deserialize)]
+struct CreateService {
+    port: Port,
+    backup_port: validators::Result<Port, validators::errors::UnsignedIntegerError>,
+}
+
+// Validation errors are turned into 4xx responses by the extractors.
+async fn create_service(Json(payload): Json<CreateService>) -> String {
+    format!("{:?}", payload.port)
+}
+
+// A single-value validator also works in the `Path` extractor.
+async fn get_service(Path(port): Path<Port>) -> String {
+    format!("{:?}", port)
+}
+
+let app: Router = Router::new()
+    .route("/services", post(create_service))
+    .route("/services/{port}", get(get_service));
+```
+
+Every validator error type implements Axum's `IntoResponse` trait with the `400 Bad Request` status code, so handlers which perform the validation manually can return the error directly with the `?` operator.
+
+```rust,no_run
+# #[cfg(all(feature = "derive", feature = "email", feature = "axum"))]
+# {
+use validators::axum::{Router, routing::post};
+use validators::prelude::*;
+
+#[derive(Debug, Validator)]
+#[validator(email(comment(Disallow), ip(Disallow), local(Disallow), at_least_two_labels(Must), non_ascii(Disallow)))]
+pub struct Email {
+    pub local_part:  String,
+    pub need_quoted: bool,
+    pub domain_part: String,
+}
+
+async fn handler(body: String) -> Result<String, validators::errors::EmailError> {
+    let email = Email::parse_string(body)?;
+
+    Ok(email.local_part)
+}
+
+let app: Router = Router::new().route("/email", post(handler));
+# }
+```
 */
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -851,6 +937,8 @@ fn index(user: User) -> String {
 
 extern crate alloc;
 
+#[cfg(feature = "axum")]
+pub extern crate axum;
 #[cfg(feature = "byte-unit")]
 pub extern crate byte_unit;
 extern crate core;

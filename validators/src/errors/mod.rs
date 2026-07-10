@@ -1,3 +1,6 @@
+#[cfg(feature = "axum")]
+mod axum_traits;
+
 #[cfg(feature = "base32")]
 mod base32;
 #[cfg(feature = "base32")]

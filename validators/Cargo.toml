@@ -27,6 +27,7 @@ semver-dep = { package = "semver", version = "1", default-features = false, opti
 
 serde = { version = "1.0.119", default-features = false, features = ["alloc"], optional = true }
 rocket = { version = "0.5", default-features = false, optional = true }
+axum = { version = "0.8", default-features = false, optional = true }
 
 [features]
 default = ["std", "all-validators", "derive"]
@@ -123,6 +124,7 @@ semver-dep = ["dep:semver-dep"]
 
 serde = ["validators-derive?/serde", "dep:serde", "byte-unit?/serde", "url-dep?/serde", "semver-dep?/serde"]
 rocket = ["validators-derive?/rocket", "dep:rocket", "std", "byte-unit?/rocket"]
+axum = ["serde", "std", "dep:axum"]
 
 [package.metadata.docs.rs]
 all-features = true
