@@ -68,6 +68,7 @@ fn char() {
         ($( { $( $p:meta => $v:expr ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(line(char_length($($p = $v,)*)))]
                     pub struct Validator(pub String);
