@@ -113,11 +113,11 @@ fn meta_2_countries(countries: &mut HashSet<Id>, meta: &Meta) -> syn::Result<()>
             let country = ident.to_string();
 
             let id = Id::from_str(country.as_str())
-                .map_err(|error| syn::Error::new(ident.span(), error))?;
+                .map_err(|error| syn::Error::new_spanned(&ident, error))?;
 
             if !countries.insert(id) {
-                return Err(syn::Error::new(
-                    ident.span(),
+                return Err(syn::Error::new_spanned(
+                    &ident,
                     format!("the country `{country}` of the phone validator is repeated"),
                 ));
             }

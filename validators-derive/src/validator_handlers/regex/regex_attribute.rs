@@ -113,7 +113,7 @@ fn expr_lit_2_regex_expr(lit: &ExprLit) -> syn::Result<Expr> {
         let s = lit.value();
 
         if let Err(error) = Regex::new(s.as_str()) {
-            return Err(syn::Error::new(lit.span(), error));
+            return Err(syn::Error::new_spanned(lit, error));
         }
 
         return Ok(

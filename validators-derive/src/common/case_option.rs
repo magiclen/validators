@@ -47,7 +47,7 @@ impl CaseOption {
             "Any" => Ok(Self::Any),
             "Upper" => Ok(Self::Upper),
             "Lower" => Ok(Self::Lower),
-            _ => Err(syn::Error::new(ident.span(), "expected Any/Upper/Lower")),
+            _ => Err(syn::Error::new_spanned(ident, "expected Any/Upper/Lower")),
         }
     }
 

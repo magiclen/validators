@@ -34,7 +34,7 @@ where
                         let s = format!("-{}", lit.base10_digits());
 
                         let n = <T as FromStr>::from_str(&s)
-                            .map_err(|err| syn::Error::new(lit.span(), err))?;
+                            .map_err(|err| syn::Error::new_spanned(lit, err))?;
 
                         return Ok(n);
                     },
@@ -42,7 +42,7 @@ where
                         let s = format!("-{}", lit.base10_digits());
 
                         let n = <T as FromStr>::from_str(&s)
-                            .map_err(|err| syn::Error::new(lit.span(), err))?;
+                            .map_err(|err| syn::Error::new_spanned(lit, err))?;
 
                         return Ok(n);
                     },

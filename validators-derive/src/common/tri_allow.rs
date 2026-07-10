@@ -48,7 +48,7 @@ impl TriAllow {
             "Must" => Ok(Self::Must),
             "Allow" => Ok(Self::Allow),
             "Disallow" => Ok(Self::Disallow),
-            _ => Err(syn::Error::new(ident.span(), "expected Must/Allow/Disallow")),
+            _ => Err(syn::Error::new_spanned(ident, "expected Must/Allow/Disallow")),
         }
     }
 

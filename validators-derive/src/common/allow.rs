@@ -35,7 +35,7 @@ impl Allow {
         match ident_string.as_str() {
             "Allow" => Ok(Self::Allow),
             "Disallow" => Ok(Self::Disallow),
-            _ => Err(syn::Error::new(ident.span(), "expected Allow/Disallow")),
+            _ => Err(syn::Error::new_spanned(ident, "expected Allow/Disallow")),
         }
     }
 
