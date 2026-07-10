@@ -8,6 +8,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(base64_url_decoded($($p($v),)*))]
                     pub struct Validator(pub Vec<u8>);

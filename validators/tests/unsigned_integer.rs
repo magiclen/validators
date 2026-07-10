@@ -107,6 +107,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(unsigned_integer($($p($v),)*))]
                     pub struct U8(u8);

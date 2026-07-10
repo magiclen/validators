@@ -109,6 +109,7 @@ fn basic() {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(number($($p($v),)*conflict(Allow)))]
                     pub struct F32(f32);

@@ -84,6 +84,7 @@ fn basic() {
         ($( { $( $p:meta ),* $(,)* } ),* $(,)* ) => {
             $(
                 {
+                    #[allow(dead_code)]
                     #[derive(Validator)]
                     #[validator(bit($($p,)*))]
                     pub struct B(byte_unit::Bit);
