@@ -5,6 +5,7 @@ use crate::common::{
     separator_option::SeparatorOption, tri_allow::TriAllow,
 };
 
+#[allow(dead_code)]
 pub(crate) struct OptionToken<T: ToTokens>(pub(crate) Option<T>);
 
 impl<T: ToTokens> ToTokens for OptionToken<T> {
