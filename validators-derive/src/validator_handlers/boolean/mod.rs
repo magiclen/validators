@@ -414,6 +414,6 @@ impl ValidatorHandler for BooleanHandler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM))
     }
 }

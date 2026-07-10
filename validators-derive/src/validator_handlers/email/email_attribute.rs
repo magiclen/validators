@@ -46,7 +46,7 @@ impl EmailAttribute {
         match meta {
             Meta::Path(_) => (),
             Meta::NameValue(_) => {
-                return Err(panic::attribute_incorrect_format(meta.path().get_ident().unwrap()));
+                return Err(panic::attribute_incorrect_format(meta.path()));
             },
             Meta::List(list) => {
                 let result =

@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use syn::{Expr, ExprLit, Lit, LitFloat, LitInt, Meta, UnOp, spanned::Spanned};
+use syn::{Expr, ExprLit, Lit, LitFloat, LitInt, Meta, UnOp};
 
 use crate::common::path_to_string;
 
@@ -17,7 +17,7 @@ where
         _ => (),
     }
 
-    Err(syn::Error::new(lit.span(), "expected a number"))
+    Err(syn::Error::new_spanned(lit, "expected a number"))
 }
 
 pub(crate) fn expr_2_number<T: FromStr>(expr: &Expr) -> syn::Result<T>
@@ -59,7 +59,7 @@ where
         _ => (),
     }
 
-    Err(syn::Error::new(expr.span(), "expected a number"))
+    Err(syn::Error::new_spanned(expr, "expected a number"))
 }
 
 #[inline]
@@ -85,8 +85,8 @@ where
 
     let path = meta.path();
 
-    Err(syn::Error::new(
-        path.span(),
+    Err(syn::Error::new_spanned(
+        path,
         format!("expected `{path} = 0` or `{path}(0)`", path = path_to_string(path)),
     ))
 }

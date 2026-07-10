@@ -17,7 +17,6 @@ use syn::{
     DeriveInput, Meta,
     parse::{Parse, ParseStream},
     parse_macro_input,
-    spanned::Spanned,
 };
 #[allow(unused)]
 use validator_handlers::ValidatorHandler;
@@ -38,7 +37,7 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
 
                 if let Some(validator) = Validator::from_path(path) {
                     if use_validator.is_some() {
-                        return Err(panic::validator_only_one_at_a_time(path.span()));
+                        return Err(panic::validator_only_one_at_a_time(path));
                     }
 
                     use_validator = Some((validator, meta));
@@ -46,7 +45,7 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
                     return Err(panic::unsupported_validator(path));
                 }
             } else {
-                return Err(panic::validator_format_incorrect(path.span()));
+                return Err(panic::validator_format_incorrect(attr));
             }
         }
     }
@@ -197,7 +196,7 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
         }
     }
 
-    Err(panic::derive_attribute_not_set_up_yet())
+    Err(panic::derive_attribute_not_set_up_yet(&ast))
 }
 
 #[proc_macro_derive(Validator, attributes(validator))]

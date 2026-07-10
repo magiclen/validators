@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `email` validator.
 #[derive(Debug, Clone)]
@@ -39,5 +37,4 @@ impl Display for EmailError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for EmailError {}
+impl core::error::Error for EmailError {}

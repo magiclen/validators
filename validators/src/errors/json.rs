@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `json` validator.
 #[derive(Debug)]
@@ -27,5 +25,4 @@ impl Display for JsonError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for JsonError {}
+impl core::error::Error for JsonError {}

@@ -3,7 +3,7 @@ use std::{fmt::Display, ops::Add, str::FromStr};
 use quote::ToTokens;
 #[cfg(feature = "full")]
 use syn::{Expr, ExprRange, RangeLimits};
-use syn::{Meta, Token, punctuated::Punctuated, spanned::Spanned};
+use syn::{Meta, Token, punctuated::Punctuated};
 
 #[cfg(feature = "full")]
 use crate::common::number::expr_lit_2_number;
@@ -88,7 +88,7 @@ where
             if let Expr::Lit(lit) = expr.as_ref() {
                 min = Some(expr_lit_2_number(lit)?);
             } else {
-                return Err(syn::Error::new(expr.span(), "not a literal"));
+                return Err(syn::Error::new_spanned(expr, "not a literal"));
             }
         }
 
@@ -96,7 +96,7 @@ where
             if let Expr::Lit(lit) = expr.as_ref() {
                 max = Some(expr_lit_2_number(lit)?);
             } else {
-                return Err(syn::Error::new(expr.span(), "not a literal"));
+                return Err(syn::Error::new_spanned(expr, "not a literal"));
             }
 
             if let RangeLimits::HalfOpen(_) = range.limits {
@@ -121,7 +121,7 @@ where
 
         match meta {
             Meta::Path(_) => {
-                return Err(panic::attribute_incorrect_format(meta.path().get_ident().unwrap()));
+                return Err(panic::attribute_incorrect_format(meta.path()));
             },
             Meta::NameValue(name_value) => {
                 #[cfg(feature = "full")]
@@ -131,7 +131,7 @@ where
 
                 let _ = name_value;
 
-                return Err(panic::attribute_incorrect_format(meta.path().get_ident().unwrap()));
+                return Err(panic::attribute_incorrect_format(meta.path()));
             },
             Meta::List(list) => {
                 #[cfg(feature = "full")]
@@ -211,14 +211,14 @@ where
         {
             if inclusive {
                 if min > max {
-                    return Err(syn::Error::new(
-                        meta.path().span(),
+                    return Err(syn::Error::new_spanned(
+                        meta.path(),
                         format!("{min} > {max} (min > max)"),
                     ));
                 }
             } else if min >= max {
-                return Err(syn::Error::new(
-                    meta.path().span(),
+                return Err(syn::Error::new_spanned(
+                    meta.path(),
                     format!("{min} >= {max} (min >= max)"),
                 ));
             }

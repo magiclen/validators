@@ -46,7 +46,7 @@ impl ValidatorHandler for Ipv6Handler {
                     if let Fields::Named(_) = &data.fields {
                         if data.fields.len() != 2 {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_ALLOW_PORT,
                             ));
                         }
@@ -58,7 +58,7 @@ impl ValidatorHandler for Ipv6Handler {
                                 "ipv6" | "port" => (),
                                 _ => {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_PORT,
                                     ));
                                 },
@@ -66,7 +66,7 @@ impl ValidatorHandler for Ipv6Handler {
                         }
                     } else {
                         return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
+                            meta.path(),
                             ITEM_ALLOW_PORT,
                         ));
                     }
@@ -75,7 +75,7 @@ impl ValidatorHandler for Ipv6Handler {
                     if let Fields::Named(_) = &data.fields {
                         if data.fields.len() != 2 {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_WITH_PORT,
                             ));
                         }
@@ -87,7 +87,7 @@ impl ValidatorHandler for Ipv6Handler {
                                 "ipv6" | "port" => (),
                                 _ => {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_WITH_PORT,
                                     ));
                                 },
@@ -95,7 +95,7 @@ impl ValidatorHandler for Ipv6Handler {
                         }
                     } else {
                         return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
+                            meta.path(),
                             ITEM_WITH_PORT,
                         ));
                     }
@@ -103,16 +103,10 @@ impl ValidatorHandler for Ipv6Handler {
                 TriAllow::Disallow => {
                     if let Fields::Unnamed(_) = &data.fields {
                         if data.fields.len() != 1 {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
-                                ITEM,
-                            ));
+                            return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                         }
                     } else {
-                        return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
-                            ITEM,
-                        ));
+                        return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                     }
                 },
             }
@@ -175,11 +169,11 @@ impl ValidatorHandler for Ipv6Handler {
                     match bytes.iter().copied().rposition(|e| e == b':') {
                         Some(colon_index) => {
                             if colon_index > 2 && bytes[colon_index - 1] == b']' {
-                                let ip_str = unsafe { ::core::str::from_utf8_unchecked(&bytes[1..(colon_index - 1)]) };
+                                let ip_str = &s[1..(colon_index - 1)];
 
                                 match ::std::net::Ipv6Addr::from_str(ip_str) {
                                     Ok(ip) => {
-                                        let port_str = unsafe { ::core::str::from_utf8_unchecked(&bytes[(colon_index + 1)..]) };
+                                        let port_str = &s[(colon_index + 1)..];
 
                                         match port_str.parse::<u16>() {
                                             Ok(port) => {
@@ -209,7 +203,7 @@ impl ValidatorHandler for Ipv6Handler {
                 }
             } else {
                 quote! {
-                    let ip_str = unsafe { ::core::str::from_utf8_unchecked(&bytes[1..last_index]) };
+                    let ip_str = &s[1..last_index];
 
                     match ::std::net::Ipv6Addr::from_str(ip_str) {
                         Ok(ip) => {
@@ -474,6 +468,6 @@ impl ValidatorHandler for Ipv6Handler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM))
     }
 }

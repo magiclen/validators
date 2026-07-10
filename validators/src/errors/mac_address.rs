@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `mac_address` validator.
 #[derive(Debug, Clone)]
@@ -24,5 +22,4 @@ impl Display for MacAddressError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for MacAddressError {}
+impl core::error::Error for MacAddressError {}

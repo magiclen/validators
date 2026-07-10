@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `line` validator.
 #[derive(Debug, Clone)]
@@ -23,5 +21,4 @@ impl Display for LineError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for LineError {}
+impl core::error::Error for LineError {}

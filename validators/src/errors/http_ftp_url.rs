@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 use crate::url;
 
@@ -35,5 +33,4 @@ impl Display for HttpFtpURLError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for HttpFtpURLError {}
+impl core::error::Error for HttpFtpURLError {}

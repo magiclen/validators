@@ -46,10 +46,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                     "i64" => SignedIntegerType::I64,
                     "i128" => SignedIntegerType::I128,
                     _ => {
-                        return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
-                            ITEM,
-                        ));
+                        return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                     },
                 }
             };
@@ -667,6 +664,6 @@ impl ValidatorHandler for SignedIntegerHandler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM))
     }
 }

@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 use phonenumber::ParseError;
 
@@ -30,5 +28,4 @@ impl Display for PhoneError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for PhoneError {}
+impl core::error::Error for PhoneError {}

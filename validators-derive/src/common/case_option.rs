@@ -1,4 +1,4 @@
-use syn::{Expr, Ident, Meta, spanned::Spanned};
+use syn::{Expr, Ident, Meta};
 
 use crate::common::path_to_string;
 
@@ -73,8 +73,8 @@ impl CaseOption {
 
         let path = meta.path();
 
-        Err(syn::Error::new(
-            path.span(),
+        Err(syn::Error::new_spanned(
+            path,
             format!(
                 "expected `{path} = Any/Upper/Lower` or `{path}(Any/Upper/Lower)`",
                 path = path_to_string(path)

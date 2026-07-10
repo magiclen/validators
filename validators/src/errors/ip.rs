@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `ip` validator.
 #[derive(Debug, Clone)]
@@ -30,5 +28,4 @@ impl Display for IpError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for IpError {}
+impl core::error::Error for IpError {}

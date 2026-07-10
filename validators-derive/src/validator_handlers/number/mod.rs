@@ -2,7 +2,7 @@ mod number_attribute;
 
 use number_attribute::NumberAttribute;
 use quote::{ToTokens, quote};
-use syn::{Data, DeriveInput, Fields, Meta, Path, spanned::Spanned};
+use syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
@@ -38,10 +38,7 @@ impl ValidatorHandler for NumberHandler {
                     "f32" => NumberType::F32,
                     "f64" => NumberType::F64,
                     _ => {
-                        return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
-                            ITEM,
-                        ));
+                        return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                     },
                 }
             };
@@ -55,8 +52,8 @@ impl ValidatorHandler for NumberHandler {
                 && type_attribute.range.inside()
                 && type_attribute.conflict.disallow()
             {
-                return Err(syn::Error::new(
-                    meta.span(),
+                return Err(syn::Error::new_spanned(
+                    &meta,
                     "`nan(Must)` and `range(Inside)` cannot be used together",
                 ));
             }
@@ -459,6 +456,6 @@ impl ValidatorHandler for NumberHandler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM))
     }
 }

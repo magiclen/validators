@@ -46,7 +46,7 @@ impl ValidatorHandler for Ipv4Handler {
                     if let Fields::Named(_) = &data.fields {
                         if data.fields.len() != 2 {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_ALLOW_PORT,
                             ));
                         }
@@ -58,7 +58,7 @@ impl ValidatorHandler for Ipv4Handler {
                                 "ipv4" | "port" => (),
                                 _ => {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_PORT,
                                     ));
                                 },
@@ -66,7 +66,7 @@ impl ValidatorHandler for Ipv4Handler {
                         }
                     } else {
                         return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
+                            meta.path(),
                             ITEM_ALLOW_PORT,
                         ));
                     }
@@ -75,7 +75,7 @@ impl ValidatorHandler for Ipv4Handler {
                     if let Fields::Named(_) = &data.fields {
                         if data.fields.len() != 2 {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_WITH_PORT,
                             ));
                         }
@@ -87,7 +87,7 @@ impl ValidatorHandler for Ipv4Handler {
                                 "ipv4" | "port" => (),
                                 _ => {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_WITH_PORT,
                                     ));
                                 },
@@ -95,7 +95,7 @@ impl ValidatorHandler for Ipv4Handler {
                         }
                     } else {
                         return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
+                            meta.path(),
                             ITEM_WITH_PORT,
                         ));
                     }
@@ -103,16 +103,10 @@ impl ValidatorHandler for Ipv4Handler {
                 TriAllow::Disallow => {
                     if let Fields::Unnamed(_) = &data.fields {
                         if data.fields.len() != 1 {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
-                                ITEM,
-                            ));
+                            return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                         }
                     } else {
-                        return Err(panic::validator_for_specific_item(
-                            meta.path().get_ident().unwrap(),
-                            ITEM,
-                        ));
+                        return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                     }
                 },
             }
@@ -175,12 +169,12 @@ impl ValidatorHandler for Ipv4Handler {
             } else {
                 quote! {
                     Some(colon_index) => {
-                        let ip_str = unsafe { ::core::str::from_utf8_unchecked(&bytes[..colon_index]) };
+                        let ip_str = &s[..colon_index];
 
                         match ::std::net::Ipv4Addr::from_str(ip_str) {
                             Ok(ip) => {
                                 let port_str =
-                                    unsafe { ::core::str::from_utf8_unchecked(&bytes[(colon_index + 1)..]) };
+                                    &s[(colon_index + 1)..];
 
                                 match port_str.parse::<u16>() {
                                     Ok(port) => {
@@ -442,6 +436,6 @@ impl ValidatorHandler for Ipv4Handler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM))
     }
 }

@@ -1,4 +1,4 @@
-use syn::{Expr, Lit, LitBool, Meta, spanned::Spanned};
+use syn::{Expr, Lit, LitBool, Meta};
 
 use crate::common::path_to_string;
 
@@ -31,8 +31,8 @@ pub(crate) fn meta_2_bool(meta: &Meta) -> syn::Result<bool> {
 
     let path = meta.path();
 
-    Err(syn::Error::new(
-        path.span(),
+    Err(syn::Error::new_spanned(
+        path,
         format!("expected `{path} = false` or `{path}(false)`", path = path_to_string(path)),
     ))
 }

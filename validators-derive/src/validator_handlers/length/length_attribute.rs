@@ -1,4 +1,4 @@
-use syn::{Meta, Token, punctuated::Punctuated, spanned::Spanned};
+use syn::{Meta, Token, punctuated::Punctuated};
 
 use crate::{
     common::{number::meta_2_number, serde_options::SerdeOptions},
@@ -23,7 +23,7 @@ impl LengthAttribute {
         match meta {
             Meta::Path(_) => (),
             Meta::NameValue(_) => {
-                return Err(panic::attribute_incorrect_format(meta.path().get_ident().unwrap()));
+                return Err(panic::attribute_incorrect_format(meta.path()));
             },
             Meta::List(list) => {
                 let result =
@@ -97,7 +97,7 @@ impl LengthAttribute {
             && let Some(max) = max
             && min > max
         {
-            return Err(syn::Error::new(meta.path().span(), format!("{min} > {max} (min > max)")));
+            return Err(syn::Error::new_spanned(meta.path(), format!("{min} > {max} (min > max)")));
         }
 
         Ok(Self {

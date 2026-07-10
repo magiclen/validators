@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 use byte_unit::ParseError;
 
@@ -30,5 +28,4 @@ impl Display for BitError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for BitError {}
+impl core::error::Error for BitError {}

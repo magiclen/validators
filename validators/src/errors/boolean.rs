@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `boolean` validator.
 #[derive(Debug, Clone)]
@@ -13,5 +11,4 @@ impl Display for BooleanError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for BooleanError {}
+impl core::error::Error for BooleanError {}

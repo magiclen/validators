@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `uuid` validator.
 #[derive(Debug, Clone)]
@@ -24,5 +22,4 @@ impl Display for UuidError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for UuidError {}
+impl core::error::Error for UuidError {}

@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `length` validator.
 #[derive(Debug, Clone)]
@@ -19,5 +17,4 @@ impl Display for LengthError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for LengthError {}
+impl core::error::Error for LengthError {}

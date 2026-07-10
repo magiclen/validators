@@ -1,5 +1,5 @@
 use proc_macro2::Ident;
-use syn::{Expr, Meta, spanned::Spanned};
+use syn::{Expr, Meta};
 
 use crate::common::path_to_string;
 
@@ -59,8 +59,8 @@ impl Allow {
 
         let path = meta.path();
 
-        Err(syn::Error::new(
-            path.span(),
+        Err(syn::Error::new_spanned(
+            path,
             format!(
                 "expected `{path} = Allow/Disallow` or `{path}(Allow/Disallow)`",
                 path = path_to_string(path)

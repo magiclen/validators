@@ -1,6 +1,8 @@
 #[allow(dead_code)]
 pub(crate) mod attributes;
 #[allow(dead_code)]
+pub(crate) mod flag_options;
+#[allow(dead_code)]
 pub(crate) mod rocket_options;
 #[allow(dead_code)]
 pub(crate) mod serde_options;

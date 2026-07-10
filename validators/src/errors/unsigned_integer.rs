@@ -2,8 +2,6 @@ use core::{
     fmt::{self, Display, Formatter},
     num::ParseIntError,
 };
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `unsigned_integer` validator.
 #[derive(Debug, Clone)]
@@ -33,5 +31,4 @@ impl Display for UnsignedIntegerError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for UnsignedIntegerError {}
+impl core::error::Error for UnsignedIntegerError {}

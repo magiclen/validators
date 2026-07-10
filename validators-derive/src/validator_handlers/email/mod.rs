@@ -3,7 +3,7 @@ mod email_attribute;
 use educe::Educe;
 use email_attribute::EmailAttribute;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, Meta, Path, spanned::Spanned};
+use syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
@@ -172,9 +172,9 @@ impl ValidatorHandler for EmailHandler {
 
             if type_attribute.ip.must() && type_attribute.at_least_two_labels.disallow() {
                 if type_attribute.conflict.disallow() {
-                    return Err(syn::Error::new(
-                        meta.span(),
-                        "`ip(Must)` and `at_least_two_labels(Disallow)` cannot be used together.",
+                    return Err(syn::Error::new_spanned(
+                        &meta,
+                        "`ip(Must)` and `at_least_two_labels(Disallow)` cannot be used together",
                     ));
                 }
 
@@ -190,7 +190,7 @@ impl ValidatorHandler for EmailHandler {
                             if let Fields::Named(_) = &data.fields {
                                 if data.fields.len() != 8 {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
                                     ));
                                 }
@@ -209,7 +209,7 @@ impl ValidatorHandler for EmailHandler {
                                         | "is_local" => (),
                                         _ => {
                                             return Err(panic::validator_for_specific_item(
-                                                meta.path().get_ident().unwrap(),
+                                                meta.path(),
                                                 ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
                                             ));
                                         },
@@ -217,14 +217,14 @@ impl ValidatorHandler for EmailHandler {
                                 }
                             } else {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
                                 ));
                             }
                         } else if let Fields::Named(_) = &data.fields {
                             if data.fields.len() != 7 {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_COMMENT_ALLOW_IP,
                                 ));
                             }
@@ -242,7 +242,7 @@ impl ValidatorHandler for EmailHandler {
                                     | "comment_after_domain_part" => (),
                                     _ => {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_COMMENT_ALLOW_IP,
                                         ));
                                     },
@@ -250,7 +250,7 @@ impl ValidatorHandler for EmailHandler {
                             }
                         } else {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_ALLOW_COMMENT_ALLOW_IP,
                             ));
                         }
@@ -262,7 +262,7 @@ impl ValidatorHandler for EmailHandler {
                             if let Fields::Named(_) = &data.fields {
                                 if data.fields.len() != 8 {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
                                     ));
                                 }
@@ -281,7 +281,7 @@ impl ValidatorHandler for EmailHandler {
                                         | "is_local" => (),
                                         _ => {
                                             return Err(panic::validator_for_specific_item(
-                                                meta.path().get_ident().unwrap(),
+                                                meta.path(),
                                                 ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
                                             ));
                                         },
@@ -289,14 +289,14 @@ impl ValidatorHandler for EmailHandler {
                                 }
                             } else {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
                                 ));
                             }
                         } else if let Fields::Named(_) = &data.fields {
                             if data.fields.len() != 7 {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_COMMENT_MUST_IP,
                                 ));
                             }
@@ -314,7 +314,7 @@ impl ValidatorHandler for EmailHandler {
                                     | "comment_after_domain_part" => (),
                                     _ => {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_COMMENT_MUST_IP,
                                         ));
                                     },
@@ -322,7 +322,7 @@ impl ValidatorHandler for EmailHandler {
                             }
                         } else {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_ALLOW_COMMENT_MUST_IP,
                             ));
                         }
@@ -334,7 +334,7 @@ impl ValidatorHandler for EmailHandler {
                             if let Fields::Named(_) = &data.fields {
                                 if data.fields.len() != 8 {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
                                     ));
                                 }
@@ -353,7 +353,7 @@ impl ValidatorHandler for EmailHandler {
                                         | "is_local" => (),
                                         _ => {
                                             return Err(panic::validator_for_specific_item(
-                                                meta.path().get_ident().unwrap(),
+                                                meta.path(),
                                                 ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
                                             ));
                                         },
@@ -361,14 +361,14 @@ impl ValidatorHandler for EmailHandler {
                                 }
                             } else {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
                                 ));
                             }
                         } else if let Fields::Named(_) = &data.fields {
                             if data.fields.len() != 7 {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_COMMENT,
                                 ));
                             }
@@ -386,7 +386,7 @@ impl ValidatorHandler for EmailHandler {
                                     | "comment_after_domain_part" => (),
                                     _ => {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_COMMENT,
                                         ));
                                     },
@@ -394,7 +394,7 @@ impl ValidatorHandler for EmailHandler {
                             }
                         } else {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_ALLOW_COMMENT,
                             ));
                         }
@@ -409,7 +409,7 @@ impl ValidatorHandler for EmailHandler {
                             if let Fields::Named(_) = &data.fields {
                                 if data.fields.len() != 4 {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_LOCAL_ALLOW_IP,
                                     ));
                                 }
@@ -422,7 +422,7 @@ impl ValidatorHandler for EmailHandler {
                                         | "is_local" => (),
                                         _ => {
                                             return Err(panic::validator_for_specific_item(
-                                                meta.path().get_ident().unwrap(),
+                                                meta.path(),
                                                 ITEM_ALLOW_LOCAL_ALLOW_IP,
                                             ));
                                         },
@@ -430,14 +430,14 @@ impl ValidatorHandler for EmailHandler {
                                 }
                             } else {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_LOCAL_ALLOW_IP,
                                 ));
                             }
                         } else if let Fields::Named(_) = &data.fields {
                             if data.fields.len() != 3 {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_IP,
                                 ));
                             }
@@ -449,7 +449,7 @@ impl ValidatorHandler for EmailHandler {
                                     "local_part" | "need_quoted" | "domain_part" => (),
                                     _ => {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_IP,
                                         ));
                                     },
@@ -457,7 +457,7 @@ impl ValidatorHandler for EmailHandler {
                             }
                         } else {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_ALLOW_IP,
                             ));
                         }
@@ -469,7 +469,7 @@ impl ValidatorHandler for EmailHandler {
                             if let Fields::Named(_) = &data.fields {
                                 if data.fields.len() != 4 {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_LOCAL_MUST_IP,
                                     ));
                                 }
@@ -482,7 +482,7 @@ impl ValidatorHandler for EmailHandler {
                                         | "is_local" => (),
                                         _ => {
                                             return Err(panic::validator_for_specific_item(
-                                                meta.path().get_ident().unwrap(),
+                                                meta.path(),
                                                 ITEM_ALLOW_LOCAL_MUST_IP,
                                             ));
                                         },
@@ -490,14 +490,14 @@ impl ValidatorHandler for EmailHandler {
                                 }
                             } else {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_LOCAL_MUST_IP,
                                 ));
                             }
                         } else if let Fields::Named(_) = &data.fields {
                             if data.fields.len() != 3 {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_MUST_IP,
                                 ));
                             }
@@ -509,7 +509,7 @@ impl ValidatorHandler for EmailHandler {
                                     "local_part" | "need_quoted" | "domain_part" => (),
                                     _ => {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_MUST_IP,
                                         ));
                                     },
@@ -517,7 +517,7 @@ impl ValidatorHandler for EmailHandler {
                             }
                         } else {
                             return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
+                                meta.path(),
                                 ITEM_MUST_IP,
                             ));
                         }
@@ -529,7 +529,7 @@ impl ValidatorHandler for EmailHandler {
                             if let Fields::Named(_) = &data.fields {
                                 if data.fields.len() != 4 {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_LOCAL,
                                     ));
                                 }
@@ -542,7 +542,7 @@ impl ValidatorHandler for EmailHandler {
                                         | "is_local" => (),
                                         _ => {
                                             return Err(panic::validator_for_specific_item(
-                                                meta.path().get_ident().unwrap(),
+                                                meta.path(),
                                                 ITEM_ALLOW_LOCAL,
                                             ));
                                         },
@@ -550,16 +550,13 @@ impl ValidatorHandler for EmailHandler {
                                 }
                             } else {
                                 return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
+                                    meta.path(),
                                     ITEM_ALLOW_LOCAL,
                                 ));
                             }
                         } else if let Fields::Named(_) = &data.fields {
                             if data.fields.len() != 3 {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path().get_ident().unwrap(),
-                                    ITEM,
-                                ));
+                                return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                             }
 
                             for field in data.fields.iter() {
@@ -569,17 +566,14 @@ impl ValidatorHandler for EmailHandler {
                                     "local_part" | "need_quoted" | "domain_part" => (),
                                     _ => {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM,
                                         ));
                                     },
                                 }
                             }
                         } else {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path().get_ident().unwrap(),
-                                ITEM,
-                            ));
+                            return Err(panic::validator_for_specific_item(meta.path(), ITEM));
                         }
                     },
                 }
@@ -736,11 +730,7 @@ impl ValidatorHandler for EmailHandler {
                                     Some(mut closing_bracket_index) => {
                                         closing_bracket_index += domain_part_length;
 
-                                        let ip_str = unsafe {
-                                            ::core::str::from_utf8_unchecked(
-                                                &bytes[domain_part_length..closing_bracket_index],
-                                            )
-                                        };
+                                        let ip_str = &s[domain_part_length..closing_bracket_index];
 
                                         match ::std::net::Ipv6Addr::from_str(ip_str) {
                                             Ok(ip) => {
@@ -766,11 +756,7 @@ impl ValidatorHandler for EmailHandler {
                                 Some(mut closing_bracket_index) => {
                                     closing_bracket_index += domain_part_length;
 
-                                    let ip_str = unsafe {
-                                        ::core::str::from_utf8_unchecked(
-                                            &bytes[domain_part_length..closing_bracket_index],
-                                        )
-                                    };
+                                    let ip_str = &s[domain_part_length..closing_bracket_index];
 
                                     match ::std::net::Ipv4Addr::from_str(ip_str) {
                                         Ok(ip) => {
@@ -832,13 +818,9 @@ impl ValidatorHandler for EmailHandler {
                         match bytes[domain_part_length..].iter().copied().position(|e| e == b'(') {
                             Some(mut open_parenthesis_index) => {
                                 open_parenthesis_index += domain_part_length;
-                                unsafe {
-                                    ::core::str::from_utf8_unchecked(
-                                        &bytes[domain_part_length..open_parenthesis_index],
-                                    )
-                                }
+                                &s[domain_part_length..open_parenthesis_index]
                             }
-                            None => unsafe { ::core::str::from_utf8_unchecked(&bytes[domain_part_length..]) },
+                            None => &s[domain_part_length..],
                         }
                     };
 
@@ -889,7 +871,7 @@ impl ValidatorHandler for EmailHandler {
                         match bytes[1..].iter().take(62).copied().position(|e| e == b')') {
                             Some(mut index) => {
                                 index += 1;
-                                let comment = unsafe { ::core::str::from_utf8_unchecked(&bytes[1..index]) };
+                                let comment = &s[1..index];
 
                                 let local_part_length = index + 1;
 
@@ -926,7 +908,7 @@ impl ValidatorHandler for EmailHandler {
                             Some(mut index) => {
                                 index += local_part_length;
                                 let comment =
-                                    unsafe { ::core::str::from_utf8_unchecked(&bytes[local_part_length..index]) };
+                                    &s[local_part_length..index];
 
                                 local_part_length = index + 1;
 
@@ -956,7 +938,7 @@ impl ValidatorHandler for EmailHandler {
                         match bytes[1..].iter().take(253).copied().position(|e| e == b')') {
                             Some(mut index) => {
                                 index += 1;
-                                let comment = unsafe { ::core::str::from_utf8_unchecked(&bytes[1..index]) };
+                                let comment = &s[1..index];
 
                                 let domain_part_length = index + 1;
 
@@ -989,7 +971,7 @@ impl ValidatorHandler for EmailHandler {
                                 Some(mut index) => {
                                     index += domain_part_length;
                                     let comment =
-                                        unsafe { ::core::str::from_utf8_unchecked(&bytes[domain_part_length..index]) };
+                                        &s[domain_part_length..index];
 
                                     Some(comment)
                                 }
@@ -1135,7 +1117,7 @@ impl ValidatorHandler for EmailHandler {
                                             escaping = false;
                                         } else {
                                             let local_part =
-                                                unsafe { ::core::str::from_utf8_unchecked(&bytes[(local_part_length + 1)..p]) };
+                                                &s[(local_part_length + 1)..p];
 
                                             local_part_length = p + 1;
 
@@ -1221,7 +1203,7 @@ impl ValidatorHandler for EmailHandler {
                                     }
                                     b'@' | b'(' => {
                                         let local_part =
-                                            unsafe { ::core::str::from_utf8_unchecked(&bytes[local_part_length..p]) };
+                                            &s[local_part_length..p];
 
                                         local_part_length = p;
 
@@ -1247,7 +1229,8 @@ impl ValidatorHandler for EmailHandler {
                             return Err(#error_path::Invalid);
                         }
 
-                        let bytes = &bytes[(local_part_length + 1)..];
+                        let s = &s[(local_part_length + 1)..];
+                        let bytes = s.as_bytes();
                         let length = bytes.len();
                         if length > 255 {
                             return Err(#error_path::Invalid);
@@ -1792,9 +1775,6 @@ impl ValidatorHandler for EmailHandler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(
-            meta.path().get_ident().unwrap(),
-            ITEM_ALLOW_COMMENT,
-        ))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM_ALLOW_COMMENT))
     }
 }

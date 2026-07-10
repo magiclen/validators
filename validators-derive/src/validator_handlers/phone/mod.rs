@@ -222,9 +222,9 @@ impl ValidatorHandler for PhoneHandler {
         }
 
         if type_attribute.countries.len() > 1 {
-            Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM_MAP))
+            Err(panic::validator_for_specific_item(meta.path(), ITEM_MAP))
         } else {
-            Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+            Err(panic::validator_for_specific_item(meta.path(), ITEM))
         }
     }
 }

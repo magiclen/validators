@@ -2,7 +2,7 @@ use std::{collections::HashSet, str::FromStr};
 
 use phonenumber::country::Id;
 use proc_macro2::Ident;
-use syn::{Meta, Token, punctuated::Punctuated, spanned::Spanned};
+use syn::{Meta, Token, punctuated::Punctuated};
 
 use crate::{
     common::{rocket_options::RocketOptions, serde_options::SerdeOptions},
@@ -28,7 +28,7 @@ impl PhoneAttribute {
         match meta {
             Meta::Path(_) => (),
             Meta::NameValue(_) => {
-                return Err(panic::attribute_incorrect_format(meta.path().get_ident().unwrap()));
+                return Err(panic::attribute_incorrect_format(meta.path()));
             },
             Meta::List(list) => {
                 let result =
@@ -128,5 +128,5 @@ fn meta_2_countries(countries: &mut HashSet<Id>, meta: &Meta) -> syn::Result<()>
 
     let path = meta.path();
 
-    Err(syn::Error::new(path.span(), "expected `countries(TW, US, ...)`"))
+    Err(syn::Error::new_spanned(path, "expected `countries(TW, US, ...)`"))
 }

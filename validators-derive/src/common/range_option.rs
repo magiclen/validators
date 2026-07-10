@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use syn::{Meta, spanned::Spanned};
+use syn::Meta;
 
 use crate::common::{
     path_to_string,
@@ -63,8 +63,8 @@ where
 
         let path = meta.path();
 
-        Err(syn::Error::new(
-            path.span(),
+        Err(syn::Error::new_spanned(
+            path,
             format!(
                 "expected `{path}(Inside(..)/Outside(..)/Unlimited)`",
                 path = path_to_string(path)

@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `host` validator.
 #[derive(Debug, Clone)]
@@ -36,5 +34,4 @@ impl Display for HostError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for HostError {}
+impl core::error::Error for HostError {}

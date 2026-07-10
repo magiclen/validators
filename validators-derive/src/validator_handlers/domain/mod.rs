@@ -3,7 +3,7 @@ mod domain_attribute;
 use domain_attribute::DomainAttribute;
 use educe::Educe;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, Meta, Path, spanned::Spanned};
+use syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
@@ -130,8 +130,8 @@ impl ValidatorHandler for DomainHandler {
 
             if type_attribute.ipv4.must() && type_attribute.at_least_two_labels.disallow() {
                 if type_attribute.conflict.disallow() {
-                    return Err(syn::Error::new(
-                        meta.span(),
+                    return Err(syn::Error::new_spanned(
+                        &meta,
                         "`ipv4(Must)` and `at_least_two_labels(Disallow)` cannot be used together",
                     ));
                 }
@@ -149,7 +149,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 4 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
                                         ));
                                     }
@@ -162,7 +162,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "is_ipv4" | "is_local" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
                                                 ));
                                             },
@@ -170,7 +170,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
                                     ));
                                 }
@@ -179,7 +179,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 4 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
                                         ));
                                     }
@@ -192,7 +192,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "is_ipv4" | "is_local" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
                                                 ));
                                             },
@@ -200,7 +200,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
                                     ));
                                 }
@@ -209,7 +209,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 3 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_IPV4_ALLOW_LOCAL,
                                         ));
                                     }
@@ -222,7 +222,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "is_ipv4" | "is_local" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_IPV4_ALLOW_LOCAL,
                                                 ));
                                             },
@@ -230,7 +230,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_IPV4_ALLOW_LOCAL,
                                     ));
                                 }
@@ -242,7 +242,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_PORT,
                                         ));
                                     }
@@ -255,7 +255,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_PORT,
                                                 ));
                                             },
@@ -263,7 +263,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_PORT,
                                     ));
                                 }
@@ -272,7 +272,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_WITH_PORT,
                                         ));
                                     }
@@ -285,7 +285,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_WITH_PORT,
                                                 ));
                                             },
@@ -293,7 +293,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_WITH_PORT,
                                     ));
                                 }
@@ -302,13 +302,13 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Unnamed(_) = &data.fields {
                                     if data.fields.len() != 1 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM,
                                         ));
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM,
                                     ));
                                 }
@@ -325,7 +325,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 3 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_LOCAL_ALLOW_PORT,
                                         ));
                                     }
@@ -338,7 +338,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "is_local" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_LOCAL_ALLOW_PORT,
                                                 ));
                                             },
@@ -346,7 +346,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_LOCAL_ALLOW_PORT,
                                     ));
                                 }
@@ -355,7 +355,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 3 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_LOCAL_WITH_PORT,
                                         ));
                                     }
@@ -368,7 +368,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "is_local" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_LOCAL_WITH_PORT,
                                                 ));
                                             },
@@ -376,7 +376,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_LOCAL_WITH_PORT,
                                     ));
                                 }
@@ -385,7 +385,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_LOCAL,
                                         ));
                                     }
@@ -398,7 +398,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "is_local" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_LOCAL,
                                                 ));
                                             },
@@ -406,7 +406,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_LOCAL,
                                     ));
                                 }
@@ -418,7 +418,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_ALLOW_PORT,
                                         ));
                                     }
@@ -431,7 +431,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_ALLOW_PORT,
                                                 ));
                                             },
@@ -439,7 +439,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_ALLOW_PORT,
                                     ));
                                 }
@@ -448,7 +448,7 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Named(_) = &data.fields {
                                     if data.fields.len() != 2 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM_WITH_PORT,
                                         ));
                                     }
@@ -461,7 +461,7 @@ impl ValidatorHandler for DomainHandler {
                                             "domain" | "port" => (),
                                             _ => {
                                                 return Err(panic::validator_for_specific_item(
-                                                    meta.path().get_ident().unwrap(),
+                                                    meta.path(),
                                                     ITEM_WITH_PORT,
                                                 ));
                                             },
@@ -469,7 +469,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM_WITH_PORT,
                                     ));
                                 }
@@ -478,13 +478,13 @@ impl ValidatorHandler for DomainHandler {
                                 if let Fields::Unnamed(_) = &data.fields {
                                     if data.fields.len() != 1 {
                                         return Err(panic::validator_for_specific_item(
-                                            meta.path().get_ident().unwrap(),
+                                            meta.path(),
                                             ITEM,
                                         ));
                                     }
                                 } else {
                                     return Err(panic::validator_for_specific_item(
-                                        meta.path().get_ident().unwrap(),
+                                        meta.path(),
                                         ITEM,
                                     ));
                                 }
@@ -527,8 +527,8 @@ impl ValidatorHandler for DomainHandler {
                 quote! {
                     Some(colon_index) => {
                         (
-                            unsafe { ::core::str::from_utf8_unchecked(&bytes[..colon_index]) },
-                            Some(unsafe { ::core::str::from_utf8_unchecked(&bytes[(colon_index + 1)..]) }),
+                            &s[..colon_index],
+                            Some(&s[(colon_index + 1)..]),
                         )
                     }
                 }
@@ -540,7 +540,7 @@ impl ValidatorHandler for DomainHandler {
                 }
             } else {
                 quote! {
-                    (unsafe { ::core::str::from_utf8_unchecked(bytes) }, None::<&str>)
+                    (&s[..], None::<&str>)
                 }
             };
 
@@ -1119,6 +1119,6 @@ impl ValidatorHandler for DomainHandler {
             return Ok(token_stream);
         }
 
-        Err(panic::validator_for_specific_item(meta.path().get_ident().unwrap(), ITEM))
+        Err(panic::validator_for_specific_item(meta.path(), ITEM))
     }
 }

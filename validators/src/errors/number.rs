@@ -2,8 +2,6 @@ use core::{
     fmt::{self, Display, Formatter},
     num::ParseFloatError,
 };
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `number` validator.
 #[derive(Debug, Clone)]
@@ -37,5 +35,4 @@ impl Display for NumberError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for NumberError {}
+impl core::error::Error for NumberError {}

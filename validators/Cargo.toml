@@ -16,7 +16,7 @@ include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 validators-derive = { version = "0.26", path = "../validators-derive", optional = true }
 
 data-encoding = { version = "2.2", default-features = false, features = ["alloc"], optional = true }
-idna = { version = "1", default-features = false, features = ["alloc"], optional = true }
+idna = { version = "1", default-features = false, features = ["alloc", "compiled_data"], optional = true }
 byte-unit = { version = "5.1", default-features = false, optional = true }
 url-dep = { package = "url", version = "2", optional = true }
 str-utils = { version = "0.3", optional = true }

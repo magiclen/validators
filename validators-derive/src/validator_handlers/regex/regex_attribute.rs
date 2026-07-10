@@ -1,6 +1,6 @@
 use quote::quote;
 use regex::Regex;
-use syn::{Expr, ExprLit, Lit, Meta, Token, punctuated::Punctuated, spanned::Spanned};
+use syn::{Expr, ExprLit, Lit, Meta, Token, punctuated::Punctuated};
 
 use crate::{
     common::{rocket_options::RocketOptions, serde_options::SerdeOptions},
@@ -26,7 +26,7 @@ impl RegexAttribute {
         match meta {
             Meta::Path(_) => (),
             Meta::NameValue(_) => {
-                return Err(panic::attribute_incorrect_format(meta.path().get_ident().unwrap()));
+                return Err(panic::attribute_incorrect_format(meta.path()));
             },
             Meta::List(list) => {
                 let result =
@@ -103,7 +103,7 @@ impl RegexAttribute {
                 rocket_options,
             })
         } else {
-            Err(syn::Error::new(meta.path().span(), "the `regex` parameter is not set"))
+            Err(syn::Error::new_spanned(meta.path(), "the `regex` parameter is not set"))
         }
     }
 }
@@ -121,7 +121,7 @@ fn expr_lit_2_regex_expr(lit: &ExprLit) -> syn::Result<Expr> {
         );
     }
 
-    Err(syn::Error::new(lit.span(), "expected `\"regex\"`"))
+    Err(syn::Error::new_spanned(lit, "expected `\"regex\"`"))
 }
 
 fn meta_2_regex_expr(meta: &Meta) -> syn::Result<Expr> {
@@ -143,5 +143,5 @@ fn meta_2_regex_expr(meta: &Meta) -> syn::Result<Expr> {
 
     let path = meta.path();
 
-    Err(syn::Error::new(path.span(), "expected `\"regex\"` or an expr"))
+    Err(syn::Error::new_spanned(path, "expected `\"regex\"` or an expr"))
 }

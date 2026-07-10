@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `semver` and `semver_req` validator.
 #[derive(Debug)]
@@ -20,5 +18,4 @@ impl Display for SemverError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for SemverError {}
+impl core::error::Error for SemverError {}

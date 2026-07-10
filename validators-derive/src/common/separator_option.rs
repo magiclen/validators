@@ -1,4 +1,4 @@
-use syn::{Expr, Lit, LitByte, Meta, spanned::Spanned};
+use syn::{Expr, Lit, LitByte, Meta};
 
 use crate::common::path_to_string;
 
@@ -94,8 +94,8 @@ impl SeparatorOption {
 
         let path = meta.path();
 
-        Err(syn::Error::new(
-            path.span(),
+        Err(syn::Error::new_spanned(
+            path,
             format!(
                 "expected `{path}(Must(b'-')/Allow(b'-')/Disallow)`",
                 path = path_to_string(path)

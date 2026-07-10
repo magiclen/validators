@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 use crate::url;
 
@@ -22,5 +20,4 @@ impl Display for UrlError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for UrlError {}
+impl core::error::Error for UrlError {}

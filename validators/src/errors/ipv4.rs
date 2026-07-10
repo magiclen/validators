@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `ipv4` validator.
 #[derive(Debug, Clone)]
@@ -30,5 +28,4 @@ impl Display for Ipv4Error {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for Ipv4Error {}
+impl core::error::Error for Ipv4Error {}

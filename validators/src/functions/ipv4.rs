@@ -1,4 +1,4 @@
-use core::str::{FromStr, from_utf8_unchecked};
+use core::str::FromStr;
 use std::net::{AddrParseError, Ipv4Addr};
 
 /// Determine whether the input `Ipv4Addr` is local.
@@ -16,17 +16,6 @@ pub const fn is_local_ipv4(addr: Ipv4Addr) -> bool {
 #[inline]
 pub fn parse_ipv4_allow_an_ended_dot<S: AsRef<str>>(s: S) -> Result<Ipv4Addr, AddrParseError> {
     let s = s.as_ref();
-    let bytes = s.as_bytes();
 
-    debug_assert!(!bytes.is_empty());
-
-    let length = bytes.len();
-
-    let s = if length > 0 && bytes[length - 1] == b'.' {
-        unsafe { from_utf8_unchecked(&bytes[..(length - 1)]) }
-    } else {
-        s
-    };
-
-    Ipv4Addr::from_str(s)
+    Ipv4Addr::from_str(s.strip_suffix('.').unwrap_or(s))
 }

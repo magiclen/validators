@@ -1,6 +1,4 @@
 use core::fmt::{self, Display, Formatter};
-#[cfg(feature = "std")]
-use std::error::Error;
 
 /// Error from the `base64_url` validator.
 #[derive(Debug, Clone)]
@@ -24,5 +22,4 @@ impl Display for Base64UrlError {
     }
 }
 
-#[cfg(feature = "std")]
-impl Error for Base64UrlError {}
+impl core::error::Error for Base64UrlError {}

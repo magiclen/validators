@@ -1,6 +1,6 @@
-use syn::{Expr, Ident, Lit, Meta, Token, punctuated::Punctuated, spanned::Spanned};
+use syn::Meta;
 
-use crate::panic;
+use crate::common::flag_options;
 
 #[derive(Debug)]
 pub(crate) struct SerdeOptions {
@@ -22,88 +22,17 @@ impl SerdeOptions {
     pub(crate) fn from_meta(meta: &Meta) -> syn::Result<Self> {
         debug_assert!(meta.path().is_ident("serde"));
 
-        match meta {
-            Meta::Path(_) => {
-                #[cfg(feature = "serde")]
-                {
-                    Ok(Self::default())
-                }
-                #[cfg(not(feature = "serde"))]
-                {
-                    Err(syn::Error::new(meta.path().span(), "the `serde` feature is not enabled"))
-                }
-            },
-            Meta::NameValue(name_value) => {
-                if let Expr::Lit(lit) = &name_value.value
-                    && let Lit::Bool(lit) = &lit.lit
-                {
-                    let b = lit.value;
+        let (serialize, deserialize) = flag_options::meta_2_flags(
+            meta,
+            "serde",
+            cfg!(feature = "serde"),
+            "Serialize",
+            "Deserialize",
+        )?;
 
-                    #[cfg(not(feature = "serde"))]
-                    if b {
-                        return Err(syn::Error::new(
-                            lit.span(),
-                            "the `serde` feature is not enabled, so the value cannot be `true`",
-                        ));
-                    }
-
-                    return Ok(Self {
-                        serialize: b, deserialize: b
-                    });
-                }
-
-                Err(syn::Error::new(name_value.value.span(), "expected a bool"))
-            },
-            Meta::List(list) => {
-                let result =
-                    list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_separated_nonempty)?;
-
-                let mut serialize = false;
-                let mut deserialize = false;
-
-                for p in result {
-                    match p.to_string().as_str() {
-                        "Serialize" => {
-                            if serialize {
-                                return Err(panic::parameter_reset(&p));
-                            }
-
-                            serialize = true;
-                        },
-                        "Deserialize" => {
-                            if deserialize {
-                                return Err(panic::parameter_reset(&p));
-                            }
-
-                            deserialize = true;
-                        },
-                        _ => {
-                            return Err(syn::Error::new(
-                                p.span(),
-                                "expected Serialize/Deserialize",
-                            ));
-                        },
-                    }
-
-                    #[cfg(not(feature = "serde"))]
-                    {
-                        let _ = serialize;
-                        let _ = deserialize;
-
-                        return Err(syn::Error::new(
-                            p.span(),
-                            format!(
-                                "cannot implement `{p}` because the `serde` feature is not enabled"
-                            ),
-                        ));
-                    }
-                }
-
-                Ok(Self {
-                    serialize,
-                    deserialize,
-                })
-            },
-        }
+        Ok(Self {
+            serialize,
+            deserialize,
+        })
     }
 }
