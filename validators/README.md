@@ -498,20 +498,20 @@ assert!(SinglePercentage::parse_string("NaN").is_ok());
 use std::collections::HashMap;
 
 use validators::prelude::*;
-use validators_prelude::phonenumber::PhoneNumber;
+use validators_prelude::phonenumber::{country::Id, PhoneNumber};
 
 #[derive(Validator)]
 #[validator(phone)]
-pub struct InternationalPhone(pub phonenumber::PhoneNumber);
+pub struct InternationalPhone(pub PhoneNumber);
 
 #[derive(Validator)]
 #[validator(phone(countries(TW)))]
-pub struct TWPhone(pub phonenumber::PhoneNumber);
+pub struct TWPhone(pub PhoneNumber);
 
 #[derive(Validator)]
 #[validator(phone(countries(TW, US)))]
 pub struct TWorUSPhone(
-    pub HashMap<phonenumber::country::Id, phonenumber::PhoneNumber>,
+    pub HashMap<Id, PhoneNumber>,
 );
 
 assert!(InternationalPhone::parse_string("+886912345678").is_ok());
