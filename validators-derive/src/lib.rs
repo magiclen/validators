@@ -4,7 +4,7 @@
 The provided crate offers a procedural macro for defining validators, including optional parameters. See the [`validators`](https://crates.io/crates/validators) crate.
  */
 
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 mod common;
 #[allow(unused)]

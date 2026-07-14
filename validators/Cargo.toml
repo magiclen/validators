@@ -1,6 +1,6 @@
 [package]
 name = "validators"
-version = "0.26.0"
+version = "0.26.1"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2024"
 rust-version = "1.89"
@@ -13,7 +13,7 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-validators-derive = { version = "0.26", path = "../validators-derive", optional = true }
+validators-derive = { version = "0.26.1", path = "../validators-derive", optional = true }
 
 data-encoding = { version = "2.2", default-features = false, features = ["alloc"], optional = true }
 idna = { version = "1", default-features = false, features = ["alloc", "compiled_data"], optional = true }
