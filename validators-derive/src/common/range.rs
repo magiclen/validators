@@ -6,7 +6,7 @@ use syn::{Expr, ExprRange, RangeLimits};
 use syn::{Meta, Token, punctuated::Punctuated};
 
 #[cfg(feature = "full")]
-use crate::common::number::expr_lit_2_number;
+use crate::common::number::expr_2_number;
 use crate::{
     common::{boolean::meta_2_bool, number::meta_2_number},
     panic,
@@ -80,35 +80,16 @@ where
     #[cfg(feature = "full")]
     #[inline]
     pub(crate) fn from_expr_range(range: &ExprRange) -> syn::Result<Self> {
-        let mut min = None;
-        let mut max = None;
-        let mut inclusive = true;
+        let min = range.start.as_deref().map(expr_2_number).transpose()?;
+        let max = range.end.as_deref().map(expr_2_number).transpose()?;
+        let inclusive = max.is_none() || matches!(range.limits, RangeLimits::Closed(_));
 
-        if let Some(expr) = &range.start {
-            if let Expr::Lit(lit) = expr.as_ref() {
-                min = Some(expr_lit_2_number(lit)?);
-            } else {
-                return Err(syn::Error::new_spanned(expr, "not a literal"));
-            }
-        }
-
-        if let Some(expr) = &range.end {
-            if let Expr::Lit(lit) = expr.as_ref() {
-                max = Some(expr_lit_2_number(lit)?);
-            } else {
-                return Err(syn::Error::new_spanned(expr, "not a literal"));
-            }
-
-            if let RangeLimits::HalfOpen(_) = range.limits {
-                inclusive = false;
-            }
-        }
-
-        Ok(Self {
+        Self {
             min,
             max,
             inclusive,
-        })
+        }
+        .check_bounds(range)
     }
 
     #[inline]
@@ -206,29 +187,34 @@ where
             },
         }
 
-        if let Some(min) = min
-            && let Some(max) = max
+        Self {
+            min,
+            max,
+            inclusive,
+        }
+        .check_bounds(meta.path())
+    }
+
+    fn check_bounds(self, tokens: &impl ToTokens) -> syn::Result<Self> {
+        if let Some(min) = self.min
+            && let Some(max) = self.max
         {
-            if inclusive {
+            if self.inclusive {
                 if min > max {
                     return Err(syn::Error::new_spanned(
-                        meta.path(),
+                        tokens,
                         format!("{min} > {max} (min > max)"),
                     ));
                 }
             } else if min >= max {
                 return Err(syn::Error::new_spanned(
-                    meta.path(),
+                    tokens,
                     format!("{min} >= {max} (min >= max)"),
                 ));
             }
         }
 
-        Ok(Self {
-            min,
-            max,
-            inclusive,
-        })
+        Ok(self)
     }
 }
 

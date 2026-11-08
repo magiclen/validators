@@ -66,8 +66,8 @@ impl ValidatorHandler for PhoneHandler {
                             }
                         },
                         1 => {
-                            let c = proc_macro2::TokenStream::from_str(type_attribute.countries.iter().next().unwrap().as_ref())
-                                    .unwrap();
+                            let country = type_attribute.countries[0];
+                            let c = proc_macro2::TokenStream::from_str(country.as_ref()).unwrap();
 
                             quote! {
                                 impl #name {
@@ -99,19 +99,26 @@ impl ValidatorHandler for PhoneHandler {
                                     #[inline]
                                     fn v_parse_str(s: &str) -> Result<::std::collections::HashMap<validators_prelude::phonenumber::country::Id, validators_prelude::phonenumber::PhoneNumber>, #error_path> {
                                         let mut map = ::std::collections::HashMap::with_capacity(2);
+                                        let mut failure = None;
 
                                         #(
-                                            let phonenumber = validators_prelude::phonenumber::parse(Some(validators_prelude::phonenumber::country::Id::#c), s)?;
+                                            let country = validators_prelude::phonenumber::country::Id::#c;
 
-                                            if let Some(id) = phonenumber.country().id() {
-                                                if id == validators_prelude::phonenumber::country::Id::#c && phonenumber.is_valid() {
-                                                    map.insert(validators_prelude::phonenumber::country::Id::#c, phonenumber);
+                                            match validators_prelude::phonenumber::parse(Some(country), s) {
+                                                Ok(phonenumber) => {
+                                                    if phonenumber.country().id() == Some(country) && phonenumber.is_valid() {
+                                                        map.insert(country, phonenumber);
+                                                    }
+
+                                                    failure = Some(#error_path::Invalid);
                                                 }
+                                                Err(error) if failure.is_none() => failure = Some(error.into()),
+                                                Err(_) => (),
                                             }
                                         )*
 
                                         if map.is_empty() {
-                                            Err(#error_path::Invalid)
+                                            Err(failure.unwrap_or(#error_path::Invalid))
                                         } else {
                                             Ok(map)
                                         }

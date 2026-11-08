@@ -2,6 +2,25 @@
 
 use validators::prelude::{validators_prelude::RangeOption, *};
 
+#[cfg(feature = "serde_json")]
+#[test]
+fn deserialize_integers() {
+    use validators::{Result as ValidationResult, serde_json};
+
+    #[derive(Validator)]
+    #[validator(number)]
+    struct Number(f64);
+
+    for (json, expected) in [("1", 1.0), ("-1", -1.0)] {
+        let number: Number = serde_json::from_str(json).unwrap();
+        let result: ValidationResult<Number, validators_prelude::NumberError> =
+            serde_json::from_str(json).unwrap();
+
+        assert_eq!(expected, number.0);
+        assert_eq!(expected, result.into_std_result().unwrap().0);
+    }
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
         RangeOption::Inside {

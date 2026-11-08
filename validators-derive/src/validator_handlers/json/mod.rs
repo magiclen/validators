@@ -230,15 +230,15 @@ impl ValidatorHandler for JsonHandler {
             {
                 if type_attribute.serde_options.serialize {
                     token_stream.extend(quote! {
-                                impl validators_prelude::serde::Serialize for #name {
-                                    #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-                                        where
-                                            S: validators_prelude::serde::Serializer, {
-                                        serializer.serialize_str(&ToJsonString::to_minified_json_string(self))
-                                    }
-                                }
-                            });
+                        impl validators_prelude::serde::Serialize for #name {
+                            #[inline]
+                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                where
+                                    S: validators_prelude::serde::Serializer, {
+                                validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                            }
+                        }
+                    });
                 }
 
                 if type_attribute.serde_options.deserialize {

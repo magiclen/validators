@@ -51,6 +51,7 @@ fn basic() {
                     }
 
                     test("", false);
+                    test("00:00:00:00:", false);
                     test("08:00:27:b2:46:c3", Validator::V_CASE.lower() && Validator::V_SEPARATOR.allow() == Some(b':'));
                     test("08:00:27:B2:46:C3", Validator::V_CASE.upper() && Validator::V_SEPARATOR.allow() == Some(b':'));
                     test("08:00:27:b2:46:C3", Validator::V_CASE.any() && Validator::V_SEPARATOR.allow() == Some(b':'));

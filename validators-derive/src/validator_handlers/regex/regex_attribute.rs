@@ -1,4 +1,5 @@
-use quote::quote;
+use proc_macro2::TokenStream;
+use quote::{ToTokens, quote};
 use regex::Regex;
 use syn::{Expr, ExprLit, Lit, Meta, Token, punctuated::Punctuated};
 
@@ -8,7 +9,7 @@ use crate::{
 };
 
 pub(crate) struct RegexAttribute {
-    pub(crate) regex:          Expr,
+    pub(crate) regex:          TokenStream,
     #[cfg_attr(not(feature = "serde"), allow(dead_code))]
     pub(crate) serde_options:  SerdeOptions,
     #[cfg_attr(not(feature = "rocket"), allow(dead_code))]
@@ -108,7 +109,7 @@ impl RegexAttribute {
     }
 }
 
-fn expr_lit_2_regex_expr(lit: &ExprLit) -> syn::Result<Expr> {
+fn expr_lit_2_regex_expr(lit: &ExprLit) -> syn::Result<TokenStream> {
     if let Lit::Str(lit) = &lit.lit {
         let s = lit.value();
 
@@ -116,27 +117,36 @@ fn expr_lit_2_regex_expr(lit: &ExprLit) -> syn::Result<Expr> {
             return Err(syn::Error::new_spanned(lit, error));
         }
 
-        return Ok(
-            syn::parse2(quote! ( validators_prelude::regex::Regex::new(#s).unwrap() )).unwrap()
-        );
+        return Ok(quote! {{
+            extern crate std as validator_std;
+
+            static REGEX: validator_std::sync::LazyLock<validators_prelude::regex::Regex> =
+                validator_std::sync::LazyLock::new(|| validators_prelude::regex::Regex::new(#s).unwrap());
+
+            &*REGEX
+        }});
     }
 
     Err(syn::Error::new_spanned(lit, "expected `\"regex\"`"))
 }
 
-fn meta_2_regex_expr(meta: &Meta) -> syn::Result<Expr> {
+fn meta_2_regex_expr(meta: &Meta) -> syn::Result<TokenStream> {
     match meta {
         Meta::NameValue(name_value) => {
             return if let Expr::Lit(lit) = &name_value.value {
                 expr_lit_2_regex_expr(lit)
             } else {
-                Ok(name_value.value.clone())
+                Ok(name_value.value.to_token_stream())
             };
         },
         Meta::List(list) => {
             let expr: Expr = list.parse_args()?;
 
-            return if let Expr::Lit(lit) = &expr { expr_lit_2_regex_expr(lit) } else { Ok(expr) };
+            return if let Expr::Lit(lit) = &expr {
+                expr_lit_2_regex_expr(lit)
+            } else {
+                Ok(expr.into_token_stream())
+            };
         },
         Meta::Path(_) => (),
     }

@@ -3,6 +3,22 @@
 use validators::prelude::*;
 
 #[test]
+fn quoted_without_comments() {
+    #[derive(Validator)]
+    #[validator(email(comment(Disallow)))]
+    struct Address {
+        local_part:  String,
+        need_quoted: bool,
+        domain_part: validators::models::Host,
+    }
+
+    let input = "\"alice smith\"@example.com";
+    let address = Address::parse_str(input).unwrap();
+
+    assert_eq!(input, address.to_email_string());
+}
+
+#[test]
 fn basic() {
     macro_rules! test_case {
         ($test:ident, $validator:ident) => {
@@ -14,6 +30,9 @@ fn basic() {
             test("A@b@c@example.com", false);
             test("a\"b(c)d,e:f;g<h>i[j\\k]l@example.com", false);
             test("just\"not\"right@example.com", false);
+            test("a@example.com(note)extra", false);
+            test(&format!("{}(x)@example.com", "a".repeat(64)), false);
+            test(&format!("{}@example.com", "中".repeat(22)), false);
             test("this is\"not\\allowed@example.com", false);
             test("this\\ still\\\"not\\\\allowed@example.com", false);
             test(

@@ -80,13 +80,13 @@ impl ValidatorHandler for MacAddressHandler {
                                 no_colon_counter += 1;
                             }
 
-                            let fifth = &bytes[(12 - no_colon_counter)..(14 - no_colon_counter)];
+                            let fifth = bytes.get((12 - no_colon_counter)..(14 - no_colon_counter)).ok_or(#error_path::Invalid)?;
 
-                            if bytes[14 - no_colon_counter] != #separator {
+                            if bytes.get(14 - no_colon_counter) != Some(&#separator) {
                                 no_colon_counter += 1;
                             }
 
-                            let sixth = &bytes[(15 - no_colon_counter)..];
+                            let sixth = bytes.get((15 - no_colon_counter)..).ok_or(#error_path::Invalid)?;
 
                             if sixth.len() != 2 {
                                 return Err(#error_path::Invalid);

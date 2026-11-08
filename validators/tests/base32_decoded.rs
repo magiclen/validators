@@ -52,6 +52,10 @@ fn basic() {
                     }
 
                     test("", false);
+                    test("MZXW6YTB", true);
+                    test("MY======N4======", false);
+                    test("A", false);
+                    test("MZ======", false);
                     test("GEZDGNBVGY3TQOI=", Validator::V_PADDING.allow());
                     test("GEZDGNBVGY3TQOI", !Validator::V_PADDING.must());
                     test("GEZDGNBV=GY3TQOI", false);
@@ -82,4 +86,14 @@ fn decode() {
     let base32_decoded = Validator::parse_str("GEZDGNBVGY3TQOI=").unwrap();
 
     assert_eq!(b"123456789", base32_decoded.0.as_slice());
+
+    #[cfg(feature = "serde_json")]
+    {
+        use validators::serde_json;
+
+        let json = serde_json::to_string(&base32_decoded).unwrap();
+        let decoded: Validator = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(b"123456789", decoded.0.as_slice());
+    }
 }

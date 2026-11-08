@@ -72,33 +72,40 @@ impl ValidatorHandler for Base32DecodedHandler {
                                 }
                             }
 
-                            return Ok(());
+                            return Self::v_validate_last_block(
+                                last_bytes,
+                                &validators_prelude::data_encoding::BASE32,
+                            );
                         }
                         _ => return Err(#error_path::Invalid),
                     }
                 }
             };
 
+            let decode_padded = quote! {
+                // The decoder accepts concatenated values, so check for padding before the last block.
+                let last_block_start = (v.len() - 1) / 8 * 8;
+
+                if v[..last_block_start].contains(&b'=') {
+                    return Err(#error_path::Decode);
+                }
+
+                validators_prelude::data_encoding::BASE32.decode(v).map_err(|_| #error_path::Decode)
+            };
+            let decode_unpadded = quote! {
+                validators_prelude::data_encoding::BASE32_NOPAD.decode(v).map_err(|_| #error_path::Decode)
+            };
+
             let decode = match type_attribute.padding {
-                TriAllow::Allow => {
-                    quote! {
-                        if v[v.len() - 1] == b'=' {
-                            validators_prelude::data_encoding::BASE32.decode(v.as_ref()).map_err(|_| #error_path::Decode)
-                        } else {
-                            validators_prelude::data_encoding::BASE32_NOPAD.decode(v.as_ref()).map_err(|_| #error_path::Decode)
-                        }
+                TriAllow::Allow => quote! {
+                    if v.last() == Some(&b'=') {
+                        #decode_padded
+                    } else {
+                        #decode_unpadded
                     }
                 },
-                TriAllow::Must => {
-                    quote! {
-                        validators_prelude::data_encoding::BASE32.decode(v.as_ref()).map_err(|_| #error_path::Decode)
-                    }
-                },
-                TriAllow::Disallow => {
-                    quote! {
-                        validators_prelude::data_encoding::BASE32_NOPAD.decode(v.as_ref()).map_err(|_| #error_path::Decode)
-                    }
-                },
+                TriAllow::Must => decode_padded,
+                TriAllow::Disallow => decode_unpadded,
             };
 
             token_stream.extend(quote! {
@@ -157,7 +164,14 @@ impl ValidatorHandler for Base32DecodedHandler {
 
                                 loop {
                                     if p == last_length {
-                                        return Ok(());
+                                        return if last_length == 8 {
+                                            Ok(())
+                                        } else {
+                                            Self::v_validate_last_block(
+                                                last_bytes,
+                                                &validators_prelude::data_encoding::BASE32_NOPAD,
+                                            )
+                                        };
                                     }
 
                                     let e = last_bytes[p];
@@ -172,6 +186,18 @@ impl ValidatorHandler for Base32DecodedHandler {
 
                                     p += 1;
                                 }
+                            }
+
+                            fn v_validate_last_block(
+                                last_bytes: &[u8],
+                                encoding: &validators_prelude::data_encoding::Encoding,
+                            ) -> Result<(), #error_path> {
+                                let output_len = encoding.decode_len(last_bytes.len()).map_err(|_| #error_path::Decode)?;
+                                let mut output = [0; 5];
+
+                                encoding.decode_mut(last_bytes, &mut output[..output_len]).map_err(|_| #error_path::Decode)?;
+
+                                Ok(())
                             }
                         }
                     });
@@ -291,6 +317,20 @@ impl ValidatorHandler for Base32DecodedHandler {
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateBytes>::parse_vec_u8(v).map_err(validators_prelude::serde::de::Error::custom)
+                                            }
+
+                                            fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
+                                            where
+                                                A: validators_prelude::serde::de::SeqAccess<'de>, {
+                                                let bytes: validators_prelude::Vec<u8> = validators_prelude::serde::Deserialize::deserialize(
+                                                    validators_prelude::serde::de::value::SeqAccessDeserializer::new(seq),
+                                                )?;
+
+                                                if bytes.is_empty() {
+                                                    return Err(validators_prelude::serde::de::Error::custom(#error_path::Invalid));
+                                                }
+
+                                                Ok(#name(bytes))
                                             }
                                         }
 

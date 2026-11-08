@@ -2,6 +2,35 @@
 
 use validators::prelude::{validators_prelude::RangeOption, *};
 
+#[cfg(feature = "full")]
+#[test]
+fn range_expression() {
+    #[derive(Validator)]
+    #[validator(signed_integer(range(Inside(-5..=5))))]
+    struct Integer(i8);
+
+    assert_eq!(-5, Integer::parse_i8(-5).unwrap().0);
+    assert_eq!(5, Integer::parse_i8(5).unwrap().0);
+}
+
+#[cfg(feature = "serde_json")]
+#[test]
+fn deserialize_positive_integer() {
+    use validators::{Result as ValidationResult, serde_json};
+
+    #[derive(Validator)]
+    #[validator(signed_integer)]
+    struct Integer(i8);
+
+    let json = serde_json::to_string(&Integer::parse_i8(42).unwrap()).unwrap();
+    let integer: Integer = serde_json::from_str(&json).unwrap();
+    let result: ValidationResult<Integer, validators_prelude::SignedIntegerError> =
+        serde_json::from_str(&json).unwrap();
+
+    assert_eq!(42, integer.0);
+    assert_eq!(42, result.into_std_result().unwrap().0);
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
         RangeOption::Inside {

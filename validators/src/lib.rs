@@ -60,6 +60,9 @@ assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=
 
 #### base32_decoded
 
+The decoded Base32, Base64, and Base64url validators accept one encoded value at a time.
+With Serde, they can also read non-empty JSON byte arrays as already decoded data.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "base32_decoded"))]
 # {
@@ -441,6 +444,8 @@ assert!(Ipv6AllowPort::parse_string("[::ffff:c000:0280]").is_ok());
 
 #### json
 
+Serde serialization writes the inner value directly.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "json"))]
 # {
@@ -599,6 +604,8 @@ assert!(TWorUSPhone::parse_string("+14155552671").is_ok());
 
 #### regex
 
+A regex supplied as a string literal is compiled on first use and then cached.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "regex"))]
 # {
@@ -617,7 +624,7 @@ static RE_POKER: LazyLock<Regex> = LazyLock::new(|| {
 
 #[derive(Validator)]
 #[validator(regex(regex("^[0-9a-fA-F]+$")))]
-pub struct Hex(pub String); // this doesn't cache the `Regex` instance
+pub struct Hex(pub String);
 
 #[derive(Validator)]
 #[validator(regex(regex(RE_NON_ZERO_NUMBERS)))]

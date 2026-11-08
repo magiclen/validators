@@ -93,6 +93,7 @@ fn char() {
                         }
                     }
 
+                    test("\x0c123", false);
                     test("", check_char_length("", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
                     test("   ", check_char_length("   ", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
                     test("　　　", check_char_length("　　　", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
@@ -160,6 +161,7 @@ fn byte() {
                         }
                     }
 
+                    test("\x0c123", false);
                     test("", check_byte_length("", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));
                     test("   ", check_byte_length("   ", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));
                     test("　　　", check_byte_length("　　　", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));

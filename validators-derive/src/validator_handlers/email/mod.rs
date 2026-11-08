@@ -898,7 +898,7 @@ impl ValidatorHandler for EmailHandler {
                 quote! {
                     local_part_length += 1;
 
-                    if length > local_part_length {
+                    if local_part_length < 64 && length > local_part_length {
                         match bytes[local_part_length..]
                             .iter()
                             .take(64 - local_part_length)
@@ -968,14 +968,10 @@ impl ValidatorHandler for EmailHandler {
 
                         if length > domain_part_length {
                             match bytes[domain_part_length..].iter().copied().position(|e| e == b')') {
-                                Some(mut index) => {
-                                    index += domain_part_length;
-                                    let comment =
-                                        &s[domain_part_length..index];
-
-                                    Some(comment)
+                                Some(index) if domain_part_length + index + 1 == length => {
+                                    Some(&s[domain_part_length..(length - 1)])
                                 }
-                                None => return Err(#error_path::Invalid),
+                                _ => return Err(#error_path::Invalid),
                             }
                         } else {
                             return Err(#error_path::Invalid);
@@ -989,7 +985,7 @@ impl ValidatorHandler for EmailHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: &str) -> Result<(validators_prelude::String, bool, validators_prelude::Host, Option<validators_prelude::String>, Option<validators_prelude::String>, Option<validators_prelude::String>, Option<validators_prelude::String>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> Result<(&str, bool, validators_prelude::Host, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
@@ -1008,8 +1004,7 @@ impl ValidatorHandler for EmailHandler {
                             // quoted
                             let mut p = local_part_length + 1;
 
-                            if p == 63 || p == length {
-                                // too long
+                            if p >= 63 || p == length {
                                 return Err(#error_path::Invalid);
                             }
 
@@ -1040,8 +1035,7 @@ impl ValidatorHandler for EmailHandler {
                             p += 1;
 
                             loop {
-                                if p == length {
-                                    // not found '"', so returns Err.
+                                if p == length || p >= 64 {
                                     return Err(#error_path::Invalid);
                                 }
 
@@ -1061,20 +1055,10 @@ impl ValidatorHandler for EmailHandler {
                                     | b'?'
                                     | b'^'..=b'`'
                                     | b'{'..=b'~' => {
-                                        if p == 63 {
-                                            // too long
-                                            return Err(#error_path::Invalid);
-                                        }
-
                                         last_dot = false;
                                         escaping = false;
                                     }
                                     b'.' => {
-                                        if p == 63 {
-                                            // too long
-                                            return Err(#error_path::Invalid);
-                                        }
-
                                         if last_dot {
                                             need_quoted = true;
                                         }
@@ -1083,25 +1067,14 @@ impl ValidatorHandler for EmailHandler {
                                         escaping = false;
                                     }
                                     b'\\' => {
-                                        if p == 63 {
-                                            // too long
-                                            return Err(#error_path::Invalid);
-                                        }
-
                                         need_quoted = true;
                                         escaping = !escaping;
                                     }
                                     b' ' | b'\t' => {
-                                        if p == 63 {
-                                            // too long
-                                            return Err(#error_path::Invalid);
-                                        }
-
                                         need_quoted = true;
                                     }
                                     b'(' | b')' | b',' | b':'..=b'<' | b'>' | b'@' | b'[' | b']' => {
-                                        if p == 63 || !escaping {
-                                            // too long or not in escaping
+                                        if !escaping {
                                             return Err(#error_path::Invalid);
                                         }
 
@@ -1109,11 +1082,6 @@ impl ValidatorHandler for EmailHandler {
                                     }
                                     b'"' => {
                                         if escaping {
-                                            if p == 63 {
-                                                // too long or not in escaping
-                                                return Err(#error_path::Invalid);
-                                            }
-
                                             escaping = false;
                                         } else {
                                             let local_part =
@@ -1165,8 +1133,7 @@ impl ValidatorHandler for EmailHandler {
                             let mut last_dot = false;
 
                             loop {
-                                if p == length {
-                                    // not found '@' or '(', so returns Err.
+                                if p == length || p > 64 {
                                     return Err(#error_path::Invalid);
                                 }
 
@@ -1186,16 +1153,10 @@ impl ValidatorHandler for EmailHandler {
                                     | b'?'
                                     | b'^'..=b'`'
                                     | b'{'..=b'~' => {
-                                        if p == 64 {
-                                            // too long
-                                            return Err(#error_path::Invalid);
-                                        }
-
                                         last_dot = false;
                                     }
                                     b'.' => {
-                                        if p == 64 || last_dot {
-                                            // too long or '.' appears consecutively
+                                        if last_dot {
                                             return Err(#error_path::Invalid);
                                         }
 
@@ -1273,13 +1234,13 @@ impl ValidatorHandler for EmailHandler {
                         };
 
                         return Ok((
-                            validators_prelude::String::from(local_part),
+                            local_part,
                             need_quoted,
                             host,
-                            comment_before_local_part.map(validators_prelude::String::from),
-                            comment_after_local_part.map(validators_prelude::String::from),
-                            comment_before_domain_part.map(validators_prelude::String::from),
-                            comment_after_domain_part.map(validators_prelude::String::from),
+                            comment_before_local_part,
+                            comment_after_local_part,
+                            comment_before_domain_part,
+                            comment_after_domain_part,
                             is_local,
                         ));
                     }
@@ -1496,22 +1457,43 @@ impl ValidatorHandler for EmailHandler {
                 }
             };
 
+            let own_comments = if type_attribute.comment.allow() {
+                quote! {
+                    let _comment_before_local_part = _comment_before_local_part.map(validators_prelude::String::from);
+                    let _comment_after_local_part = _comment_after_local_part.map(validators_prelude::String::from);
+                    let _comment_before_domain_part = _comment_before_domain_part.map(validators_prelude::String::from);
+                    let _comment_after_domain_part = _comment_after_domain_part.map(validators_prelude::String::from);
+                }
+            } else {
+                quote! {}
+            };
+
+            let parse = quote! {
+                let (local_part, need_quoted, domain_part, _comment_before_local_part, _comment_after_local_part, _comment_before_domain_part, _comment_after_domain_part, _is_local) = Self::v_parse_str(s)?;
+                let local_part = validators_prelude::String::from(local_part);
+
+                #own_comments
+
+                Ok(#create_instance)
+            };
+
             token_stream.extend(quote! {
                 impl ValidateString for #name {
                     type Error = #error_path;
 
                     #[inline]
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
-                        let (local_part, need_quoted, domain_part, _comment_before_local_part, _comment_after_local_part, _comment_before_domain_part, _comment_after_domain_part, _is_local) = Self::v_parse_str(s.into().as_str())?;
+                        let s = s.into();
+                        let s = s.as_str();
 
-                        Ok(#create_instance)
+                        #parse
                     }
 
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
-                        let (local_part, need_quoted, domain_part, _comment_before_local_part, _comment_after_local_part, _comment_before_domain_part, _comment_after_domain_part, _is_local) = Self::v_parse_str(s.as_ref())?;
+                        let s = s.as_ref();
 
-                        Ok(#create_instance)
+                        #parse
                     }
 
                     #[inline]
@@ -1531,11 +1513,12 @@ impl ValidatorHandler for EmailHandler {
                                 #[inline]
                                 fn to_email_string(&self) -> validators_prelude::String {
                                     let local_part = &self.local_part;
+                                    let quote = if self.need_quoted { "\"" } else { "" };
 
                                     match &self.domain_part {
-                                        validators_prelude::Host::IPv4(ip) => validators_prelude::format!("{}@[{}]", local_part, ip),
-                                        validators_prelude::Host::IPv6(ip) => validators_prelude::format!("{}@[IPv6:{}]", local_part, ip),
-                                        validators_prelude::Host::Domain(domain) => validators_prelude::format!("{}@{}", local_part, domain),
+                                        validators_prelude::Host::IPv4(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[{ip}]"),
+                                        validators_prelude::Host::IPv6(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[IPv6:{ip}]"),
+                                        validators_prelude::Host::Domain(domain) => validators_prelude::format!("{quote}{local_part}{quote}@{domain}"),
                                     }
                                 }
                             }
@@ -1547,10 +1530,11 @@ impl ValidatorHandler for EmailHandler {
                                 #[inline]
                                 fn to_email_string(&self) -> validators_prelude::String {
                                     let local_part = &self.local_part;
+                                    let quote = if self.need_quoted { "\"" } else { "" };
 
                                     match &self.domain_part {
-                                        ::std::net::IpAddr::V4(ip) => validators_prelude::format!("{}@[{}]", local_part, ip),
-                                        ::std::net::IpAddr::V6(ip) => validators_prelude::format!("{}@[IPv6:{}]", local_part, ip),
+                                        ::std::net::IpAddr::V4(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[{ip}]"),
+                                        ::std::net::IpAddr::V6(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[IPv6:{ip}]"),
                                     }
                                 }
                             }
@@ -1563,8 +1547,9 @@ impl ValidatorHandler for EmailHandler {
                                 fn to_email_string(&self) -> validators_prelude::String {
                                     let local_part = &self.local_part;
                                     let domain_part = &self.domain_part;
+                                    let quote = if self.need_quoted { "\"" } else { "" };
 
-                                    validators_prelude::format!("{}@{}", local_part, domain_part)
+                                    validators_prelude::format!("{quote}{local_part}{quote}@{domain_part}")
                                 }
                             }
                         }

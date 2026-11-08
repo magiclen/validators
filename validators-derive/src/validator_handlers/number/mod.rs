@@ -433,6 +433,34 @@ impl ValidatorHandler for NumberHandler {
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateNumber>::parse_f32(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
+
+                                            #[inline]
+                                            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+                                            where
+                                                E: validators_prelude::serde::de::Error, {
+                                                self.visit_f64(v as f64)
+                                            }
+
+                                            #[inline]
+                                            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+                                            where
+                                                E: validators_prelude::serde::de::Error, {
+                                                self.visit_f64(v as f64)
+                                            }
+
+                                            #[inline]
+                                            fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
+                                            where
+                                                E: validators_prelude::serde::de::Error, {
+                                                self.visit_f64(v as f64)
+                                            }
+
+                                            #[inline]
+                                            fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
+                                            where
+                                                E: validators_prelude::serde::de::Error, {
+                                                self.visit_f64(v as f64)
+                                            }
                                         }
 
                                         deserializer.deserialize_any(MyVisitor)

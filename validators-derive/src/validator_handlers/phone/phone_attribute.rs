@@ -1,4 +1,4 @@
-use std::{collections::HashSet, str::FromStr};
+use std::str::FromStr;
 
 use phonenumber::country::Id;
 use proc_macro2::Ident;
@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub(crate) struct PhoneAttribute {
-    pub(crate) countries:      HashSet<Id>,
+    pub(crate) countries:      Vec<Id>,
     #[cfg_attr(not(feature = "serde"), allow(dead_code))]
     pub(crate) serde_options:  SerdeOptions,
     #[cfg_attr(not(feature = "rocket"), allow(dead_code))]
@@ -21,7 +21,7 @@ impl PhoneAttribute {
     pub(crate) fn build_from_meta(meta: &Meta) -> syn::Result<Self> {
         let correct_parameters = ["countries", "serde", "rocket"];
 
-        let mut countries = HashSet::new();
+        let mut countries = Vec::new();
         let mut serde_options = SerdeOptions::default();
         let mut rocket_options = RocketOptions::default();
 
@@ -104,7 +104,7 @@ impl PhoneAttribute {
     }
 }
 
-fn meta_2_countries(countries: &mut HashSet<Id>, meta: &Meta) -> syn::Result<()> {
+fn meta_2_countries(countries: &mut Vec<Id>, meta: &Meta) -> syn::Result<()> {
     if let Meta::List(list) = meta {
         let result =
             list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_separated_nonempty)?;
@@ -115,12 +115,14 @@ fn meta_2_countries(countries: &mut HashSet<Id>, meta: &Meta) -> syn::Result<()>
             let id = Id::from_str(country.as_str())
                 .map_err(|error| syn::Error::new_spanned(&ident, error))?;
 
-            if !countries.insert(id) {
+            if countries.contains(&id) {
                 return Err(syn::Error::new_spanned(
                     &ident,
                     format!("the country `{country}` of the phone validator is repeated"),
                 ));
             }
+
+            countries.push(id);
         }
 
         return Ok(());

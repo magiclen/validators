@@ -856,6 +856,34 @@ impl<'de, T: ValidateString<Error = NumberError> + ValidateNumber<Error = Number
                 E: DeError, {
                 Ok(Result::new(T::parse_f64(v)))
             }
+
+            #[inline]
+            fn visit_i64<E>(self, v: i64) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                self.visit_f64(v as f64)
+            }
+
+            #[inline]
+            fn visit_u64<E>(self, v: u64) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                self.visit_f64(v as f64)
+            }
+
+            #[inline]
+            fn visit_i128<E>(self, v: i128) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                self.visit_f64(v as f64)
+            }
+
+            #[inline]
+            fn visit_u128<E>(self, v: u128) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                self.visit_f64(v as f64)
+            }
         }
 
         deserializer.deserialize_any(MyVisitor(PhantomData))
@@ -1027,6 +1055,24 @@ impl<
             where
                 E: DeError, {
                 Ok(Result::new(T::parse_i128(v)))
+            }
+
+            #[inline]
+            fn visit_u64<E>(self, v: u64) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                self.visit_i128(i128::from(v))
+            }
+
+            #[inline]
+            fn visit_u128<E>(self, v: u128) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                let result = i128::try_from(v)
+                    .map_err(|_| SignedIntegerError::TooLarge)
+                    .and_then(T::parse_i128);
+
+                Ok(Result::new(result))
             }
         }
 

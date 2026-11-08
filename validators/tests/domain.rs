@@ -3,6 +3,22 @@
 use validators::prelude::*;
 
 #[test]
+fn ipv4_with_port() {
+    #[derive(Validator)]
+    #[validator(domain(ipv4(Must), port(Allow)))]
+    struct Domain {
+        domain: String,
+        port:   Option<u16>,
+    }
+
+    let domain = Domain::parse_string(String::from("127.0.0.1.:8080")).unwrap();
+
+    assert_eq!("127.0.0.1.", domain.domain);
+    assert_eq!(Some(8080), domain.port);
+    assert_eq!("127.0.0.1:8080", domain.to_uri_authority_string());
+}
+
+#[test]
 fn basic() {
     macro_rules! test_case {
         ($test:ident, $validator:ident) => {

@@ -31,3 +31,15 @@ fn basic() {
     assert!(TWorUSPhone::validate_str("0912345678").is_ok());
     assert!(TWorUSPhone::validate_str("+14155552671").is_ok());
 }
+
+#[test]
+fn valid_in_second_country() {
+    #[derive(Validator)]
+    #[validator(phone(countries(US, BR)))]
+    struct USorBRPhone(std::collections::HashMap<Id, PhoneNumber>);
+
+    let phone = USorBRPhone::parse_str("011997123456").unwrap();
+
+    assert_eq!(1, phone.0.len());
+    assert!(phone.0.contains_key(&Id::BR));
+}

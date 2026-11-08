@@ -641,6 +641,22 @@ impl ValidatorHandler for SignedIntegerHandler {
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateSignedInteger>::parse_i128(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
+
+                                            #[inline]
+                                            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+                                            where
+                                                E: validators_prelude::serde::de::Error, {
+                                                self.visit_i128(i128::from(v))
+                                            }
+
+                                            #[inline]
+                                            fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
+                                            where
+                                                E: validators_prelude::serde::de::Error, {
+                                                let v = ::core::convert::TryFrom::try_from(v).map_err(|_| E::custom(#error_path::TooLarge))?;
+
+                                                self.visit_i128(v)
+                                            }
                                         }
 
                                         deserializer.deserialize_any(MyVisitor)

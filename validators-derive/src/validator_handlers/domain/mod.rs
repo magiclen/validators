@@ -636,7 +636,16 @@ impl ValidatorHandler for DomainHandler {
 
                                 #check_local
 
-                                (s.into_owned(), port, true, is_local)
+                                let domain_len = domain_str.len();
+                                let domain = match s {
+                                    validators_prelude::Cow::Borrowed(s) => validators_prelude::String::from(&s[..domain_len]),
+                                    validators_prelude::Cow::Owned(mut s) => {
+                                        s.truncate(domain_len);
+                                        s
+                                    }
+                                };
+
+                                (domain, port, true, is_local)
                             }
                         }
                     };

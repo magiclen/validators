@@ -103,13 +103,14 @@ impl ValidatorHandler for TextHandler {
                                                 return Err(#error_path::TooLong);
                                             }
 
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = len;
                                                 let mut temp_counter = 0;
@@ -170,19 +171,20 @@ impl ValidatorHandler for TextHandler {
                                     };
 
                                     quote! {
-                                        let mut chars = s.chars().take(#max + 1);
+                                        let mut chars = s.chars().take((#max).saturating_add(1));
                                         let mut counter = 0;
 
                                         while let Some(c) = chars.next() {
                                             counter += 1;
 
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
@@ -243,7 +245,7 @@ impl ValidatorHandler for TextHandler {
                                     }
                                 } else {
                                     quote! {
-                                        let mut chars = s.chars().take(#max + 1);
+                                        let mut chars = s.chars().take((#max).saturating_add(1));
                                         let mut counter = 0;
 
                                         while let Some(c) = chars.next() {
@@ -292,13 +294,14 @@ impl ValidatorHandler for TextHandler {
                                                 return Err(#error_path::TooLong);
                                             }
 
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = len;
                                                 let mut temp_counter = 0;
@@ -353,19 +356,20 @@ impl ValidatorHandler for TextHandler {
                                     };
 
                                     quote! {
-                                        let mut chars = s.chars().take(#max + 1);
+                                        let mut chars = s.chars().take((#max).saturating_add(1));
                                         let mut counter = 0;
 
                                         while let Some(c) = chars.next() {
                                             counter += 1;
 
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
@@ -424,7 +428,7 @@ impl ValidatorHandler for TextHandler {
                                     }
                                 } else {
                                     quote! {
-                                        let mut chars = s.chars().take(#max + 1);
+                                        let mut chars = s.chars().take((#max).saturating_add(1));
                                         let mut counter = 0;
 
                                         while let Some(c) = chars.next() {
@@ -473,13 +477,14 @@ impl ValidatorHandler for TextHandler {
 
                                             counter += len;
 
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = len;
                                                 let mut temp_counter = 0;
@@ -522,13 +527,14 @@ impl ValidatorHandler for TextHandler {
                                         while let Some(c) = chars.next() {
                                             counter += 1;
 
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
@@ -621,13 +627,14 @@ impl ValidatorHandler for TextHandler {
                                         let mut chars = s.chars();
 
                                         while let Some(c) = chars.next() {
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = c.len_utf8();
                                                 let mut temp_counter = 0;
@@ -663,13 +670,14 @@ impl ValidatorHandler for TextHandler {
                                         let mut chars = s.chars();
 
                                         while let Some(c) = chars.next() {
-                                            if !c.is_whitespace() {
-                                                match c {
-                                                    '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
-                                                        return Err(#error_path::Invalid);
-                                                    }
-                                                    _ => (),
+                                            match c {
+                                                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F' => {
+                                                    return Err(#error_path::Invalid);
                                                 }
+                                                _ => (),
+                                            }
+
+                                            if !c.is_whitespace() {
 
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;

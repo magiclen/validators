@@ -35,7 +35,7 @@ impl ValidatorHandler for RegexHandler {
                 impl #name {
                     #[inline]
                     fn v_parse_str(s: &str) -> Result<(), #error_path> {
-                        if !#re.is_match(s) {
+                        if !(#re).is_match(s) {
                             return Err(#error_path);
                         }
 
