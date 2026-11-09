@@ -113,17 +113,25 @@ fn deserialize_binary_bytes() {
         serde::{self, Deserialize, de},
     };
 
+    // Like bincode, this deserializer does not support `deserialize_any`.
     struct BinaryBytes<'a>(&'a [u8]);
 
     impl<'de> de::Deserializer<'de> for BinaryBytes<'de> {
         type Error = de::value::Error;
 
         serde::forward_to_deserialize_any! {
-            bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes byte_buf option unit
+            bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes option unit
             unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
         }
 
         fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            _visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            Err(de::Error::custom("deserialize_any is not supported"))
+        }
+
+        fn deserialize_byte_buf<V: de::Visitor<'de>>(
             self,
             visitor: V,
         ) -> core::result::Result<V::Value, Self::Error> {

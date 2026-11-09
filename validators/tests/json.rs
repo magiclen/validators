@@ -19,11 +19,25 @@ fn basic() {
 
 #[test]
 fn serde_roundtrip() {
+    use core::time::Duration;
+
     use validators::serde_json;
 
     #[derive(Validator)]
     #[validator(json)]
     struct JSONArray(Vec<bool>);
+
+    #[derive(Validator)]
+    #[validator(json)]
+    struct JSONSigned(i128);
+
+    #[derive(Validator)]
+    #[validator(json)]
+    struct JSONUnsigned(u128);
+
+    #[derive(Validator)]
+    #[validator(json)]
+    struct JSONDuration(Duration);
 
     let boolean = JSONBoolean::parse_bool(true).unwrap();
     let json = serde_json::to_string(&boolean).unwrap();
@@ -39,6 +53,18 @@ fn serde_roundtrip() {
     let json = serde_json::to_string(&array).unwrap();
     assert_eq!("[true,false]", json);
     assert_eq!(vec![true, false], serde_json::from_str::<JSONArray>(&json).unwrap().0);
+
+    let signed = JSONSigned::parse_i128(i128::MIN).unwrap();
+    let json = serde_json::to_string(&signed).unwrap();
+    assert_eq!(i128::MIN, serde_json::from_str::<JSONSigned>(&json).unwrap().0);
+
+    let unsigned = JSONUnsigned::parse_u128(u128::MAX).unwrap();
+    let json = serde_json::to_string(&unsigned).unwrap();
+    assert_eq!(u128::MAX, serde_json::from_str::<JSONUnsigned>(&json).unwrap().0);
+
+    let json = r#"{"secs":1,"nanos":2}"#;
+    assert_eq!(Duration::new(1, 2), serde_json::from_str::<JSONDuration>(json).unwrap().0);
+    assert!(serde_json::from_str::<JSONDuration>(r#"{"secs":1,"secs":2,"nanos":2}"#).is_err());
 }
 
 #[test]

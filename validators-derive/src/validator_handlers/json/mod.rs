@@ -40,9 +40,14 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn v_parse_i128(i: i128) -> ::core::result::Result<#data_type, #error_path> {
-                                let value = validators_prelude::serde_json::to_value(i)?;
+                                match validators_prelude::serde_json::to_value(i) {
+                                    Ok(value) => Self::v_parse_json_value(value),
+                                    Err(_) => {
+                                        let deserializer = validators_prelude::serde::de::value::I128Deserializer::<validators_prelude::serde_json::Error>::new(i);
 
-                                Ok(validators_prelude::serde_json::from_value(value)?)
+                                        Ok(validators_prelude::serde::Deserialize::deserialize(deserializer)?)
+                                    }
+                                }
                             }
 
                             #[inline]
@@ -54,9 +59,14 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn v_parse_u128(u: u128) -> ::core::result::Result<#data_type, #error_path> {
-                                let value = validators_prelude::serde_json::to_value(u)?;
+                                match validators_prelude::serde_json::to_value(u) {
+                                    Ok(value) => Self::v_parse_json_value(value),
+                                    Err(_) => {
+                                        let deserializer = validators_prelude::serde::de::value::U128Deserializer::<validators_prelude::serde_json::Error>::new(u);
 
-                                Ok(validators_prelude::serde_json::from_value(value)?)
+                                        Ok(validators_prelude::serde::Deserialize::deserialize(deserializer)?)
+                                    }
+                                }
                             }
 
                             #[inline]
@@ -248,9 +258,7 @@ impl ValidatorHandler for JsonHandler {
                                     fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
-                                        let value = validators_prelude::serde::Deserialize::deserialize(deserializer)?;
-
-                                        Ok(Self(validators_prelude::serde_json::from_value(value).map_err(validators_prelude::serde::de::Error::custom)?))
+                                        validators_prelude::serde::Deserialize::deserialize(deserializer).map(Self)
                                     }
                                 }
                             });

@@ -722,8 +722,10 @@ impl ValidatorHandler for EmailHandler {
                     domain_part_length += 1;
 
                     if length > domain_part_length {
-                        if bytes[domain_part_length..].starts_with(b"IPv6:") {
-                            domain_part_length += 5;
+                        let ipv6_tag = b"IPv6:";
+
+                        if bytes[domain_part_length..].get(..ipv6_tag.len()).is_some_and(|prefix| prefix.eq_ignore_ascii_case(ipv6_tag)) {
+                            domain_part_length += ipv6_tag.len();
 
                             if length > domain_part_length {
                                 match bytes[domain_part_length..]
@@ -828,12 +830,12 @@ impl ValidatorHandler for EmailHandler {
                         }
                     };
 
-                    match validators_prelude::idna::Config::default()
-                        .use_std3_ascii_rules(true)
-                        .verify_dns_length(true)
-                        .check_hyphens(true)
-                        .to_ascii(domain_str)
-                    {
+                    match validators_prelude::idna::uts46::Uts46::new().to_ascii(
+                        domain_str.as_bytes(),
+                        validators_prelude::idna::uts46::AsciiDenyList::STD3,
+                        validators_prelude::idna::uts46::Hyphens::CheckFirstLast,
+                        validators_prelude::idna::uts46::DnsLength::VerifyAllowRootDot,
+                    ) {
                         Ok(ascii_domain) => {
                             if ascii_domain.ends_with('.') {
                                 return Err(#error_path::Invalid);
@@ -849,7 +851,7 @@ impl ValidatorHandler for EmailHandler {
                             domain_part_length_offset +=
                                 ascii_domain.len() as isize - domain_str.len() as isize;
 
-                            (validators_prelude::Host::Domain(ascii_domain), is_local)
+                            (validators_prelude::Host::Domain(ascii_domain.into_owned()), is_local)
                         }
                         Err(_) => return Err(#error_path::Invalid),
                     }
@@ -1006,7 +1008,7 @@ impl ValidatorHandler for EmailHandler {
                             (0, None::<&str>)
                         };
 
-                        let (local_part, need_quoted, quoted) = if bytes[local_part_length] == b'"' {
+                        let (local_part, need_quoted) = if bytes[local_part_length] == b'"' {
                             // quoted
                             let mut p = local_part_length + 1;
 
@@ -1096,7 +1098,7 @@ impl ValidatorHandler for EmailHandler {
                                             }
 
                                             // A trailing dot is only valid inside quotes.
-                                            break (local_part, need_quoted || last_dot, true);
+                                            break (local_part, need_quoted || last_dot);
                                         }
                                     }
                                     _ => {
@@ -1174,7 +1176,7 @@ impl ValidatorHandler for EmailHandler {
 
                                         local_part_length = p;
 
-                                        break (local_part, false, false);
+                                        break (local_part, false);
                                     }
                                     _ => {
                                         #handle_unrecognized_byte_unquoted
@@ -1210,11 +1212,7 @@ impl ValidatorHandler for EmailHandler {
                             (0, None::<&str>)
                         };
 
-                        let mut domain_part_length_offset: isize = if quoted && need_quoted {
-                            -2
-                        } else {
-                            0
-                        };
+                        let mut domain_part_length_offset = 0isize;
 
                         let (host, is_local): (validators_prelude::Host, bool) = match bytes[domain_part_length] {
                             b'(' => return Err(#error_path::Invalid),
@@ -1228,7 +1226,7 @@ impl ValidatorHandler for EmailHandler {
 
                         #check_local
 
-                        if domain_part_length_offset > 0 && length + domain_part_length_offset as usize > 255 {
+                        if length as isize + domain_part_length_offset > 255 {
                             return Err(#error_path::Invalid);
                         }
 

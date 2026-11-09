@@ -21,6 +21,44 @@ fn deserialize_integers() {
     }
 }
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_binary_f32() {
+    use validators::serde::{self, Deserialize, de};
+
+    struct BinaryF32(f32);
+
+    impl<'de> de::Deserializer<'de> for BinaryF32 {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            bool i8 i16 i32 i64 u8 u16 u32 u64 f64 char str string bytes byte_buf option
+            unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            _visitor: V,
+        ) -> Result<V::Value, Self::Error> {
+            Err(de::Error::custom("deserialize_any is not supported"))
+        }
+
+        fn deserialize_f32<V: de::Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+            visitor.visit_f32(self.0)
+        }
+
+        fn is_human_readable(&self) -> bool {
+            false
+        }
+    }
+
+    #[derive(Validator)]
+    #[validator(number(range(Inside(min = 0, max = 1))))]
+    struct Number(f32);
+
+    assert_eq!(0.5, Number::deserialize(BinaryF32(0.5)).unwrap().0);
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
         RangeOption::Inside {

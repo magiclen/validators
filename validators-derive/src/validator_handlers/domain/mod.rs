@@ -540,7 +540,7 @@ impl ValidatorHandler for DomainHandler {
                 }
             } else {
                 quote! {
-                    (&s[..], None::<&str>)
+                    (s, None::<&str>)
                 }
             };
 
@@ -588,11 +588,13 @@ impl ValidatorHandler for DomainHandler {
                 quote! { #error_path::Invalid }
             };
             let normalize_domain = quote! {
-                validators_prelude::idna::Config::default()
-                    .use_std3_ascii_rules(true)
-                    .verify_dns_length(true)
-                    .check_hyphens(true)
-                    .to_ascii(domain_str)
+                validators_prelude::idna::uts46::Uts46::new()
+                    .to_ascii(
+                        domain_str.as_bytes(),
+                        validators_prelude::idna::uts46::AsciiDenyList::STD3,
+                        validators_prelude::idna::uts46::Hyphens::CheckFirstLast,
+                        validators_prelude::idna::uts46::DnsLength::VerifyAllowRootDot,
+                    )
                     .map_err(|_| #invalid_domain)?
             };
 
@@ -641,18 +643,7 @@ impl ValidatorHandler for DomainHandler {
 
                                 #check_local
 
-                                let domain_len = domain_str.len();
-                                let domain = ascii_domain.unwrap_or_else(|| {
-                                    match s {
-                                        validators_prelude::Cow::Borrowed(s) => validators_prelude::String::from(&s[..domain_len]),
-                                        validators_prelude::Cow::Owned(mut s) => {
-                                            s.truncate(domain_len);
-                                            s
-                                        }
-                                    }
-                                });
-
-                                (domain, port, true, is_local)
+                                (ascii_domain, port, true, is_local)
                             }
                         }
                     };
@@ -711,12 +702,12 @@ impl ValidatorHandler for DomainHandler {
 
                     quote! {{
                         let domain = match validators_prelude::parse_ipv4_allow_an_ended_dot(domain_str) {
-                            Ok(ip) => Ok((ip, None)),
+                            Ok(ip) => Ok((ip, validators_prelude::Cow::Borrowed(domain_str))),
                             Err(_) => {
                                 let ascii_domain = #normalize_domain;
 
                                 match validators_prelude::parse_ipv4_allow_an_ended_dot(&ascii_domain) {
-                                    Ok(ip) => Ok((ip, Some(ascii_domain))),
+                                    Ok(ip) => Ok((ip, ascii_domain)),
                                     Err(_) => Err(ascii_domain),
                                 }
                             }
@@ -741,7 +732,7 @@ impl ValidatorHandler for DomainHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: validators_prelude::Cow<str>) -> ::core::result::Result<(validators_prelude::String, Option<u16>, bool, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::Cow<'_, str>, Option<u16>, bool, bool), #error_path> {
                         let bytes = s.as_bytes();
 
                         if bytes.is_empty() {
@@ -890,21 +881,31 @@ impl ValidatorHandler for DomainHandler {
 
                     #[inline]
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                        let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(validators_prelude::Cow::Owned(s.into()))?;
+                        let mut s = s.into();
+                        let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(s.as_str())?;
+                        let domain = match domain {
+                            validators_prelude::Cow::Borrowed(domain) => {
+                                // The borrowed domain is always a prefix of the input.
+                                s.truncate(domain.len());
+                                s
+                            }
+                            validators_prelude::Cow::Owned(domain) => domain,
+                        };
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                        let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(validators_prelude::Cow::Borrowed(s.as_ref()))?;
+                        let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(s.as_ref())?;
+                        let domain = domain.into_owned();
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
                     fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
-                        Self::v_parse_str(validators_prelude::Cow::Borrowed(s.as_ref()))?;
+                        Self::v_parse_str(s.as_ref())?;
 
                         Ok(())
                     }
@@ -1134,7 +1135,7 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 }
 
-                                deserializer.deserialize_any(MyVisitor)
+                                deserializer.deserialize_str(MyVisitor)
                             }
                         }
                     });

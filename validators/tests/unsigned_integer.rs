@@ -90,6 +90,7 @@ fn basic() {
             test("", false);
             test("0", check_range(0, Validator::V_RANGE));
             test("1", check_range(1, Validator::V_RANGE));
+            test("2", check_range(2, Validator::V_RANGE));
         };
     }
 
@@ -210,6 +211,12 @@ fn basic() {
         },
         {
             range => Outside(min = 0, max = 1, inclusive = false),
+        },
+        {
+            range => Outside(min = 1, max = 2),
+        },
+        {
+            range => Outside(min = 0, max = 2, inclusive = false),
         },
     }
 

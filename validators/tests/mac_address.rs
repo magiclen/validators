@@ -3,6 +3,18 @@
 use validators::prelude::*;
 
 #[test]
+fn compact_with_hex_separator() {
+    #[derive(Validator)]
+    #[validator(mac_address(separator(Allow(b'0'))))]
+    struct MacAddress(u64);
+
+    let input = "000000000000";
+
+    assert!(MacAddress::validate_str(input).is_ok());
+    assert_eq!(0, MacAddress::parse_str(input).unwrap().0);
+}
+
+#[test]
 fn basic() {
     macro_rules! test {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {

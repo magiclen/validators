@@ -53,38 +53,44 @@ impl ValidatorHandler for UuidHandler {
                                 return Err(#error_path::Invalid);
                             }
 
-                            let time_low = &bytes[0..8];
-
-                            let mut no_hyphen_counter = if bytes[8] != #separator {
-                                1
+                            let (time_low, time_mid, time_high_and_version, clock_seq, node) = if length == 32 {
+                                (&bytes[..8], &bytes[8..12], &bytes[12..16], &bytes[16..20], &bytes[20..])
                             } else {
-                                0
+                                let time_low = &bytes[0..8];
+
+                                let mut no_hyphen_counter = if bytes[8] != #separator {
+                                    1
+                                } else {
+                                    0
+                                };
+
+                                let time_mid = &bytes[(9 - no_hyphen_counter)..(13 - no_hyphen_counter)];
+
+                                if bytes[13 - no_hyphen_counter] != #separator {
+                                    no_hyphen_counter += 1;
+                                }
+
+                                let time_high_and_version =
+                                    &bytes[(14 - no_hyphen_counter)..(18 - no_hyphen_counter)];
+
+                                if bytes[18 - no_hyphen_counter] != #separator {
+                                    no_hyphen_counter += 1;
+                                }
+
+                                let clock_seq = &bytes[(19 - no_hyphen_counter)..(23 - no_hyphen_counter)];
+
+                                if bytes[23 - no_hyphen_counter] != #separator {
+                                    no_hyphen_counter += 1;
+                                }
+
+                                let node = &bytes[(24 - no_hyphen_counter)..];
+
+                                if node.len() != 12 {
+                                    return Err(#error_path::Invalid);
+                                }
+
+                                (time_low, time_mid, time_high_and_version, clock_seq, node)
                             };
-
-                            let time_mid = &bytes[(9 - no_hyphen_counter)..(13 - no_hyphen_counter)];
-
-                            if bytes[13 - no_hyphen_counter] != #separator {
-                                no_hyphen_counter += 1;
-                            }
-
-                            let time_high_and_version =
-                                &bytes[(14 - no_hyphen_counter)..(18 - no_hyphen_counter)];
-
-                            if bytes[18 - no_hyphen_counter] != #separator {
-                                no_hyphen_counter += 1;
-                            }
-
-                            let clock_seq = &bytes[(19 - no_hyphen_counter)..(23 - no_hyphen_counter)];
-
-                            if bytes[23 - no_hyphen_counter] != #separator {
-                                no_hyphen_counter += 1;
-                            }
-
-                            let node = &bytes[(24 - no_hyphen_counter)..];
-
-                            if node.len() != 12 {
-                                return Err(#error_path::Invalid);
-                            }
 
                             time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
                         }
@@ -269,7 +275,7 @@ impl ValidatorHandler for UuidHandler {
                         }
                     });
 
-            let separator = type_attribute.separator.allow().filter(u8::is_ascii).map(char::from);
+            let separator = type_attribute.separator.allow().map(char::from);
 
             token_stream.extend(if type_attribute.case.upper() {
                         if let Some(separator) = separator {

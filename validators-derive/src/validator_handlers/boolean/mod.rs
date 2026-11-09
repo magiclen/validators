@@ -393,7 +393,11 @@ impl ValidatorHandler for BooleanHandler {
                                             }
                                         }
 
-                                        deserializer.deserialize_any(MyVisitor)
+                                        if deserializer.is_human_readable() {
+                                            deserializer.deserialize_any(MyVisitor)
+                                        } else {
+                                            deserializer.deserialize_bool(MyVisitor)
+                                        }
                                     }
                                 }
                             });

@@ -54,43 +54,49 @@ impl ValidatorHandler for MacAddressHandler {
                                 return Err(#error_path::Invalid);
                             }
 
-                            let first = &bytes[0..2];
-
-                            let mut no_colon_counter = if bytes[2] != #separator {
-                                1
+                            let (first, second, third, forth, fifth, sixth) = if length == 12 {
+                                (&bytes[..2], &bytes[2..4], &bytes[4..6], &bytes[6..8], &bytes[8..10], &bytes[10..])
                             } else {
-                                0
+                                let first = &bytes[0..2];
+
+                                let mut no_colon_counter = if bytes[2] != #separator {
+                                    1
+                                } else {
+                                    0
+                                };
+
+                                let second = &bytes[(3 - no_colon_counter)..(5 - no_colon_counter)];
+
+                                if bytes[5 - no_colon_counter] != #separator {
+                                    no_colon_counter += 1;
+                                }
+
+                                let third = &bytes[(6 - no_colon_counter)..(8 - no_colon_counter)];
+
+                                if bytes[8 - no_colon_counter] != #separator {
+                                    no_colon_counter += 1;
+                                }
+
+                                let forth = &bytes[(9 - no_colon_counter)..(11 - no_colon_counter)];
+
+                                if bytes[11 - no_colon_counter] != #separator {
+                                    no_colon_counter += 1;
+                                }
+
+                                let fifth = bytes.get((12 - no_colon_counter)..(14 - no_colon_counter)).ok_or(#error_path::Invalid)?;
+
+                                if bytes.get(14 - no_colon_counter) != Some(&#separator) {
+                                    no_colon_counter += 1;
+                                }
+
+                                let sixth = bytes.get((15 - no_colon_counter)..).ok_or(#error_path::Invalid)?;
+
+                                if sixth.len() != 2 {
+                                    return Err(#error_path::Invalid);
+                                }
+
+                                (first, second, third, forth, fifth, sixth)
                             };
-
-                            let second = &bytes[(3 - no_colon_counter)..(5 - no_colon_counter)];
-
-                            if bytes[5 - no_colon_counter] != #separator {
-                                no_colon_counter += 1;
-                            }
-
-                            let third = &bytes[(6 - no_colon_counter)..(8 - no_colon_counter)];
-
-                            if bytes[8 - no_colon_counter] != #separator {
-                                no_colon_counter += 1;
-                            }
-
-                            let forth = &bytes[(9 - no_colon_counter)..(11 - no_colon_counter)];
-
-                            if bytes[11 - no_colon_counter] != #separator {
-                                no_colon_counter += 1;
-                            }
-
-                            let fifth = bytes.get((12 - no_colon_counter)..(14 - no_colon_counter)).ok_or(#error_path::Invalid)?;
-
-                            if bytes.get(14 - no_colon_counter) != Some(&#separator) {
-                                no_colon_counter += 1;
-                            }
-
-                            let sixth = bytes.get((15 - no_colon_counter)..).ok_or(#error_path::Invalid)?;
-
-                            if sixth.len() != 2 {
-                                return Err(#error_path::Invalid);
-                            }
 
                             first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
                         }
@@ -281,7 +287,7 @@ impl ValidatorHandler for MacAddressHandler {
                         }
                     });
 
-            let separator = type_attribute.separator.allow().filter(u8::is_ascii).map(char::from);
+            let separator = type_attribute.separator.allow().map(char::from);
 
             token_stream.extend(if type_attribute.case.upper() {
                         if let Some(separator) = separator {

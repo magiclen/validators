@@ -142,13 +142,13 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                     Some(max) => {
                                         if *inclusive {
                                             quote! {
-                                                if (#min..=#max).contains(&i) {
+                                                if (#min..=#max).contains(&u) {
                                                     return Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
-                                                if (#min..#max).contains(&i) {
+                                                if (#min..#max).contains(&u) {
                                                     return Err(#error_path::Forbidden);
                                                 }
                                             }
@@ -507,6 +507,16 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                 if type_attribute.serde_options.deserialize {
                     use std::fmt::Write;
 
+                    let deserialize_binary = match unsigned_integer_type {
+                        UnsignedIntegerType::U8 => quote! { deserialize_u8 },
+                        UnsignedIntegerType::U16 => quote! { deserialize_u16 },
+                        UnsignedIntegerType::U32 => quote! { deserialize_u32 },
+                        UnsignedIntegerType::U64 | UnsignedIntegerType::Usize => {
+                            quote! { deserialize_u64 }
+                        },
+                        UnsignedIntegerType::U128 => quote! { deserialize_u128 },
+                    };
+
                     let expect = {
                         let mut s = String::from("a unsigned integer");
 
@@ -642,7 +652,11 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                             }
                                         }
 
-                                        deserializer.deserialize_any(MyVisitor)
+                                        if deserializer.is_human_readable() {
+                                            deserializer.deserialize_any(MyVisitor)
+                                        } else {
+                                            deserializer.#deserialize_binary(MyVisitor)
+                                        }
                                     }
                                 }
                             });

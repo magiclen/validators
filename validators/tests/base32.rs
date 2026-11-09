@@ -35,6 +35,7 @@ fn basic() {
 
                     test("", false);
                     test("A", false);
+                    test("MZ======", false);
                     test("GEZDGNBVGY3TQOI=", Validator::V_PADDING.allow());
                     test("GEZDGNBVGY3TQOI", !Validator::V_PADDING.must());
                     test("GEZDGNBV=GY3TQOI", false);

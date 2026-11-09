@@ -61,7 +61,7 @@ assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=
 
 The decoded Base32, Base64, and Base64url validators accept one encoded value at a time.
 With Serde, they can also read non-empty byte arrays (such as JSON arrays) as already decoded data.
-In non-human-readable formats (such as MessagePack or CBOR), bytes are read as decoded data too.
+In non-human-readable formats (such as bincode or CBOR), they ask for bytes and read them as decoded data.
 
 ```rust
 use validators::prelude::*;
@@ -205,9 +205,11 @@ assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0);
 ```
 
 * Traits: `ValidateString`, `ValidateUnsignedInteger`
-* By default, the range is unlimited, `ignore_case = true`
+* By default, the range is unlimited and `ignore_case = true`
 
 #### domain
+
+See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
 
 ```rust
 use validators::prelude::*;
@@ -271,7 +273,9 @@ assert!(EmailWithoutComment::parse_string("(john)joke@example.com").is_err());
 
 This validator decodes a non-empty string of ASCII hex digits.
 Each pair of digits becomes one byte.
-Serde uses the same byte representation as `base64_decoded`.
+With Serde, human-readable formats (such as JSON) write a hex string in the letter case of `case`, and `case = Any` writes uppercase.
+Other formats write the bytes.
+Like `base64_decoded`, it can also read byte arrays as decoded data.
 
 ```rust
 use validators::prelude::*;
@@ -288,6 +292,9 @@ assert_eq!(&[0, 171, 255], HexDecoded::parse_str("00ABFF").unwrap().0.as_slice()
 * Use `case(Upper)` or `case(Lower)` to require one letter case.
 
 #### host
+
+The `local` option checks the parsed name or IP address.
+For example, `host` and `domain` can accept `127.1` as a domain with `local(Disallow)`, while a WHATWG URL parser reads it as the loopback address `127.0.0.1`.
 
 ```rust
 use validators::prelude::*;
@@ -522,6 +529,12 @@ assert!(SinglePercentage::parse_string("NaN").is_ok());
 * By default, `nan = Allow, range(Unlimited)`
 
 #### phone
+
+With Serde, a phone number is written as an E.164 string, such as `+886912345678`.
+If the number has an extension, it is written in the RFC 3966 format instead, such as `tel:+1-650-253-0000;ext=4567`.
+A validator with two or more countries is written as a map from country to phone number, such as `{"TW":"+886912345678"}`.
+The carrier code is not kept.
+`validators::Result<_, PhoneError>` only reads phone number strings.
 
 ```rust
 use std::collections::HashMap;

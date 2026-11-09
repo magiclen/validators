@@ -23,6 +23,35 @@ fn quoted_without_comments() {
 
         assert_eq!(input, address.to_email_string());
     }
+
+    let address = Address::parse_str("a@[ipv6:::1]").unwrap();
+
+    assert_eq!("a@[IPv6:::1]", address.to_email_string());
+}
+
+#[test]
+fn normalized_domain_length() {
+    #[derive(Validator)]
+    #[validator(email)]
+    struct Address {
+        local_part:                 String,
+        need_quoted:                bool,
+        domain_part:                validators::models::Host,
+        comment_before_local_part:  Option<String>,
+        comment_after_local_part:   Option<String>,
+        comment_before_domain_part: Option<String>,
+        comment_after_domain_part:  Option<String>,
+    }
+
+    let comment = "x".repeat(224);
+    let input = format!(r#""a b"@[IPv6:::ffff:ffff:ffff]({comment})"#);
+    let expected = format!(r#""a b"@[IPv6:::ffff:255.255.255.255]({comment})"#);
+    let address = Address::parse_str(input).unwrap();
+    let normalized = address.to_email_string();
+
+    assert_eq!(expected, normalized);
+    assert!(Address::validate_str(normalized).is_ok());
+    assert!(Address::parse_str(format!(r#""a b"@[IPv6:::ffff:ffff:ffff]({comment}x)"#)).is_err());
 }
 
 #[test]

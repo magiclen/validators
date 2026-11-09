@@ -38,11 +38,11 @@ impl SeparatorOption {
 }
 
 impl SeparatorOption {
-    fn parse_must(lit: &LitByte) -> syn::Result<Self> {
+    fn parse_separator(lit: &LitByte) -> syn::Result<u8> {
         let separator = lit.value();
 
         if separator.is_ascii() {
-            Ok(Self::Must(separator))
+            Ok(separator)
         } else {
             Err(syn::Error::new_spanned(lit, "expected an ASCII separator"))
         }
@@ -63,14 +63,14 @@ impl SeparatorOption {
                                 if let Expr::Lit(lit) = &name_value.value
                                     && let Lit::Byte(lit) = &lit.lit
                                 {
-                                    return Self::parse_must(lit);
+                                    return Ok(Self::Must(Self::parse_separator(lit)?));
                                 }
                             },
                             "Allow" => {
                                 if let Expr::Lit(lit) = &name_value.value
                                     && let Lit::Byte(lit) = &lit.lit
                                 {
-                                    return Ok(Self::Allow(lit.value()));
+                                    return Ok(Self::Allow(Self::parse_separator(lit)?));
                                 }
                             },
                             _ => (),
@@ -83,12 +83,12 @@ impl SeparatorOption {
                             "Must" => {
                                 let c: LitByte = list.parse_args()?;
 
-                                return Self::parse_must(&c);
+                                return Ok(Self::Must(Self::parse_separator(&c)?));
                             },
                             "Allow" => {
                                 let c: LitByte = list.parse_args()?;
 
-                                return Ok(Self::Allow(c.value()));
+                                return Ok(Self::Allow(Self::parse_separator(&c)?));
                             },
                             _ => (),
                         }

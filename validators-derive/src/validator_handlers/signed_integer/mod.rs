@@ -524,6 +524,16 @@ impl ValidatorHandler for SignedIntegerHandler {
                 if type_attribute.serde_options.deserialize {
                     use std::fmt::Write;
 
+                    let deserialize_binary = match signed_integer_type {
+                        SignedIntegerType::I8 => quote! { deserialize_i8 },
+                        SignedIntegerType::I16 => quote! { deserialize_i16 },
+                        SignedIntegerType::I32 => quote! { deserialize_i32 },
+                        SignedIntegerType::I64 | SignedIntegerType::Isize => {
+                            quote! { deserialize_i64 }
+                        },
+                        SignedIntegerType::I128 => quote! { deserialize_i128 },
+                    };
+
                     let expect = {
                         let mut s = String::from("a signed integer");
 
@@ -659,7 +669,11 @@ impl ValidatorHandler for SignedIntegerHandler {
                                             }
                                         }
 
-                                        deserializer.deserialize_any(MyVisitor)
+                                        if deserializer.is_human_readable() {
+                                            deserializer.deserialize_any(MyVisitor)
+                                        } else {
+                                            deserializer.#deserialize_binary(MyVisitor)
+                                        }
                                     }
                                 }
                             });

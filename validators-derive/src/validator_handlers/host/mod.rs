@@ -538,12 +538,15 @@ impl ValidatorHandler for HostHandler {
                                     let host = match ::std::net::Ipv4Addr::from_str(domain_str) {
                                         Ok(ip) => Ok(ip),
                                         Err(_) => {
-                                            let ascii_domain = validators_prelude::idna::Config::default()
-                                                .use_std3_ascii_rules(true)
-                                                .verify_dns_length(true)
-                                                .check_hyphens(true)
-                                                .to_ascii(domain_str)
-                                                .map_err(|_| #error_path::Invalid)?;
+                                            let ascii_domain = validators_prelude::idna::uts46::Uts46::new()
+                                                .to_ascii(
+                                                    domain_str.as_bytes(),
+                                                    validators_prelude::idna::uts46::AsciiDenyList::STD3,
+                                                    validators_prelude::idna::uts46::Hyphens::CheckFirstLast,
+                                                    validators_prelude::idna::uts46::DnsLength::VerifyAllowRootDot,
+                                                )
+                                                .map_err(|_| #error_path::Invalid)?
+                                                .into_owned();
 
                                             if ascii_domain.ends_with('.') {
                                                 return Err(#error_path::Invalid);

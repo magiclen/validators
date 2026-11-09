@@ -41,8 +41,18 @@ fn serde_roundtrip() {
     let roundtrip: UpperHex = serde_json::from_str(&json).unwrap();
     let wrapped: Result<UpperHex, HexDecodedError> = serde_json::from_str(&json).unwrap();
 
-    assert_eq!("[0,171,255]", json);
+    assert_eq!(r#""00ABFF""#, json);
     assert_eq!(&[0, 171, 255], roundtrip.0.as_slice());
     assert_eq!(&[0, 171, 255], wrapped.into_std_result().unwrap().0.as_slice());
     assert!(serde_json::from_str::<UpperHex>(r#""00abff""#).is_err());
+
+    assert_eq!(
+        r#""00abff""#,
+        serde_json::to_string(&LowerHex::parse_str("00abff").unwrap()).unwrap()
+    );
+    assert_eq!(r#""00ABFF""#, serde_json::to_string(&Hex::parse_str("00aBff").unwrap()).unwrap());
+    assert_eq!(
+        &[0, 171, 255],
+        serde_json::from_str::<UpperHex>("[0,171,255]").unwrap().0.as_slice()
+    );
 }

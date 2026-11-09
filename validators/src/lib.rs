@@ -62,7 +62,7 @@ assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=
 
 The decoded Base32, Base64, and Base64url validators accept one encoded value at a time.
 With Serde, they can also read non-empty byte arrays (such as JSON arrays) as already decoded data.
-In non-human-readable formats (such as MessagePack or CBOR), bytes are read as decoded data too.
+In non-human-readable formats (such as bincode or CBOR), they ask for bytes and read them as decoded data.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "base32_decoded"))]
@@ -234,6 +234,8 @@ assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0);
 
 #### domain
 
+See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "domain"))]
 # {
@@ -302,7 +304,9 @@ assert!(EmailWithoutComment::parse_string("(john)joke@example.com").is_err());
 
 This validator decodes a non-empty string of ASCII hex digits.
 Each pair of digits becomes one byte.
-Serde uses the same byte representation as `base64_decoded`.
+With Serde, human-readable formats (such as JSON) write a hex string in the letter case of `case`, and `case = Any` writes uppercase.
+Other formats write the bytes.
+Like `base64_decoded`, it can also read byte arrays as decoded data.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "hex_decoded"))]
@@ -322,6 +326,9 @@ assert_eq!(&[0, 171, 255], HexDecoded::parse_str("00ABFF").unwrap().0.as_slice()
 * Use `case(Upper)` or `case(Lower)` to require one letter case.
 
 #### host
+
+The `local` option checks the parsed name or IP address.
+For example, `host` and `domain` can accept `127.1` as a domain with `local(Disallow)`, while a WHATWG URL parser reads it as the loopback address `127.0.0.1`.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "host"))]
@@ -589,6 +596,12 @@ assert!(SinglePercentage::parse_string("NaN").is_ok());
 * By default, `nan = Allow, range(Unlimited)`
 
 #### phone
+
+With Serde, a phone number is written as an E.164 string, such as `+886912345678`.
+If the number has an extension, it is written in the RFC 3966 format instead, such as `tel:+1-650-253-0000;ext=4567`.
+A validator with two or more countries is written as a map from country to phone number, such as `{"TW":"+886912345678"}`.
+The carrier code is not kept.
+`validators::Result<_, PhoneError>` only reads phone number strings.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "phone"))]
@@ -1018,6 +1031,8 @@ pub mod test;
 /// Module of traits.
 pub mod traits;
 
+#[cfg(any(feature = "base32", feature = "base64", feature = "base64_url"))]
+mod encoded_bytes;
 mod result;
 
 pub use result::*;
@@ -1040,6 +1055,12 @@ pub mod prelude {
         pub use crate::byte_unit;
         #[cfg(feature = "data-encoding")]
         pub use crate::data_encoding;
+        #[cfg(feature = "base32")]
+        pub use crate::encoded_bytes::base32;
+        #[cfg(feature = "base64")]
+        pub use crate::encoded_bytes::base64;
+        #[cfg(feature = "base64_url")]
+        pub use crate::encoded_bytes::base64_url;
         pub use crate::errors::*;
         #[cfg(feature = "idna")]
         pub use crate::idna;
@@ -1047,6 +1068,8 @@ pub mod prelude {
         pub use crate::phonenumber;
         #[cfg(feature = "regex")]
         pub use crate::regex;
+        #[cfg(all(feature = "serde", feature = "phone"))]
+        pub use crate::result::serde_traits::SerdePhoneNumber;
         #[cfg(all(
             feature = "serde",
             any(

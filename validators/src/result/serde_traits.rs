@@ -84,12 +84,54 @@ where
     }
 
     let decoded_bytes = !deserializer.is_human_readable();
-
-    deserializer.deserialize_any(DecodedBytesVisitor {
+    let visitor = DecodedBytesVisitor {
         expected,
         decoded_bytes,
         marker: PhantomData,
-    })
+    };
+
+    if decoded_bytes {
+        // Formats such as bincode do not support `deserialize_any`, so ask for bytes.
+        deserializer.deserialize_byte_buf(visitor)
+    } else {
+        deserializer.deserialize_any(visitor)
+    }
+}
+
+#[cfg(feature = "phone")]
+#[doc(hidden)]
+pub struct SerdePhoneNumber<'a>(pub &'a phonenumber::PhoneNumber);
+
+#[cfg(feature = "phone")]
+impl fmt::Display for SerdePhoneNumber<'_> {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        // E.164 cannot keep an extension, so use RFC 3966 when there is one.
+        if self.0.extension().is_some() {
+            fmt::Display::fmt(&self.0.format().mode(phonenumber::Mode::Rfc3966), f)
+        } else {
+            fmt::Display::fmt(self.0, f)
+        }
+    }
+}
+
+#[cfg(feature = "phone")]
+impl serde::Serialize for SerdePhoneNumber<'_> {
+    #[inline]
+    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer, {
+        use core::fmt::Write;
+
+        let mut s = String::new();
+
+        // Some serializers panic when `Display` fails, so format the number first.
+        write!(s, "{self}").map_err(|_| {
+            <S::Error as serde::ser::Error>::custom("cannot format the phone number")
+        })?;
+
+        serializer.serialize_str(&s)
+    }
 }
 
 #[cfg(feature = "base32")]
@@ -141,7 +183,11 @@ impl<'de, T: ValidateString<Error = Base32Error> + ValidateBytes<Error = Base32E
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else {
+            deserializer.deserialize_str(MyVisitor(PhantomData))
+        }
     }
 }
 
@@ -206,7 +252,11 @@ impl<'de, T: ValidateString<Error = Base64Error> + ValidateBytes<Error = Base64E
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else {
+            deserializer.deserialize_str(MyVisitor(PhantomData))
+        }
     }
 }
 
@@ -271,7 +321,11 @@ impl<'de, T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else {
+            deserializer.deserialize_str(MyVisitor(PhantomData))
+        }
     }
 }
 
@@ -397,7 +451,11 @@ impl<
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else {
+            deserializer.deserialize_bool(MyVisitor(PhantomData))
+        }
     }
 }
 
@@ -454,7 +512,7 @@ impl<'de, T: ValidateString<Error = DomainError>> serde::Deserialize<'de>
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        deserializer.deserialize_str(MyVisitor(PhantomData))
     }
 }
 

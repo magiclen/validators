@@ -171,13 +171,38 @@ impl ValidatorHandler for PhoneHandler {
             #[cfg(feature = "serde")]
             {
                 if type_attribute.serde_options.serialize {
+                    let serialize = if countries.len() > 1 {
+                        quote! {
+                            use validators_prelude::serde::ser::SerializeMap;
+
+                            let mut entries: validators_prelude::Vec<_> = self.0.iter().collect();
+
+                            // Sort by country so that the output does not depend on the hash map.
+                            entries.sort_unstable_by_key(|(country, _)| {
+                                <validators_prelude::phonenumber::country::Id as ::core::convert::AsRef<str>>::as_ref(*country)
+                            });
+
+                            let mut map = serializer.serialize_map(Some(entries.len()))?;
+
+                            for (country, phonenumber) in entries {
+                                map.serialize_entry(country, &validators_prelude::SerdePhoneNumber(phonenumber))?;
+                            }
+
+                            map.end()
+                        }
+                    } else {
+                        quote! {
+                            validators_prelude::serde::Serialize::serialize(&validators_prelude::SerdePhoneNumber(&self.0), serializer)
+                        }
+                    };
+
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
                             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
-                                validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                                #serialize
                             }
                         }
                     });
@@ -185,22 +210,6 @@ impl ValidatorHandler for PhoneHandler {
 
                 if type_attribute.serde_options.deserialize {
                     use std::fmt::Write;
-
-                    let data_type = &data.fields.iter().next().unwrap().ty;
-                    let is_valid_value = match countries.as_slice() {
-                        [] => quote! { value.is_valid() },
-                        [country] => quote! {
-                            value.country().id() == Some(validators_prelude::phonenumber::country::Id::#country)
-                                && value.is_valid()
-                        },
-                        _ => quote! {
-                            !value.is_empty() && value.iter().all(|(&country, phonenumber)| {
-                                matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*)
-                                    && phonenumber.country().id() == Some(country)
-                                    && phonenumber.is_valid()
-                            })
-                        },
-                    };
 
                     let expect = {
                         let mut s = String::new();
@@ -211,9 +220,62 @@ impl ValidatorHandler for PhoneHandler {
                             s.push_str("a phone number in ");
 
                             s.write_fmt(format_args!("{:?}", type_attribute.countries)).unwrap();
+
+                            if type_attribute.countries.len() > 1 {
+                                s.push_str(", or a map from country to phone number");
+                            }
                         }
 
                         s
+                    };
+
+                    let (visit_map, deserialize) = if countries.len() > 1 {
+                        (
+                            quote! {
+                                fn visit_map<A>(self, mut map: A) -> ::core::result::Result<Self::Value, A::Error>
+                                where
+                                    A: validators_prelude::serde::de::MapAccess<'de>, {
+                                    use ::std::collections::hash_map::Entry;
+                                    use validators_prelude::serde::de::Error;
+
+                                    let mut value = ::std::collections::HashMap::new();
+
+                                    while let Some((country, s)) = map.next_entry::<validators_prelude::phonenumber::country::Id, validators_prelude::String>()? {
+                                        if !matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*) {
+                                            return Err(A::Error::custom(#error_path::Invalid));
+                                        }
+
+                                        let Entry::Vacant(entry) = value.entry(country) else {
+                                            return Err(A::Error::custom("duplicate phone number country"));
+                                        };
+
+                                        let phonenumber = validators_prelude::phonenumber::parse(Some(country), &s)
+                                            .map_err(|error| A::Error::custom(#error_path::from(error)))?;
+
+                                        if phonenumber.country().id() != Some(country) || !phonenumber.is_valid() {
+                                            return Err(A::Error::custom(#error_path::Invalid));
+                                        }
+
+                                        entry.insert(phonenumber);
+                                    }
+
+                                    if value.is_empty() {
+                                        return Err(A::Error::custom(#error_path::Invalid));
+                                    }
+
+                                    Ok(#name(value))
+                                }
+                            },
+                            quote! {
+                                if deserializer.is_human_readable() {
+                                    deserializer.deserialize_any(MyVisitor)
+                                } else {
+                                    deserializer.deserialize_map(MyVisitor)
+                                }
+                            },
+                        )
+                    } else {
+                        (quote! {}, quote! { deserializer.deserialize_str(MyVisitor) })
                     };
 
                     token_stream.extend(quote! {
@@ -239,26 +301,10 @@ impl ValidatorHandler for PhoneHandler {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
-                                            fn visit_map<A>(self, map: A) -> ::core::result::Result<Self::Value, A::Error>
-                                            where
-                                                A: validators_prelude::serde::de::MapAccess<'de>, {
-                                                let value: #data_type = validators_prelude::serde::Deserialize::deserialize(
-                                                    validators_prelude::serde::de::value::MapAccessDeserializer::new(map),
-                                                )?;
-
-                                                if #is_valid_value {
-                                                    Ok(#name(value))
-                                                } else {
-                                                    Err(validators_prelude::serde::de::Error::custom(#error_path::Invalid))
-                                                }
-                                            }
+                                            #visit_map
                                         }
 
-                                        if deserializer.is_human_readable() {
-                                            deserializer.deserialize_any(MyVisitor)
-                                        } else {
-                                            deserializer.deserialize_str(MyVisitor)
-                                        }
+                                        #deserialize
                                     }
                                 }
                             });

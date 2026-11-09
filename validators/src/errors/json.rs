@@ -4,7 +4,8 @@ use core::fmt::{self, Display, Formatter};
 #[derive(Debug)]
 pub enum JsonError {
     SerdeJsonError(serde_json::Error),
-    /// The value is empty or is not supported in JSON.
+    /// This crate no longer returns this variant.
+    /// It is kept for compatibility.
     InvalidJsonValueError,
 }
 

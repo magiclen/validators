@@ -40,41 +40,9 @@ impl ValidatorHandler for Base64Handler {
                 });
             }
 
-            let check_last_length = if type_attribute.padding.must() {
-                quote! {
-                    if last_length != 4 {
-                        return Err(#error_path::PaddingMust);
-                    }
-                }
-            } else {
-                quote! {}
-            };
-
-            let handle_padding = if type_attribute.padding.disallow() {
-                quote! {
-                    return Err(#error_path::PaddingDisallow);
-                }
-            } else {
-                quote! {
-                    match p {
-                        2 | 3 => {
-                            if last_length != 4 {
-                                // has padding
-                                return Err(#error_path::Invalid);
-                            }
-
-                            for e in last_bytes[p + 1..].iter().copied() {
-                                if e != b'=' {
-                                    return Err(#error_path::Invalid);
-                                }
-                            }
-
-                            return Ok(());
-                        }
-                        _ => return Err(#error_path::Invalid),
-                    }
-                }
-            };
+            let padding_must = type_attribute.padding.must();
+            let padding_disallow = type_attribute.padding.disallow();
+            let encoding = quote! { validators_prelude::base64 };
 
             token_stream.extend(quote! {
                 impl #name {
@@ -83,62 +51,9 @@ impl ValidatorHandler for Base64Handler {
                         Self::v_parse_u8_slice(s.as_bytes())
                     }
 
+                    #[inline]
                     fn v_parse_u8_slice(v: &[u8]) -> ::core::result::Result<(), #error_path> {
-                        let length = v.len();
-
-                        if length == 0 {
-                            return Err(#error_path::Invalid);
-                        }
-
-                        let last_length = {
-                            let l = length & 0b11;
-
-                            if l == 0 {
-                                4
-                            } else {
-                                l
-                            }
-                        };
-
-                        #check_last_length
-
-                        // A Base64 value cannot end with a block of only 1 character.
-                        if last_length == 1 {
-                            return Err(#error_path::Invalid);
-                        }
-
-                        let last_bytes = if length > 4 {
-                            for e in v.iter().copied().take(length - last_length) {
-                                match e {
-                                    b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'+' | b'/' => (),
-                                    _ => return Err(#error_path::Invalid),
-                                }
-                            }
-
-                            &v[(length - last_length)..]
-                        } else {
-                            v.as_ref()
-                        };
-
-                        let mut p = 0;
-
-                        loop {
-                            if p == last_length {
-                                return Ok(());
-                            }
-
-                            let e = last_bytes[p];
-
-                            match e {
-                                b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'+' | b'/' => (),
-                                b'=' => {
-                                    #handle_padding
-                                }
-                                _ => return Err(#error_path::Invalid),
-                            }
-
-                            p += 1;
-                        }
+                        #encoding::validate::<#padding_must, #padding_disallow>(v)
                     }
                 }
             });
@@ -167,9 +82,7 @@ impl ValidatorHandler for Base64Handler {
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
-                                Self::v_parse_str(s.as_ref())?;
-
-                                Ok(())
+                                Self::v_parse_str(s.as_ref())
                             }
                         }
 
@@ -178,27 +91,17 @@ impl ValidatorHandler for Base64Handler {
 
                             #[inline]
                             fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> ::core::result::Result<Self, Self::Error> {
-                                let v = v.into();
-
-                                Self::v_parse_u8_slice(v.as_slice())?;
-
-                                Ok(Self(unsafe { validators_prelude::String::from_utf8_unchecked(v) }))
+                                #encoding::parse::<#padding_must, #padding_disallow>(validators_prelude::Cow::Owned(v.into())).map(Self)
                             }
 
                             #[inline]
                             fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<Self, Self::Error> {
-                                let v = v.as_ref();
-
-                                Self::v_parse_u8_slice(v)?;
-
-                                Ok(Self(unsafe { validators_prelude::String::from_utf8_unchecked(v.to_vec()) }))
+                                #encoding::parse::<#padding_must, #padding_disallow>(validators_prelude::Cow::Borrowed(v.as_ref())).map(Self)
                             }
 
                             #[inline]
                             fn validate_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<(), Self::Error> {
-                                Self::v_parse_u8_slice(v.as_ref())?;
-
-                                Ok(())
+                                Self::v_parse_u8_slice(v.as_ref())
                             }
                         }
                     });
@@ -272,7 +175,11 @@ impl ValidatorHandler for Base64Handler {
                                             }
                                         }
 
-                                        deserializer.deserialize_any(MyVisitor)
+                                        if deserializer.is_human_readable() {
+                                            deserializer.deserialize_any(MyVisitor)
+                                        } else {
+                                            deserializer.deserialize_str(MyVisitor)
+                                        }
                                     }
                                 }
                             });

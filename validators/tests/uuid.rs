@@ -3,6 +3,18 @@
 use validators::prelude::*;
 
 #[test]
+fn compact_with_hex_separator() {
+    #[derive(Validator)]
+    #[validator(uuid(separator(Allow(b'0'))))]
+    struct Uuid(u128);
+
+    let input = "00000000000000000000000000000000";
+
+    assert!(Uuid::validate_str(input).is_ok());
+    assert_eq!(0, Uuid::parse_str(input).unwrap().0);
+}
+
+#[test]
 fn basic() {
     macro_rules! test {
         ($( { $( $p:meta => $v:meta ),* $(,)* } ),* $(,)* ) => {

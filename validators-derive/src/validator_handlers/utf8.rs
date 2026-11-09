@@ -804,7 +804,7 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                     use std::fmt::Write;
 
                     let expect = {
-                        let mut s = String::from("a line");
+                        let mut s = String::from(if IS_LINE { "a line" } else { "a text" });
 
                         if min.is_some() || max.is_some() || trimmed_min.is_some() {
                             s.push_str(" in ");

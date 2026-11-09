@@ -32,6 +32,64 @@ fn ipv4_with_port() {
     }
 }
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_binary_string() {
+    use validators::{
+        Result,
+        errors::DomainError,
+        serde::{self, Deserialize, de},
+    };
+
+    struct BinaryString<'a>(&'a str);
+
+    impl<'de> de::Deserializer<'de> for BinaryString<'de> {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char string bytes byte_buf option
+            unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            _visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            Err(de::Error::custom("deserialize_any is not supported"))
+        }
+
+        fn deserialize_str<V: de::Visitor<'de>>(
+            self,
+            visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            visitor.visit_borrowed_str(self.0)
+        }
+
+        fn is_human_readable(&self) -> bool {
+            false
+        }
+    }
+
+    #[derive(Validator)]
+    #[validator(domain)]
+    struct Domain {
+        domain: String,
+        port:   Option<u16>,
+    }
+
+    let input = "example.com.:8080";
+    let domain = Domain::deserialize(BinaryString(input)).unwrap();
+    let wrapped = Result::<Domain, DomainError>::deserialize(BinaryString(input))
+        .unwrap()
+        .into_std_result()
+        .unwrap();
+
+    assert_eq!("example.com.", domain.domain);
+    assert_eq!(Some(8080), domain.port);
+    assert_eq!(domain.domain, wrapped.domain);
+    assert_eq!(domain.port, wrapped.port);
+}
+
 #[test]
 fn basic() {
     macro_rules! test_case {

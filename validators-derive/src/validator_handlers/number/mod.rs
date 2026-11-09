@@ -326,6 +326,11 @@ impl ValidatorHandler for NumberHandler {
                 if type_attribute.serde_options.deserialize {
                     use std::fmt::Write;
 
+                    let deserialize_binary = match number_type {
+                        NumberType::F32 => quote! { deserialize_f32 },
+                        NumberType::F64 => quote! { deserialize_f64 },
+                    };
+
                     let expect = {
                         let mut s = String::from("a number");
 
@@ -463,7 +468,11 @@ impl ValidatorHandler for NumberHandler {
                                             }
                                         }
 
-                                        deserializer.deserialize_any(MyVisitor)
+                                        if deserializer.is_human_readable() {
+                                            deserializer.deserialize_any(MyVisitor)
+                                        } else {
+                                            deserializer.#deserialize_binary(MyVisitor)
+                                        }
                                     }
                                 }
                             });

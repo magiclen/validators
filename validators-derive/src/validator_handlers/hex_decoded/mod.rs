@@ -74,6 +74,23 @@ impl ValidatorHandler for HexDecodedHandler {
 
                         Ok(decoded)
                     }
+
+                    fn v_parse_vec_u8(mut v: validators_prelude::Vec<u8>) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
+                        Self::v_check_hex_length(&v)?;
+
+                        let decoded_len = v.len() / 2;
+
+                        for index in 0..decoded_len {
+                            let high = Self::v_decode_hex_digit(v[2 * index])?;
+                            let low = Self::v_decode_hex_digit(v[2 * index + 1])?;
+
+                            v[index] = (high << 4) | low;
+                        }
+
+                        v.truncate(decoded_len);
+
+                        Ok(v)
+                    }
                 }
 
                 impl ValidateString for #name {
@@ -81,7 +98,7 @@ impl ValidatorHandler for HexDecodedHandler {
 
                     #[inline]
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                        Ok(Self(Self::v_parse_u8_slice(s.into().as_bytes())?))
+                        <Self as ValidateBytes>::parse_vec_u8(s.into().into_bytes())
                     }
 
                     #[inline]
@@ -100,7 +117,7 @@ impl ValidatorHandler for HexDecodedHandler {
 
                     #[inline]
                     fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> ::core::result::Result<Self, Self::Error> {
-                        Ok(Self(Self::v_parse_u8_slice(v.into().as_slice())?))
+                        Self::v_parse_vec_u8(v.into()).map(Self)
                     }
 
                     #[inline]
@@ -142,6 +159,12 @@ impl ValidatorHandler for HexDecodedHandler {
             #[cfg(feature = "serde")]
             {
                 if type_attribute.serde_options.serialize {
+                    let digits = if type_attribute.case.upper() {
+                        quote! { b"0123456789ABCDEF" }
+                    } else {
+                        quote! { b"0123456789abcdef" }
+                    };
+
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
@@ -149,7 +172,21 @@ impl ValidatorHandler for HexDecodedHandler {
                             where
                                 S: validators_prelude::serde::Serializer,
                             {
-                                serializer.serialize_bytes(self.0.as_slice())
+                                // Human-readable formats use a hex string, and other formats use the bytes.
+                                if serializer.is_human_readable() {
+                                    const DIGITS: &[u8; 16] = #digits;
+
+                                    let mut s = validators_prelude::String::with_capacity(self.0.len() * 2);
+
+                                    for e in self.0.iter().copied() {
+                                        s.push(char::from(DIGITS[usize::from(e >> 4)]));
+                                        s.push(char::from(DIGITS[usize::from(e & 0xF)]));
+                                    }
+
+                                    serializer.serialize_str(&s)
+                                } else {
+                                    serializer.serialize_bytes(self.0.as_slice())
+                                }
                             }
                         }
                     });

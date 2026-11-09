@@ -49,3 +49,44 @@ fn bool_false() {
     assert!(!Validator::parse_i128(0).unwrap().0);
     assert!(!Validator::parse_u128(0).unwrap().0);
 }
+
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_binary_bool() {
+    use validators::serde::{self, Deserialize, de};
+
+    // Like bincode, this deserializer does not support `deserialize_any`.
+    struct BinaryBool(bool);
+
+    impl<'de> de::Deserializer<'de> for BinaryBool {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes byte_buf option
+            unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            _visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            Err(de::Error::custom("deserialize_any is not supported"))
+        }
+
+        fn deserialize_bool<V: de::Visitor<'de>>(
+            self,
+            visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            visitor.visit_bool(self.0)
+        }
+
+        fn is_human_readable(&self) -> bool {
+            false
+        }
+    }
+
+    let result = Result::<Validator, BooleanError>::deserialize(BinaryBool(true)).unwrap();
+
+    assert!(Validator::deserialize(BinaryBool(true)).unwrap().0);
+    assert!(result.into_std_result().unwrap().0);
+}
