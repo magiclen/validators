@@ -14,7 +14,12 @@ pub struct Set(pub BTreeSet<isize>);
 
 #[test]
 fn basic() {
+    #[derive(Validator)]
+    #[validator(length(min = 3, max = 3))]
+    struct FixedLength(Vec<u8>);
+
     assert!(NonEmptyVec::parse_collection(vec![8]).is_ok());
     assert!(NonEmptyVec::parse_collection(vec![]).is_err());
     assert!(Set::parse_collection(BTreeSet::new()).is_err());
+    assert_eq!(vec![1, 2, 3], FixedLength::parse_collection(vec![1, 2, 3]).unwrap().0);
 }

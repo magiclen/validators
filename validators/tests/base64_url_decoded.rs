@@ -93,7 +93,10 @@ fn decode() {
 
         let json = serde_json::to_string(&base64_url_decoded).unwrap();
         let decoded: Validator = serde_json::from_str(&json).unwrap();
+        let wrapped: validators::Result<Validator, validators::errors::Base64UrlDecodedError> =
+            serde_json::from_str(&json).unwrap();
 
         assert_eq!(b"1234567890", decoded.0.as_slice());
+        assert_eq!(b"1234567890", wrapped.into_std_result().unwrap().0.as_slice());
     }
 }

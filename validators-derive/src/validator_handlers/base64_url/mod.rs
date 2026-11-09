@@ -80,11 +80,11 @@ impl ValidatorHandler for Base64UrlHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #[inline]
-                    fn v_parse_str(s: &str) -> Result<(), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(), #error_path> {
                         Self::v_parse_u8_slice(s.as_bytes())
                     }
 
-                    fn v_parse_u8_slice(v: &[u8]) -> Result<(), #error_path> {
+                    fn v_parse_u8_slice(v: &[u8]) -> ::core::result::Result<(), #error_path> {
                         let length = v.len();
 
                         if length == 0 {
@@ -102,6 +102,11 @@ impl ValidatorHandler for Base64UrlHandler {
                         };
 
                         #check_last_length
+
+                        // A Base64url value cannot end with a block of only 1 character.
+                        if last_length == 1 {
+                            return Err(#error_path::Invalid);
+                        }
 
                         let last_bytes = if length > 4 {
                             for e in v.iter().copied().take(length - last_length) {
@@ -144,7 +149,7 @@ impl ValidatorHandler for Base64UrlHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 let s = s.into();
 
                                 Self::v_parse_str(s.as_str())?;
@@ -153,7 +158,7 @@ impl ValidatorHandler for Base64UrlHandler {
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 let s = s.as_ref();
 
                                 Self::v_parse_str(s)?;
@@ -162,7 +167,7 @@ impl ValidatorHandler for Base64UrlHandler {
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
                                 Ok(())
@@ -173,7 +178,7 @@ impl ValidatorHandler for Base64UrlHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> Result<Self, Self::Error> {
+                            fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> ::core::result::Result<Self, Self::Error> {
                                 let v = v.into();
 
                                 Self::v_parse_u8_slice(v.as_slice())?;
@@ -182,7 +187,7 @@ impl ValidatorHandler for Base64UrlHandler {
                             }
 
                             #[inline]
-                            fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> Result<Self, Self::Error> {
+                            fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<Self, Self::Error> {
                                 let v = v.as_ref();
 
                                 Self::v_parse_u8_slice(v)?;
@@ -191,7 +196,7 @@ impl ValidatorHandler for Base64UrlHandler {
                             }
 
                             #[inline]
-                            fn validate_u8_slice<V: AsRef<[u8]>>(v: V) -> Result<(), Self::Error> {
+                            fn validate_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u8_slice(v.as_ref())?;
 
                                 Ok(())
@@ -205,7 +210,7 @@ impl ValidatorHandler for Base64UrlHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_str(self.0.as_str())
@@ -226,7 +231,7 @@ impl ValidatorHandler for Base64UrlHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -240,28 +245,28 @@ impl ValidatorHandler for Base64UrlHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_string<E>(self, v: validators_prelude::String) -> Result<Self::Value, E>
+                                            fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+                                            fn visit_bytes<E>(self, v: &[u8]) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateBytes>::parse_u8_slice(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_byte_buf<E>(self, v: validators_prelude::Vec<u8>) -> Result<Self::Value, E>
+                                            fn visit_byte_buf<E>(self, v: validators_prelude::Vec<u8>) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateBytes>::parse_vec_u8(v).map_err(validators_prelude::serde::de::Error::custom)

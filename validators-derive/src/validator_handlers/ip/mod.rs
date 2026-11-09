@@ -300,7 +300,7 @@ impl ValidatorHandler for IpHandler {
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> Result<(::std::net::IpAddr, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(::std::net::IpAddr, Option<u16>, bool), #error_path> {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();
@@ -365,21 +365,21 @@ impl ValidatorHandler for IpHandler {
                     type Error = #error_path;
 
                     #[inline]
-                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (ip, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
-                    fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (ip, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
-                    fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                    fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(s.as_ref())?;
 
                         Ok(())
@@ -447,7 +447,7 @@ impl ValidatorHandler for IpHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_str(&ToUriAuthorityString::to_uri_authority_string(self))
@@ -506,7 +506,7 @@ impl ValidatorHandler for IpHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                             where
                                 D: validators_prelude::serde::Deserializer<'de>, {
                                 struct MyVisitor;
@@ -520,7 +520,7 @@ impl ValidatorHandler for IpHandler {
                                     }
 
                                     #[inline]
-                                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                    fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
                                         <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)

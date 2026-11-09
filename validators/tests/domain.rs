@@ -11,11 +11,25 @@ fn ipv4_with_port() {
         port:   Option<u16>,
     }
 
-    let domain = Domain::parse_string(String::from("127.0.0.1.:8080")).unwrap();
+    for input in ["127.0.0.1.:8080", "127。0。0。1。:8080"] {
+        let domain = Domain::parse_string(String::from(input)).unwrap();
 
-    assert_eq!("127.0.0.1.", domain.domain);
-    assert_eq!(Some(8080), domain.port);
-    assert_eq!("127.0.0.1:8080", domain.to_uri_authority_string());
+        assert_eq!("127.0.0.1.", domain.domain);
+        assert_eq!(Some(8080), domain.port);
+        assert_eq!("127.0.0.1:8080", domain.to_uri_authority_string());
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&domain).unwrap();
+            let decoded: Domain = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(r#""127.0.0.1.:8080""#, json);
+            assert!(decoded.is_fully_qualified());
+            assert_eq!(Some(8080), decoded.port);
+        }
+    }
 }
 
 #[test]
@@ -26,13 +40,15 @@ fn basic() {
             let test = $test;
 
             test("", false);
-            test(
-                "127.0.0.1",
-                Validator::V_IPV4.allow()
-                    && Validator::V_LOCAL.allow()
-                    && !Validator::V_PORT.must()
-                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
-            );
+            for input in ["127.0.0.1", "127。0。0。1"] {
+                test(
+                    input,
+                    Validator::V_IPV4.allow()
+                        && Validator::V_LOCAL.allow()
+                        && !Validator::V_PORT.must()
+                        && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+                );
+            }
             test(
                 "127.0.0.1.",
                 Validator::V_IPV4.allow()

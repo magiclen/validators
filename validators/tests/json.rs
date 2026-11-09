@@ -40,3 +40,15 @@ fn serde_roundtrip() {
     assert_eq!("[true,false]", json);
     assert_eq!(vec![true, false], serde_json::from_str::<JSONArray>(&json).unwrap().0);
 }
+
+#[test]
+fn serde_result_errors() {
+    use validators::{Result, errors::JsonError, serde_json};
+
+    type Address = Result<JSONString, JsonError>;
+
+    let invalid_value: Address = serde_json::from_str("123").unwrap();
+
+    assert!(invalid_value.into_std_result().is_err());
+    assert!(serde_json::from_str::<Address>("").is_err());
+}

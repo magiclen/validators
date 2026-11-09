@@ -10,12 +10,14 @@ fn basic() {
             let test = $test;
 
             test("", false);
-            test(
-                "127.0.0.1",
-                Validator::V_LOCAL.allow()
-                    && !Validator::V_PORT.must()
-                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
-            );
+            for input in ["127.0.0.1", "127。0。0。1"] {
+                test(
+                    input,
+                    Validator::V_LOCAL.allow()
+                        && !Validator::V_PORT.must()
+                        && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+                );
+            }
             test("127.0.0.1.", false);
             test(
                 "127.0.0.1:8080",
@@ -40,6 +42,7 @@ fn basic() {
             test("168.17.212.1.:8080", false);
             test("localhost", Validator::V_LOCAL.allow() && !Validator::V_PORT.must());
             test("localhost.", false);
+            test("localhost。", false);
             test("localhost:8080", Validator::V_LOCAL.allow() && Validator::V_PORT.allow());
             test("localhost.:8080", false);
             test(

@@ -1,6 +1,6 @@
 #![cfg(all(feature = "test", feature = "derive", feature = "boolean"))]
 
-use validators::prelude::*;
+use validators::{Result, errors::BooleanError, prelude::*};
 
 #[derive(Validator)]
 #[validator(boolean)]
@@ -15,6 +15,9 @@ fn basic() {
 
 #[test]
 fn bool_true() {
+    let result: Result<Validator, BooleanError> = true.into();
+
+    assert!(result.into_std_result().unwrap().0);
     assert!(Validator::parse_str("t").unwrap().0);
     assert!(Validator::parse_str("true").unwrap().0);
     assert!(Validator::parse_str("y").unwrap().0);

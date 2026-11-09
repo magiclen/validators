@@ -111,11 +111,11 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
             token_stream.extend(quote! {
                         impl #name {
                             #[inline]
-                            fn v_parse_str(s: &str) -> Result<validators_prelude::Vec<u8>, #error_path> {
+                            fn v_parse_str(s: &str) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
                                 Self::v_parse_u8_slice(s.as_bytes())
                             }
 
-                            fn v_parse_u8_slice(v: &[u8]) -> Result<validators_prelude::Vec<u8>, #error_path> {
+                            fn v_parse_u8_slice(v: &[u8]) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
                                 if v.is_empty() {
                                     return Err(#error_path::Invalid);
                                 }
@@ -124,11 +124,11 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
                             }
 
                             #[inline]
-                            fn v_validate_str(s: &str) -> Result<(), #error_path> {
+                            fn v_validate_str(s: &str) -> ::core::result::Result<(), #error_path> {
                                 Self::v_validate_u8_slice(s.as_bytes())
                             }
 
-                            fn v_validate_u8_slice(v: &[u8]) -> Result<(), #error_path> {
+                            fn v_validate_u8_slice(v: &[u8]) -> ::core::result::Result<(), #error_path> {
                                 let length = v.len();
 
                                 if length == 0 {
@@ -191,7 +191,7 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
                             fn v_validate_last_block(
                                 last_bytes: &[u8],
                                 encoding: &validators_prelude::data_encoding::Encoding,
-                            ) -> Result<(), #error_path> {
+                            ) -> ::core::result::Result<(), #error_path> {
                                 let output_len = encoding.decode_len(last_bytes.len()).map_err(|_| #error_path::Decode)?;
                                 let mut output = [0; 3];
 
@@ -207,17 +207,17 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_validate_str(s.as_ref())?;
 
                                 Ok(())
@@ -228,20 +228,28 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> Result<Self, Self::Error> {
+                            fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_u8_slice(v.into().as_slice())?))
                             }
 
                             #[inline]
-                            fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> Result<Self, Self::Error> {
+                            fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_u8_slice(v.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_u8_slice<V: AsRef<[u8]>>(v: V) -> Result<(), Self::Error> {
+                            fn validate_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_validate_u8_slice(v.as_ref())?;
 
                                 Ok(())
+                            }
+                            #[inline]
+                            fn parse_decoded_vec_u8(v: validators_prelude::Vec<u8>) -> ::core::result::Result<Self, Self::Error> {
+                                if v.is_empty() {
+                                    return Err(#error_path::Invalid);
+                                }
+
+                                Ok(Self(v))
                             }
                         }
 
@@ -259,7 +267,7 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_bytes(self.0.as_slice())
@@ -278,63 +286,11 @@ impl ValidatorHandler for Base64UrlDecodedHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
-
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
-                                            type Value = #name;
-
-                                            #[inline]
-                                            fn expecting(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                                                f.write_str(#expect)
-                                            }
-
-                                            #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-                                            where
-                                                E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
-                                            }
-
-                                            #[inline]
-                                            fn visit_string<E>(self, v: validators_prelude::String) -> Result<Self::Value, E>
-                                            where
-                                                E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
-                                            }
-
-                                            #[inline]
-                                            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
-                                            where
-                                                E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateBytes>::parse_u8_slice(v).map_err(validators_prelude::serde::de::Error::custom)
-                                            }
-
-                                            #[inline]
-                                            fn visit_byte_buf<E>(self, v: validators_prelude::Vec<u8>) -> Result<Self::Value, E>
-                                            where
-                                                E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateBytes>::parse_vec_u8(v).map_err(validators_prelude::serde::de::Error::custom)
-                                            }
-
-                                            fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
-                                            where
-                                                A: validators_prelude::serde::de::SeqAccess<'de>, {
-                                                let bytes: validators_prelude::Vec<u8> = validators_prelude::serde::Deserialize::deserialize(
-                                                    validators_prelude::serde::de::value::SeqAccessDeserializer::new(seq),
-                                                )?;
-
-                                                if bytes.is_empty() {
-                                                    return Err(validators_prelude::serde::de::Error::custom(#error_path::Invalid));
-                                                }
-
-                                                Ok(#name(bytes))
-                                            }
-                                        }
-
-                                        deserializer.deserialize_any(MyVisitor)
+                                        validators_prelude::deserialize_decoded_bytes(deserializer, #expect)?
+                                            .map_err(validators_prelude::serde::de::Error::custom)
                                     }
                                 }
                             });

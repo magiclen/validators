@@ -33,6 +33,20 @@ fn basic() {
                         }
 
                         let panic = match Validator::parse_str(s) {
+                            Ok(value) if is_ok => {
+                                let formatted = value.to_uuid_string();
+
+                                assert_eq!(value.0, Validator::parse_str(formatted).unwrap().0);
+
+                                #[cfg(feature = "serde_json")]
+                                {
+                                    let json = validators::serde_json::to_string(&value).unwrap();
+
+                                    assert_eq!(value.0, validators::serde_json::from_str::<Validator>(&json).unwrap().0);
+                                }
+
+                                false
+                            },
                             Ok(_) => !is_ok,
                             Err(_) if !is_ok => false,
                             Err(err) => {

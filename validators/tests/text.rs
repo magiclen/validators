@@ -94,6 +94,8 @@ fn char() {
                     }
 
                     test("\x0c123", false);
+                    test("123\u{85}456", false);
+                    test("123\u{2028}456", check_char_length("123\u{2028}456", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
                     test("", check_char_length("", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
                     test("   ", check_char_length("   ", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
                     test("　　　", check_char_length("　　　", Validator::V_CHAR_LENGTH_MIN, Validator::V_CHAR_LENGTH_MAX, Validator::V_CHAR_LENGTH_TRIMMED_MIN));
@@ -105,6 +107,7 @@ fn char() {
     }
 
     test! {
+        {},
         {
             min => 1,
         },
@@ -162,6 +165,8 @@ fn byte() {
                     }
 
                     test("\x0c123", false);
+                    test("123\u{85}456", false);
+                    test("123\u{2028}456", check_byte_length("123\u{2028}456", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));
                     test("", check_byte_length("", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));
                     test("   ", check_byte_length("   ", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));
                     test("　　　", check_byte_length("　　　", Validator::V_BYTE_LENGTH_MIN, Validator::V_BYTE_LENGTH_MAX, Validator::V_BYTE_LENGTH_TRIMMED_MIN));

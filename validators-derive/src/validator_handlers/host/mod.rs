@@ -463,7 +463,7 @@ impl ValidatorHandler for HostHandler {
                 }
             };
 
-            let handle_none_ipv4 = {
+            let handle_domain = {
                 let check_at_least_two_labels = {
                     match type_attribute.at_least_two_labels {
                         TriAllow::Allow => quote! {},
@@ -497,31 +497,23 @@ impl ValidatorHandler for HostHandler {
                 };
 
                 quote! {
-                    match validators_prelude::idna::Config::default()
-                        .use_std3_ascii_rules(true)
-                        .verify_dns_length(true)
-                        .check_hyphens(true)
-                        .to_ascii(domain_str)
-                    {
-                        Ok(ascii_domain) => {
-                            let port = #handle_port;
+                    Err(ascii_domain) => {
+                        let port = #handle_port;
 
-                            let is_local = #handle_local_domain;
+                        let is_local = #handle_local_domain;
 
-                            #check_at_least_two_labels
+                        #check_at_least_two_labels
 
-                            #check_local
+                        #check_local
 
-                            (validators_prelude::Host::Domain(ascii_domain), port, is_local)
-                        }
-                        Err(_) => return Err(#error_path::Invalid),
+                        (validators_prelude::Host::Domain(ascii_domain), port, is_local)
                     }
                 }
             };
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> Result<(validators_prelude::Host, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::Host, Option<u16>, bool), #error_path> {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();
@@ -543,15 +535,27 @@ impl ValidatorHandler for HostHandler {
                                         }
                                     };
 
-                                    if domain_str.ends_with('.') {
-                                        return Err(#error_path::Invalid);
-                                    }
-
-                                    match ::std::net::Ipv4Addr::from_str(domain_str) {
-                                        #handle_ipv4
+                                    let host = match ::std::net::Ipv4Addr::from_str(domain_str) {
+                                        Ok(ip) => Ok(ip),
                                         Err(_) => {
-                                            #handle_none_ipv4
+                                            let ascii_domain = validators_prelude::idna::Config::default()
+                                                .use_std3_ascii_rules(true)
+                                                .verify_dns_length(true)
+                                                .check_hyphens(true)
+                                                .to_ascii(domain_str)
+                                                .map_err(|_| #error_path::Invalid)?;
+
+                                            if ascii_domain.ends_with('.') {
+                                                return Err(#error_path::Invalid);
+                                            }
+
+                                            ::std::net::Ipv4Addr::from_str(&ascii_domain).map_err(|_| ascii_domain)
                                         }
+                                    };
+
+                                    match host {
+                                        #handle_ipv4
+                                        #handle_domain
                                     }
                                 }
                             }
@@ -624,21 +628,21 @@ impl ValidatorHandler for HostHandler {
                     type Error = #error_path;
 
                     #[inline]
-                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (host, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
-                    fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (host, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
-                    fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                    fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(s.as_ref())?;
 
                         Ok(())
@@ -734,7 +738,7 @@ impl ValidatorHandler for HostHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_str(&ToUriAuthorityString::to_uri_authority_string(self))
@@ -805,7 +809,7 @@ impl ValidatorHandler for HostHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                             where
                                 D: validators_prelude::serde::Deserializer<'de>, {
                                 struct MyVisitor;
@@ -819,7 +823,7 @@ impl ValidatorHandler for HostHandler {
                                     }
 
                                     #[inline]
-                                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                    fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
                                         <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)

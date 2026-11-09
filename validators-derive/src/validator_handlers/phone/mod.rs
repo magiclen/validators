@@ -31,29 +31,29 @@ impl ValidatorHandler for PhoneHandler {
             let name = ast.ident;
 
             let error_path: Path = syn::parse2(quote! { validators_prelude::PhoneError }).unwrap();
+            let countries: Vec<_> = type_attribute
+                .countries
+                .iter()
+                .map(|id| proc_macro2::TokenStream::from_str(id.as_ref()).unwrap())
+                .collect();
 
             #[cfg(feature = "test")]
             {
-                let c: Vec<proc_macro2::TokenStream> = type_attribute
-                    .countries
-                    .iter()
-                    .map(|id| proc_macro2::TokenStream::from_str(id.as_ref()).unwrap())
-                    .collect();
-                let size = c.len();
+                let size = countries.len();
 
                 token_stream.extend(quote! {
                             impl #name {
-                                pub(crate) const V_COUNTRIES: [validators_prelude::phonenumber::country::Id; #size] = [#(validators_prelude::phonenumber::country::Id::#c, )*];
+                                pub(crate) const V_COUNTRIES: [validators_prelude::phonenumber::country::Id; #size] = [#(validators_prelude::phonenumber::country::Id::#countries, )*];
                             }
                         });
             }
 
-            token_stream.extend(match type_attribute.countries.len() {
-                        0 => {
+            token_stream.extend(match countries.as_slice() {
+                        [] => {
                             quote! {
                                 impl #name {
                                     #[inline]
-                                    fn v_parse_str(s: &str) -> Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
+                                    fn v_parse_str(s: &str) -> ::core::result::Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
                                         let phonenumber = validators_prelude::phonenumber::parse(None, s)?;
 
                                         if phonenumber.is_valid() {
@@ -65,18 +65,15 @@ impl ValidatorHandler for PhoneHandler {
                                 }
                             }
                         },
-                        1 => {
-                            let country = type_attribute.countries[0];
-                            let c = proc_macro2::TokenStream::from_str(country.as_ref()).unwrap();
-
+                        [country] => {
                             quote! {
                                 impl #name {
                                     #[inline]
-                                    fn v_parse_str(s: &str) -> Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
-                                        let phonenumber = validators_prelude::phonenumber::parse(Some(validators_prelude::phonenumber::country::Id::#c), s)?;
+                                    fn v_parse_str(s: &str) -> ::core::result::Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
+                                        let phonenumber = validators_prelude::phonenumber::parse(Some(validators_prelude::phonenumber::country::Id::#country), s)?;
 
                                         if let Some(id) = phonenumber.country().id() {
-                                            if id == validators_prelude::phonenumber::country::Id::#c && phonenumber.is_valid() {
+                                            if id == validators_prelude::phonenumber::country::Id::#country && phonenumber.is_valid() {
                                                 Ok(phonenumber)
                                             } else {
                                                 Err(#error_path::Invalid)
@@ -89,20 +86,15 @@ impl ValidatorHandler for PhoneHandler {
                             }
                         },
                         _ => {
-                            let c: Vec<proc_macro2::TokenStream> = type_attribute.countries
-                                .iter()
-                                .map(|id| proc_macro2::TokenStream::from_str(id.as_ref()).unwrap())
-                                .collect();
-
                             quote! {
                                 impl #name {
                                     #[inline]
-                                    fn v_parse_str(s: &str) -> Result<::std::collections::HashMap<validators_prelude::phonenumber::country::Id, validators_prelude::phonenumber::PhoneNumber>, #error_path> {
+                                    fn v_parse_str(s: &str) -> ::core::result::Result<::std::collections::HashMap<validators_prelude::phonenumber::country::Id, validators_prelude::phonenumber::PhoneNumber>, #error_path> {
                                         let mut map = ::std::collections::HashMap::with_capacity(2);
                                         let mut failure = None;
 
                                         #(
-                                            let country = validators_prelude::phonenumber::country::Id::#c;
+                                            let country = validators_prelude::phonenumber::country::Id::#countries;
 
                                             match validators_prelude::phonenumber::parse(Some(country), s) {
                                                 Ok(phonenumber) => {
@@ -133,17 +125,17 @@ impl ValidatorHandler for PhoneHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
                                 Ok(())
@@ -157,7 +149,7 @@ impl ValidatorHandler for PhoneHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 validators_prelude::serde::Serialize::serialize(&self.0, serializer)
@@ -168,6 +160,22 @@ impl ValidatorHandler for PhoneHandler {
 
                 if type_attribute.serde_options.deserialize {
                     use std::fmt::Write;
+
+                    let data_type = &data.fields.iter().next().unwrap().ty;
+                    let is_valid_value = match countries.as_slice() {
+                        [] => quote! { value.is_valid() },
+                        [country] => quote! {
+                            value.country().id() == Some(validators_prelude::phonenumber::country::Id::#country)
+                                && value.is_valid()
+                        },
+                        _ => quote! {
+                            !value.is_empty() && value.iter().all(|(&country, phonenumber)| {
+                                matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*)
+                                    && phonenumber.country().id() == Some(country)
+                                    && phonenumber.is_valid()
+                            })
+                        },
+                    };
 
                     let expect = {
                         let mut s = String::new();
@@ -186,7 +194,7 @@ impl ValidatorHandler for PhoneHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -200,14 +208,32 @@ impl ValidatorHandler for PhoneHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
+
+                                            fn visit_map<A>(self, map: A) -> ::core::result::Result<Self::Value, A::Error>
+                                            where
+                                                A: validators_prelude::serde::de::MapAccess<'de>, {
+                                                let value: #data_type = validators_prelude::serde::Deserialize::deserialize(
+                                                    validators_prelude::serde::de::value::MapAccessDeserializer::new(map),
+                                                )?;
+
+                                                if #is_valid_value {
+                                                    Ok(#name(value))
+                                                } else {
+                                                    Err(validators_prelude::serde::de::Error::custom(#error_path::Invalid))
+                                                }
+                                            }
                                         }
 
-                                        deserializer.deserialize_str(MyVisitor)
+                                        if deserializer.is_human_readable() {
+                                            deserializer.deserialize_any(MyVisitor)
+                                        } else {
+                                            deserializer.deserialize_str(MyVisitor)
+                                        }
                                     }
                                 }
                             });

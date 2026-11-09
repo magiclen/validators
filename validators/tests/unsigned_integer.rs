@@ -2,6 +2,29 @@
 
 use validators::prelude::{validators_prelude::RangeOption, *};
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_i64() {
+    use validators::{
+        Result as ValidationResult,
+        serde::{
+            Deserialize,
+            de::value::{Error, I64Deserializer},
+        },
+    };
+
+    #[derive(Validator)]
+    #[validator(unsigned_integer)]
+    struct Integer(u8);
+
+    let integer = Integer::deserialize(I64Deserializer::<Error>::new(42)).unwrap();
+    let result: ValidationResult<Integer, validators_prelude::UnsignedIntegerError> =
+        Deserialize::deserialize(I64Deserializer::<Error>::new(42)).unwrap();
+
+    assert_eq!(42, integer.0);
+    assert_eq!(42, result.into_std_result().unwrap().0);
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
         RangeOption::Inside {

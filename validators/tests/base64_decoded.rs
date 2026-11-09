@@ -89,11 +89,60 @@ fn decode() {
 
     #[cfg(feature = "serde_json")]
     {
-        use validators::serde_json;
+        use validators::{Result, errors::Base64DecodedError, serde_json};
 
         let json = serde_json::to_string(&base64_decoded).unwrap();
         let decoded: Validator = serde_json::from_str(&json).unwrap();
+        let wrapped: Result<Validator, Base64DecodedError> = serde_json::from_str(&json).unwrap();
 
         assert_eq!(b"1234567890", decoded.0.as_slice());
+        assert_eq!(b"1234567890", wrapped.into_std_result().unwrap().0.as_slice());
+
+        let empty: Result<Validator, Base64DecodedError> = serde_json::from_str("[]").unwrap();
+
+        assert!(matches!(empty.into_std_result(), Err(Base64DecodedError::Invalid)));
     }
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_binary_bytes() {
+    use validators::{
+        Result,
+        errors::Base64DecodedError,
+        serde::{self, Deserialize, de},
+    };
+
+    struct BinaryBytes<'a>(&'a [u8]);
+
+    impl<'de> de::Deserializer<'de> for BinaryBytes<'de> {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char str string bytes byte_buf option unit
+            unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            visitor.visit_borrowed_bytes(self.0)
+        }
+
+        fn is_human_readable(&self) -> bool {
+            false
+        }
+    }
+
+    #[derive(Validator)]
+    #[validator(base64_decoded)]
+    struct Validator(Vec<u8>);
+
+    let bytes = b"\x00\xFF";
+    let decoded = Validator::deserialize(BinaryBytes(bytes)).unwrap();
+    let wrapped = Result::<Validator, Base64DecodedError>::deserialize(BinaryBytes(bytes)).unwrap();
+
+    assert_eq!(bytes, decoded.0.as_slice());
+    assert_eq!(bytes, wrapped.into_std_result().unwrap().0.as_slice());
 }

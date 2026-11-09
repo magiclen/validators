@@ -618,6 +618,10 @@ impl ValidatorHandler for EmailHandler {
                 }
             };
 
+            let quoted_only = quote! {
+                b' ' | b'\t' | b'(' | b')' | b',' | b':'..=b'<' | b'>' | b'@' | b'[' | b']'
+            };
+
             let handle_unrecognized_first_byte_unquoted = if type_attribute.non_ascii.disallow() {
                 quote! {
                     return Err(#error_path::Invalid);
@@ -824,10 +828,6 @@ impl ValidatorHandler for EmailHandler {
                         }
                     };
 
-                    if domain_str.ends_with(".") {
-                        return Err(#error_path::Invalid);
-                    }
-
                     match validators_prelude::idna::Config::default()
                         .use_std3_ascii_rules(true)
                         .verify_dns_length(true)
@@ -835,6 +835,10 @@ impl ValidatorHandler for EmailHandler {
                         .to_ascii(domain_str)
                     {
                         Ok(ascii_domain) => {
+                            if ascii_domain.ends_with('.') {
+                                return Err(#error_path::Invalid);
+                            }
+
                             domain_part_length += domain_str.len();
 
                             let is_local = #handle_local_domain;
@@ -860,6 +864,8 @@ impl ValidatorHandler for EmailHandler {
                 quote! {}
             };
 
+            let comment_boundary = quote! { |e| matches!(e, b')' | b'\r' | b'\n' | b'\0') };
+
             let handle_comment_1 = if type_attribute.comment.disallow() {
                 quote! {
                     return Err(#error_path::CommentDisallow);
@@ -868,8 +874,8 @@ impl ValidatorHandler for EmailHandler {
                 quote! {
                     if length > 1 {
                         // only take 63 - 1, 1 is reserved for the meaningful local part.
-                        match bytes[1..].iter().take(62).copied().position(|e| e == b')') {
-                            Some(mut index) => {
+                        match bytes[1..].iter().take(62).copied().position(#comment_boundary) {
+                            Some(mut index) if bytes[index + 1] == b')' => {
                                 index += 1;
                                 let comment = &s[1..index];
 
@@ -882,7 +888,7 @@ impl ValidatorHandler for EmailHandler {
 
                                 (local_part_length, Some(comment))
                             }
-                            None => return Err(#error_path::Invalid),
+                            _ => return Err(#error_path::Invalid),
                         }
                     } else {
                         return Err(#error_path::Invalid);
@@ -903,9 +909,9 @@ impl ValidatorHandler for EmailHandler {
                             .iter()
                             .take(64 - local_part_length)
                             .copied()
-                            .position(|e| e == b')')
+                            .position(#comment_boundary)
                         {
-                            Some(mut index) => {
+                            Some(mut index) if bytes[local_part_length + index] == b')' => {
                                 index += local_part_length;
                                 let comment =
                                     &s[local_part_length..index];
@@ -919,7 +925,7 @@ impl ValidatorHandler for EmailHandler {
 
                                 Some(comment)
                             }
-                            None => return Err(#error_path::Invalid),
+                            _ => return Err(#error_path::Invalid),
                         }
                     } else {
                         return Err(#error_path::Invalid);
@@ -935,8 +941,8 @@ impl ValidatorHandler for EmailHandler {
                 quote! {
                     if length > 1 {
                         // only take 254 - 1, 1 is reserved for the meaningful domain part.
-                        match bytes[1..].iter().take(253).copied().position(|e| e == b')') {
-                            Some(mut index) => {
+                        match bytes[1..].iter().take(253).copied().position(#comment_boundary) {
+                            Some(mut index) if bytes[index + 1] == b')' => {
                                 index += 1;
                                 let comment = &s[1..index];
 
@@ -949,7 +955,7 @@ impl ValidatorHandler for EmailHandler {
 
                                 (domain_part_length, Some(comment))
                             }
-                            None => return Err(#error_path::Invalid),
+                            _ => return Err(#error_path::Invalid),
                         }
                     } else {
                         return Err(#error_path::Invalid);
@@ -967,8 +973,8 @@ impl ValidatorHandler for EmailHandler {
                         domain_part_length += 1;
 
                         if length > domain_part_length {
-                            match bytes[domain_part_length..].iter().copied().position(|e| e == b')') {
-                                Some(index) if domain_part_length + index + 1 == length => {
+                            match bytes[domain_part_length..].iter().copied().position(#comment_boundary) {
+                                Some(index) if domain_part_length + index + 1 == length && bytes[length - 1] == b')' => {
                                     Some(&s[domain_part_length..(length - 1)])
                                 }
                                 _ => return Err(#error_path::Invalid),
@@ -985,7 +991,7 @@ impl ValidatorHandler for EmailHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: &str) -> Result<(&str, bool, validators_prelude::Host, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, validators_prelude::Host, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
@@ -1026,7 +1032,7 @@ impl ValidatorHandler for EmailHandler {
                                 | b'{'..=b'~' => (false, false, false),
                                 b'.' => (false, true, true),
                                 b'\\' => (true, true, false),
-                                b' ' | b'\t' => (false, true, false),
+                                #quoted_only => (false, true, false),
                                 _ => {
                                     #handle_unrecognized_first_byte_quoted
                                 },
@@ -1070,14 +1076,9 @@ impl ValidatorHandler for EmailHandler {
                                         need_quoted = true;
                                         escaping = !escaping;
                                     }
-                                    b' ' | b'\t' => {
+                                    #quoted_only => {
                                         need_quoted = true;
-                                    }
-                                    b'(' | b')' | b',' | b':'..=b'<' | b'>' | b'@' | b'[' | b']' => {
-                                        if !escaping {
-                                            return Err(#error_path::Invalid);
-                                        }
-
+                                        last_dot = false;
                                         escaping = false;
                                     }
                                     b'"' => {
@@ -1094,7 +1095,8 @@ impl ValidatorHandler for EmailHandler {
                                                 return Err(#error_path::Invalid);
                                             }
 
-                                            break (local_part, need_quoted, true);
+                                            // A trailing dot is only valid inside quotes.
+                                            break (local_part, need_quoted || last_dot, true);
                                         }
                                     }
                                     _ => {
@@ -1163,6 +1165,10 @@ impl ValidatorHandler for EmailHandler {
                                         last_dot = true;
                                     }
                                     b'@' | b'(' => {
+                                        if last_dot {
+                                            return Err(#error_path::Invalid);
+                                        }
+
                                         let local_part =
                                             &s[local_part_length..p];
 
@@ -1482,7 +1488,7 @@ impl ValidatorHandler for EmailHandler {
                     type Error = #error_path;
 
                     #[inline]
-                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let s = s.into();
                         let s = s.as_str();
 
@@ -1490,14 +1496,14 @@ impl ValidatorHandler for EmailHandler {
                     }
 
                     #[inline]
-                    fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let s = s.as_ref();
 
                         #parse
                     }
 
                     #[inline]
-                    fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                    fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(s.as_ref())?;
 
                         Ok(())
@@ -1667,7 +1673,7 @@ impl ValidatorHandler for EmailHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_str(&ToEmailString::to_email_string(self))
@@ -1718,7 +1724,7 @@ impl ValidatorHandler for EmailHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                             where
                                 D: validators_prelude::serde::Deserializer<'de>, {
                                 struct MyVisitor;
@@ -1732,7 +1738,7 @@ impl ValidatorHandler for EmailHandler {
                                     }
 
                                     #[inline]
-                                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                    fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
                                         <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)

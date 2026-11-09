@@ -210,7 +210,7 @@ impl ValidatorHandler for NumberHandler {
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> Result<#data_type, #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<#data_type, #error_path> {
                         use ::core::str::FromStr;
 
                         let f = FromStr::from_str(s)?;
@@ -220,7 +220,7 @@ impl ValidatorHandler for NumberHandler {
                         Ok(f)
                     }
 
-                    fn v_parse_f(f: #data_type) -> Result<(), #error_path> {
+                    fn v_parse_f(f: #data_type) -> ::core::result::Result<(), #error_path> {
                         #handle_range
 
                         #handle_nan
@@ -235,17 +235,17 @@ impl ValidatorHandler for NumberHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
                                 Ok(())
@@ -260,14 +260,14 @@ impl ValidatorHandler for NumberHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_f64(f: f64) -> Result<Self, Self::Error> {
+                            fn parse_f64(f: f64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_f(f)?;
 
                                 Ok(Self(f))
                             }
 
                             #[inline]
-                            fn validate_f64(f: f64) -> Result<(), Self::Error> {
+                            fn validate_f64(f: f64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_f(f)?;
 
                                 Ok(())
@@ -281,24 +281,24 @@ impl ValidatorHandler for NumberHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_f64(f: f64) -> Result<Self, Self::Error> {
+                            fn parse_f64(f: f64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::parse_f32(f as f32)
                             }
 
                             #[inline]
-                            fn validate_f64(f: f64) -> Result<(), Self::Error> {
+                            fn validate_f64(f: f64) -> ::core::result::Result<(), Self::Error> {
                                 Self::validate_f32(f as f32)
                             }
 
                             #[inline]
-                            fn parse_f32(f: f32) -> Result<Self, Self::Error> {
+                            fn parse_f32(f: f32) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_f(f)?;
 
                                 Ok(Self(f))
                             }
 
                             #[inline]
-                            fn validate_f32(f: f32) -> Result<(), Self::Error> {
+                            fn validate_f32(f: f32) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_f(f)?;
 
                                 Ok(())
@@ -314,7 +314,7 @@ impl ValidatorHandler for NumberHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 validators_prelude::serde::Serialize::serialize(&self.0, serializer)
@@ -393,7 +393,7 @@ impl ValidatorHandler for NumberHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -407,56 +407,56 @@ impl ValidatorHandler for NumberHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_string<E>(self, v: validators_prelude::String) -> Result<Self::Value, E>
+                                            fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>
+                                            fn visit_f64<E>(self, v: f64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateNumber>::parse_f64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_f32<E>(self, v: f32) -> Result<Self::Value, E>
+                                            fn visit_f32<E>(self, v: f32) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateNumber>::parse_f32(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+                                            fn visit_i64<E>(self, v: i64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 self.visit_f64(v as f64)
                                             }
 
                                             #[inline]
-                                            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+                                            fn visit_u64<E>(self, v: u64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 self.visit_f64(v as f64)
                                             }
 
                                             #[inline]
-                                            fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
+                                            fn visit_i128<E>(self, v: i128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 self.visit_f64(v as f64)
                                             }
 
                                             #[inline]
-                                            fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
+                                            fn visit_u128<E>(self, v: u128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 self.visit_f64(v as f64)

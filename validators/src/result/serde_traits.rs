@@ -14,6 +14,79 @@ use super::Result;
 #[allow(unused)]
 use crate::{errors::*, traits::*};
 
+#[cfg(any(feature = "base32_decoded", feature = "base64_decoded", feature = "base64_url_decoded"))]
+#[doc(hidden)]
+pub fn deserialize_decoded_bytes<'de, D, T, E>(
+    deserializer: D,
+    expected: &'static str,
+) -> core::result::Result<core::result::Result<T, E>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: ValidateString<Error = E> + ValidateBytes<Error = E>, {
+    use serde::{
+        Deserialize,
+        de::{SeqAccess, value::SeqAccessDeserializer},
+    };
+
+    struct DecodedBytesVisitor<T, E> {
+        expected:      &'static str,
+        decoded_bytes: bool,
+        marker:        PhantomData<fn() -> (T, E)>,
+    }
+
+    impl<'de, T: ValidateString<Error = E> + ValidateBytes<Error = E>, E> Visitor<'de>
+        for DecodedBytesVisitor<T, E>
+    {
+        type Value = core::result::Result<T, E>;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            f.write_str(self.expected)
+        }
+
+        #[inline]
+        fn visit_str<F: DeError>(self, v: &str) -> core::result::Result<Self::Value, F> {
+            Ok(T::parse_str(v))
+        }
+
+        #[inline]
+        fn visit_string<F: DeError>(self, v: String) -> core::result::Result<Self::Value, F> {
+            Ok(T::parse_string(v))
+        }
+
+        #[inline]
+        fn visit_bytes<F: DeError>(self, v: &[u8]) -> core::result::Result<Self::Value, F> {
+            Ok(if self.decoded_bytes {
+                T::parse_decoded_vec_u8(v.to_vec())
+            } else {
+                T::parse_u8_slice(v)
+            })
+        }
+
+        #[inline]
+        fn visit_byte_buf<F: DeError>(self, v: Vec<u8>) -> core::result::Result<Self::Value, F> {
+            Ok(if self.decoded_bytes { T::parse_decoded_vec_u8(v) } else { T::parse_vec_u8(v) })
+        }
+
+        #[inline]
+        fn visit_seq<A: SeqAccess<'de>>(
+            self,
+            seq: A,
+        ) -> core::result::Result<Self::Value, A::Error> {
+            let bytes = Vec::deserialize(SeqAccessDeserializer::new(seq))?;
+
+            Ok(T::parse_decoded_vec_u8(bytes))
+        }
+    }
+
+    let decoded_bytes = !deserializer.is_human_readable();
+
+    deserializer.deserialize_any(DecodedBytesVisitor {
+        expected,
+        decoded_bytes,
+        marker: PhantomData,
+    })
+}
+
 #[cfg(feature = "base32")]
 impl<'de, T: ValidateString<Error = Base32Error> + ValidateBytes<Error = Base32Error>>
     serde::Deserialize<'de> for Result<T, Base32Error>
@@ -75,50 +148,7 @@ impl<'de, T: ValidateString<Error = Base32DecodedError> + ValidateBytes<Error = 
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        struct MyVisitor<T>(PhantomData<T>);
-
-        impl<
-            'de,
-            T: ValidateString<Error = Base32DecodedError> + ValidateBytes<Error = Base32DecodedError>,
-        > Visitor<'de> for MyVisitor<T>
-        {
-            type Value = Result<T, Base32DecodedError>;
-
-            #[inline]
-            fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Base32DecodedError")
-            }
-
-            #[inline]
-            fn visit_str<E>(self, v: &str) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_str(v)))
-            }
-
-            #[inline]
-            fn visit_string<E>(self, v: String) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_string(v)))
-            }
-
-            #[inline]
-            fn visit_bytes<E>(self, v: &[u8]) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_u8_slice(v)))
-            }
-
-            #[inline]
-            fn visit_byte_buf<E>(self, v: Vec<u8>) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_vec_u8(v)))
-            }
-        }
-
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        deserialize_decoded_bytes(deserializer, "Base32DecodedError").map(Result::new)
     }
 }
 
@@ -183,50 +213,7 @@ impl<'de, T: ValidateString<Error = Base64DecodedError> + ValidateBytes<Error = 
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        struct MyVisitor<T>(PhantomData<T>);
-
-        impl<
-            'de,
-            T: ValidateString<Error = Base64DecodedError> + ValidateBytes<Error = Base64DecodedError>,
-        > Visitor<'de> for MyVisitor<T>
-        {
-            type Value = Result<T, Base64DecodedError>;
-
-            #[inline]
-            fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Base64DecodedError")
-            }
-
-            #[inline]
-            fn visit_str<E>(self, v: &str) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_str(v)))
-            }
-
-            #[inline]
-            fn visit_string<E>(self, v: String) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_string(v)))
-            }
-
-            #[inline]
-            fn visit_bytes<E>(self, v: &[u8]) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_u8_slice(v)))
-            }
-
-            #[inline]
-            fn visit_byte_buf<E>(self, v: Vec<u8>) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_vec_u8(v)))
-            }
-        }
-
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        deserialize_decoded_bytes(deserializer, "Base64DecodedError").map(Result::new)
     }
 }
 
@@ -293,51 +280,7 @@ impl<
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        struct MyVisitor<T>(PhantomData<T>);
-
-        impl<
-            'de,
-            T: ValidateString<Error = Base64UrlDecodedError>
-                + ValidateBytes<Error = Base64UrlDecodedError>,
-        > Visitor<'de> for MyVisitor<T>
-        {
-            type Value = Result<T, Base64UrlDecodedError>;
-
-            #[inline]
-            fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Base64UrlDecodedError")
-            }
-
-            #[inline]
-            fn visit_str<E>(self, v: &str) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_str(v)))
-            }
-
-            #[inline]
-            fn visit_string<E>(self, v: String) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_string(v)))
-            }
-
-            #[inline]
-            fn visit_bytes<E>(self, v: &[u8]) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_u8_slice(v)))
-            }
-
-            #[inline]
-            fn visit_byte_buf<E>(self, v: Vec<u8>) -> core::result::Result<Self::Value, E>
-            where
-                E: DeError, {
-                Ok(Result::new(T::parse_vec_u8(v)))
-            }
-        }
-
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        deserialize_decoded_bytes(deserializer, "Base64UrlDecodedError").map(Result::new)
     }
 }
 
@@ -725,10 +668,9 @@ impl<
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        match serde_json::Value::deserialize(deserializer) {
-            Ok(value) => Ok(Result::new(T::parse_json_value(value))),
-            Err(_) => Ok(Result::new(Err(JsonError::InvalidJsonValueError))),
-        }
+        let value = serde_json::Value::deserialize(deserializer)?;
+
+        Ok(Result::new(T::parse_json_value(value)))
     }
 }
 
@@ -1188,6 +1130,24 @@ impl<
             where
                 E: DeError, {
                 Ok(Result::new(T::parse_u128(v)))
+            }
+
+            #[inline]
+            fn visit_i64<E>(self, v: i64) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                self.visit_i128(i128::from(v))
+            }
+
+            #[inline]
+            fn visit_i128<E>(self, v: i128) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                let result = u128::try_from(v)
+                    .map_err(|_| UnsignedIntegerError::TooSmall)
+                    .and_then(T::parse_u128);
+
+                Ok(Result::new(result))
             }
         }
 

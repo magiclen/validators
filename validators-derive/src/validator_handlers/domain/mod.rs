@@ -582,26 +582,31 @@ impl ValidatorHandler for DomainHandler {
                 }
             };
 
+            let invalid_domain = if type_attribute.ipv4.must() {
+                quote! { #error_path::IPv4Must }
+            } else {
+                quote! { #error_path::Invalid }
+            };
+            let normalize_domain = quote! {
+                validators_prelude::idna::Config::default()
+                    .use_std3_ascii_rules(true)
+                    .verify_dns_length(true)
+                    .check_hyphens(true)
+                    .to_ascii(domain_str)
+                    .map_err(|_| #invalid_domain)?
+            };
+
             let handle_domain_str_and_port_str = {
                 if type_attribute.ipv4 == TriAllow::Allow
                     && type_attribute.local == TriAllow::Allow
                     && type_attribute.at_least_two_labels == TriAllow::Allow
                 {
-                    quote! {
-                        match validators_prelude::idna::Config::default()
-                            .use_std3_ascii_rules(true)
-                            .verify_dns_length(true)
-                            .check_hyphens(true)
-                            .to_ascii(domain_str)
-                        {
-                            Ok(ascii_domain) => {
-                                let port = #handle_port;
+                    quote! {{
+                        let ascii_domain = #normalize_domain;
+                        let port = #handle_port;
 
-                                (ascii_domain, port, false, false)
-                            }
-                            Err(_) => return Err(#error_path::Invalid),
-                        }
-                    }
+                        (ascii_domain, port, false, false)
+                    }}
                 } else {
                     let handle_ipv4 = if type_attribute.ipv4.disallow() {
                         quote! {
@@ -629,7 +634,7 @@ impl ValidatorHandler for DomainHandler {
                         };
 
                         quote! {
-                            Ok(ip) => {
+                            Ok((ip, ascii_domain)) => {
                                 let port = #handle_port;
 
                                 let is_local = #handle_local_ipv4;
@@ -637,13 +642,15 @@ impl ValidatorHandler for DomainHandler {
                                 #check_local
 
                                 let domain_len = domain_str.len();
-                                let domain = match s {
-                                    validators_prelude::Cow::Borrowed(s) => validators_prelude::String::from(&s[..domain_len]),
-                                    validators_prelude::Cow::Owned(mut s) => {
-                                        s.truncate(domain_len);
-                                        s
+                                let domain = ascii_domain.unwrap_or_else(|| {
+                                    match s {
+                                        validators_prelude::Cow::Borrowed(s) => validators_prelude::String::from(&s[..domain_len]),
+                                        validators_prelude::Cow::Owned(mut s) => {
+                                            s.truncate(domain_len);
+                                            s
+                                        }
                                     }
-                                };
+                                });
 
                                 (domain, port, true, is_local)
                             }
@@ -652,7 +659,7 @@ impl ValidatorHandler for DomainHandler {
 
                     let handle_none_ipv4 = if type_attribute.ipv4.must() {
                         quote! {
-                            return Err(#error_path::IPv4Must);
+                            Err(_) => return Err(#error_path::IPv4Must),
                         }
                     } else {
                         let handle_local_domain = if type_attribute.local == TriAllow::Allow
@@ -688,36 +695,38 @@ impl ValidatorHandler for DomainHandler {
                         };
 
                         quote! {
-                            match validators_prelude::idna::Config::default()
-                                .use_std3_ascii_rules(true)
-                                .verify_dns_length(true)
-                                .check_hyphens(true)
-                                .to_ascii(domain_str)
-                            {
-                                Ok(ascii_domain) => {
-                                    let port = #handle_port;
+                            Err(ascii_domain) => {
+                                let port = #handle_port;
 
-                                    let is_local = #handle_local_domain;
+                                let is_local = #handle_local_domain;
 
-                                    #check_at_least_two_labels
+                                #check_at_least_two_labels
 
-                                    #check_local
+                                #check_local
 
-                                    (ascii_domain, port, false, is_local)
-                                }
-                                Err(_) => return Err(#error_path::Invalid),
+                                (ascii_domain, port, false, is_local)
                             }
                         }
                     };
 
-                    quote! {
-                        match validators_prelude::parse_ipv4_allow_an_ended_dot(domain_str) {
-                            #handle_ipv4
+                    quote! {{
+                        let domain = match validators_prelude::parse_ipv4_allow_an_ended_dot(domain_str) {
+                            Ok(ip) => Ok((ip, None)),
                             Err(_) => {
-                                #handle_none_ipv4
+                                let ascii_domain = #normalize_domain;
+
+                                match validators_prelude::parse_ipv4_allow_an_ended_dot(&ascii_domain) {
+                                    Ok(ip) => Ok((ip, Some(ascii_domain))),
+                                    Err(_) => Err(ascii_domain),
+                                }
                             }
+                        };
+
+                        match domain {
+                            #handle_ipv4
+                            #handle_none_ipv4
                         }
-                    }
+                    }}
                 }
             };
 
@@ -732,7 +741,7 @@ impl ValidatorHandler for DomainHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: validators_prelude::Cow<str>) -> Result<(validators_prelude::String, Option<u16>, bool, bool), #error_path> {
+                    fn v_parse_str(s: validators_prelude::Cow<str>) -> ::core::result::Result<(validators_prelude::String, Option<u16>, bool, bool), #error_path> {
                         let bytes = s.as_bytes();
 
                         if bytes.is_empty() {
@@ -880,21 +889,21 @@ impl ValidatorHandler for DomainHandler {
                     type Error = #error_path;
 
                     #[inline]
-                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(validators_prelude::Cow::Owned(s.into()))?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
-                    fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                    fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(validators_prelude::Cow::Borrowed(s.as_ref()))?;
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
-                    fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                    fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(validators_prelude::Cow::Borrowed(s.as_ref()))?;
 
                         Ok(())
@@ -902,48 +911,47 @@ impl ValidatorHandler for DomainHandler {
                 }
             });
 
-            token_stream.extend(
-                if type_attribute.port == TriAllow::Disallow
-                    && (type_attribute.local != TriAllow::Allow
-                        || type_attribute.at_least_two_labels == TriAllow::Allow)
-                {
-                    quote! {
-                        impl QualifyDomain for #name {
-                            #[inline]
-                            fn is_fully_qualified(&self) -> bool {
-                                self.0.ends_with('.')
-                            }
+            let is_tuple = type_attribute.port == TriAllow::Disallow
+                && (type_attribute.local != TriAllow::Allow
+                    || type_attribute.at_least_two_labels == TriAllow::Allow);
 
-                            #[inline]
-                            fn get_domain_non_fully_qualified(&self) -> &str {
-                                if QualifyDomain::is_fully_qualified(self) {
-                                    &self.0[..(self.0.len() - 1)]
-                                } else {
-                                    self.0.as_str()
-                                }
+            token_stream.extend(if is_tuple {
+                quote! {
+                    impl QualifyDomain for #name {
+                        #[inline]
+                        fn is_fully_qualified(&self) -> bool {
+                            self.0.ends_with('.')
+                        }
+
+                        #[inline]
+                        fn get_domain_non_fully_qualified(&self) -> &str {
+                            if QualifyDomain::is_fully_qualified(self) {
+                                &self.0[..(self.0.len() - 1)]
+                            } else {
+                                self.0.as_str()
                             }
                         }
                     }
-                } else {
-                    quote! {
-                        impl QualifyDomain for #name {
-                            #[inline]
-                            fn is_fully_qualified(&self) -> bool {
-                                self.domain.ends_with('.')
-                            }
+                }
+            } else {
+                quote! {
+                    impl QualifyDomain for #name {
+                        #[inline]
+                        fn is_fully_qualified(&self) -> bool {
+                            self.domain.ends_with('.')
+                        }
 
-                            #[inline]
-                            fn get_domain_non_fully_qualified(&self) -> &str {
-                                if QualifyDomain::is_fully_qualified(self) {
-                                    &self.domain[..(self.domain.len() - 1)]
-                                } else {
-                                    self.domain.as_str()
-                                }
+                        #[inline]
+                        fn get_domain_non_fully_qualified(&self) -> &str {
+                            if QualifyDomain::is_fully_qualified(self) {
+                                &self.domain[..(self.domain.len() - 1)]
+                            } else {
+                                self.domain.as_str()
                             }
                         }
                     }
-                },
-            );
+                }
+            });
 
             token_stream.extend(match type_attribute.port {
                 TriAllow::Allow => {
@@ -991,13 +999,32 @@ impl ValidatorHandler for DomainHandler {
             #[cfg(feature = "serde")]
             {
                 if type_attribute.serde_options.serialize {
+                    let serialize_domain = match type_attribute.port {
+                        TriAllow::Allow => quote! {
+                            if let Some(port) = self.port {
+                                serializer.collect_str(&format_args!("{}:{}", self.domain, port))
+                            } else {
+                                serializer.serialize_str(self.domain.as_str())
+                            }
+                        },
+                        TriAllow::Must => quote! {
+                            serializer.collect_str(&format_args!("{}:{}", self.domain, self.port))
+                        },
+                        TriAllow::Disallow if is_tuple => quote! {
+                            serializer.serialize_str(self.0.as_str())
+                        },
+                        TriAllow::Disallow => quote! {
+                            serializer.serialize_str(self.domain.as_str())
+                        },
+                    };
+
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
-                                serializer.serialize_str(&ToUriAuthorityString::to_uri_authority_string(self))
+                                #serialize_domain
                             }
                         }
                     });
@@ -1079,7 +1106,7 @@ impl ValidatorHandler for DomainHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                             where
                                 D: validators_prelude::serde::Deserializer<'de>, {
                                 struct MyVisitor;
@@ -1093,14 +1120,14 @@ impl ValidatorHandler for DomainHandler {
                                     }
 
                                     #[inline]
-                                    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                    fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
                                         <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                     }
 
                                     #[inline]
-                                    fn visit_string<E>(self, v: validators_prelude::String) -> Result<Self::Value, E>
+                                    fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
                                         <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)

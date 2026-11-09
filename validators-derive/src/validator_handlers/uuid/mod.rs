@@ -216,7 +216,7 @@ impl ValidatorHandler for UuidHandler {
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> Result<u128, #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<u128, #error_path> {
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
@@ -231,7 +231,7 @@ impl ValidatorHandler for UuidHandler {
                         Ok(uuid_decoded)
                     }
 
-                    fn v_validate_str(s: &str) -> Result<(), #error_path> {
+                    fn v_validate_str(s: &str) -> ::core::result::Result<(), #error_path> {
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
@@ -251,17 +251,17 @@ impl ValidatorHandler for UuidHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_validate_str(s.as_ref())?;
 
                                 Ok(())
@@ -269,8 +269,10 @@ impl ValidatorHandler for UuidHandler {
                         }
                     });
 
+            let separator = type_attribute.separator.allow().filter(u8::is_ascii).map(char::from);
+
             token_stream.extend(if type_attribute.case.upper() {
-                        if let Some(separator) = type_attribute.separator.allow() {
+                        if let Some(separator) = separator {
                             quote! {
                                 impl ToUuidString for #name {
                                     #[inline]
@@ -310,7 +312,7 @@ impl ValidatorHandler for UuidHandler {
                                 }
                             }
                         }
-                    } else if let Some(separator) = type_attribute.separator.allow() {
+                    } else if let Some(separator) = separator {
                         quote! {
                             impl ToUuidString for #name {
                                 #[inline]
@@ -357,7 +359,7 @@ impl ValidatorHandler for UuidHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_str(&ToUuidString::to_uuid_string(self))
@@ -405,7 +407,7 @@ impl ValidatorHandler for UuidHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -419,7 +421,7 @@ impl ValidatorHandler for UuidHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)

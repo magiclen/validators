@@ -34,6 +34,7 @@ fn basic() {
                     }
 
                     test("", false);
+                    test("A", false);
                     test("MTIzNDU2Nz-5MA==", Validator::V_PADDING.allow());
                     test("MTIzNDU2Nz-5MA", !Validator::V_PADDING.must());
                     test("MTIzND=U2Nz-5MA", false);

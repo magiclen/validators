@@ -2,7 +2,7 @@ mod built_in_traits;
 #[cfg(feature = "rocket")]
 mod rocket_traits;
 #[cfg(feature = "serde")]
-mod serde_traits;
+pub(crate) mod serde_traits;
 
 use core::marker::PhantomData;
 

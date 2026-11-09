@@ -77,6 +77,8 @@ impl ValidatorHandler for LengthHandler {
                         if let Some(max) = type_attribute.max {
                             if min == max {
                                 quote! {
+                                    let length = CollectionLength::len(v);
+
                                     match ::core::cmp::Ord::cmp(&length, &#min) {
                                         ::core::cmp::Ordering::Equal => (),
                                         ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
@@ -127,7 +129,7 @@ impl ValidatorHandler for LengthHandler {
                 impl #name {
                     #[allow(clippy::ptr_arg)]
                     #[inline]
-                    fn v_parse_v(v: &#data_type) -> Result<(), #error_path> {
+                    fn v_parse_v(v: &#data_type) -> ::core::result::Result<(), #error_path> {
                         #handle_range
 
                         Ok(())
@@ -140,7 +142,7 @@ impl ValidatorHandler for LengthHandler {
                     type Error = #error_path;
 
                     #[inline]
-                    fn parse_collection(v: #data_type) -> Result<Self, Self::Error> {
+                    fn parse_collection(v: #data_type) -> ::core::result::Result<Self, Self::Error> {
                         Self::v_parse_v(&v)?;
 
                         Ok(Self(v))
@@ -148,7 +150,7 @@ impl ValidatorHandler for LengthHandler {
 
                     #[allow(clippy::ptr_arg)]
                     #[inline]
-                    fn validate_collection(v: &#data_type) -> Result<(), Self::Error> {
+                    fn validate_collection(v: &#data_type) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_v(v)?;
 
                         Ok(())
@@ -162,7 +164,7 @@ impl ValidatorHandler for LengthHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 validators_prelude::serde::Serialize::serialize(&self.0, serializer)
@@ -175,7 +177,7 @@ impl ValidatorHandler for LengthHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         let v: #data_type = validators_prelude::serde::Deserialize::deserialize(deserializer)?;

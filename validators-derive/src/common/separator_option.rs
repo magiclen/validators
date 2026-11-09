@@ -38,6 +38,16 @@ impl SeparatorOption {
 }
 
 impl SeparatorOption {
+    fn parse_must(lit: &LitByte) -> syn::Result<Self> {
+        let separator = lit.value();
+
+        if separator.is_ascii() {
+            Ok(Self::Must(separator))
+        } else {
+            Err(syn::Error::new_spanned(lit, "expected an ASCII separator"))
+        }
+    }
+
     #[inline]
     pub(crate) fn from_meta(meta: &Meta) -> syn::Result<Self> {
         debug_assert!(meta.path().is_ident("separator"));
@@ -53,7 +63,7 @@ impl SeparatorOption {
                                 if let Expr::Lit(lit) = &name_value.value
                                     && let Lit::Byte(lit) = &lit.lit
                                 {
-                                    return Ok(Self::Must(lit.value()));
+                                    return Self::parse_must(lit);
                                 }
                             },
                             "Allow" => {
@@ -73,7 +83,7 @@ impl SeparatorOption {
                             "Must" => {
                                 let c: LitByte = list.parse_args()?;
 
-                                return Ok(Self::Must(c.value()));
+                                return Self::parse_must(&c);
                             },
                             "Allow" => {
                                 let c: LitByte = list.parse_args()?;

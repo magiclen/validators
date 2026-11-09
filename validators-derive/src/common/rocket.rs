@@ -24,7 +24,7 @@ pub(crate) fn impl_from_param(
             type Error = #error_path;
 
             #[inline]
-            fn from_param(v: &'r str) -> Result<Self, Self::Error> {
+            fn from_param(v: &'r str) -> ::core::result::Result<Self, Self::Error> {
                 <Self as ValidateString>::parse_str(v)
             }
         }

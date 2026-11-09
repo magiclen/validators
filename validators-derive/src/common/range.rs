@@ -17,6 +17,10 @@ pub(crate) trait RangedNumber:
     const IS_FLOAT: bool;
 
     fn inc(self) -> Option<Self>;
+
+    fn is_finite(self) -> bool {
+        true
+    }
 }
 
 macro_rules! impl_int {
@@ -41,6 +45,10 @@ macro_rules! impl_float {
 
             fn inc(self) -> Option<Self> {
                 Some(self + 1.0)
+            }
+
+            fn is_finite(self) -> bool {
+                <$ty>::is_finite(self)
             }
         }
     };
@@ -196,6 +204,12 @@ where
     }
 
     fn check_bounds(self, tokens: &impl ToTokens) -> syn::Result<Self> {
+        if self.min.is_some_and(|min| !min.is_finite())
+            || self.max.is_some_and(|max| !max.is_finite())
+        {
+            return Err(syn::Error::new_spanned(tokens, "expected a finite range bound"));
+        }
+
         if let Some(min) = self.min
             && let Some(max) = self.max
         {

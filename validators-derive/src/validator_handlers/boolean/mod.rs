@@ -33,7 +33,7 @@ impl ValidatorHandler for BooleanHandler {
 
             token_stream.extend(quote! {
                         impl #name {
-                            fn v_parse_str(s: &str) -> Result<bool, #error_path> {
+                            fn v_parse_str(s: &str) -> ::core::result::Result<bool, #error_path> {
                                 let bytes = s.as_bytes();
 
                                 let mut iter = bytes.iter().copied();
@@ -180,7 +180,7 @@ impl ValidatorHandler for BooleanHandler {
                             }
 
                             #[inline]
-                            fn v_parse_char(c: char) -> Result<bool, #error_path> {
+                            fn v_parse_char(c: char) -> ::core::result::Result<bool, #error_path> {
                                 match c {
                                     't' | 'T' | '1' | 'y' | 'Y' => Ok(true),
                                     'f' | 'F' | '0' | 'n' | 'N' => Ok(false),
@@ -189,7 +189,7 @@ impl ValidatorHandler for BooleanHandler {
                             }
 
                             #[inline]
-                            fn v_parse_i128(i: i128) -> Result<bool, #error_path> {
+                            fn v_parse_i128(i: i128) -> ::core::result::Result<bool, #error_path> {
                                 match i {
                                     1 => Ok(true),
                                     0 => Ok(false),
@@ -198,7 +198,7 @@ impl ValidatorHandler for BooleanHandler {
                             }
 
                             #[inline]
-                            fn v_parse_u128(u: u128) -> Result<bool, #error_path> {
+                            fn v_parse_u128(u: u128) -> ::core::result::Result<bool, #error_path> {
                                 match u {
                                     1 => Ok(true),
                                     0 => Ok(false),
@@ -207,7 +207,7 @@ impl ValidatorHandler for BooleanHandler {
                             }
 
                             #[inline]
-                            fn v_parse_bool(b: bool) -> Result<bool, #error_path> {
+                            fn v_parse_bool(b: bool) -> ::core::result::Result<bool, #error_path> {
                                 Ok(b)
                             }
                         }
@@ -218,17 +218,17 @@ impl ValidatorHandler for BooleanHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
                                 Ok(())
@@ -239,12 +239,12 @@ impl ValidatorHandler for BooleanHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_char(c: char) -> Result<Self, Self::Error> {
+                            fn parse_char(c: char) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_char(c)?))
                             }
 
                             #[inline]
-                            fn validate_char(c: char) -> Result<(), Self::Error> {
+                            fn validate_char(c: char) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_char(c)?;
 
                                 Ok(())
@@ -255,12 +255,12 @@ impl ValidatorHandler for BooleanHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_i128(i)?))
                             }
 
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i128(i)?;
 
                                 Ok(())
@@ -271,12 +271,12 @@ impl ValidatorHandler for BooleanHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_u128(u: u128) -> Result<Self, Self::Error> {
+                            fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_u128(u)?))
                             }
 
                             #[inline]
-                            fn validate_u128(u: u128) -> Result<(), Self::Error> {
+                            fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u128(u)?;
 
                                 Ok(())
@@ -287,12 +287,12 @@ impl ValidatorHandler for BooleanHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_bool(b: bool) -> Result<Self, Self::Error> {
+                            fn parse_bool(b: bool) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_bool(b)?))
                             }
 
                             #[inline]
-                            fn validate_bool(b: bool) -> Result<(), Self::Error> {
+                            fn validate_bool(b: bool) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_bool(b)?;
 
                                 Ok(())
@@ -306,7 +306,7 @@ impl ValidatorHandler for BooleanHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 serializer.serialize_bool(self.0)
@@ -322,7 +322,7 @@ impl ValidatorHandler for BooleanHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -336,48 +336,48 @@ impl ValidatorHandler for BooleanHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_string<E>(self, v: validators_prelude::String) -> Result<Self::Value, E>
+                                            fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
-                                            fn visit_bool<E>(self, v: bool) -> Result<Self::Value, E>
+                                            fn visit_bool<E>(self, v: bool) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 Ok(#name(v))
                                             }
 
                                             #[inline]
-                                            fn visit_char<E>(self, v: char) -> Result<Self::Value, E>
+                                            fn visit_char<E>(self, v: char) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateChar>::parse_char(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+                                            fn visit_i64<E>(self, v: i64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                  <#name as ValidateSignedInteger>::parse_i64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+                                            fn visit_u64<E>(self, v: u64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateUnsignedInteger>::parse_u64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
+                                            fn visit_i128<E>(self, v: i128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error,
                                             {
@@ -385,7 +385,7 @@ impl ValidatorHandler for BooleanHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
+                                            fn visit_u128<E>(self, v: u128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error,
                                             {

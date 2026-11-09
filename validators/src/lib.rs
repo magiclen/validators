@@ -12,7 +12,7 @@ For example,
 ```toml
 [dependencies.validators]
 version = "*"
-features = ["base64", "url", "uuid"]
+features = ["derive", "base64", "url", "uuid"]
 default-features = false
 ```
 
@@ -61,7 +61,8 @@ assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=
 #### base32_decoded
 
 The decoded Base32, Base64, and Base64url validators accept one encoded value at a time.
-With Serde, they can also read non-empty JSON byte arrays as already decoded data.
+With Serde, they can also read non-empty byte arrays (such as JSON arrays) as already decoded data.
+In non-human-readable formats (such as MessagePack or CBOR), bytes are read as decoded data too.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "base32_decoded"))]
@@ -494,6 +495,8 @@ assert!(NonEmptyNotTooLongVec::parse_collection(vec![0, 1, 2, 3]).is_err());
 
 #### line
 
+The line validator rejects control characters (U+0000 to U+001F and U+007F to U+009F) except TAB, and also U+2028 and U+2029.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "line"))]
 # {
@@ -506,11 +509,12 @@ pub struct LineNotAllowEmpty(pub String);
 assert!(LineNotAllowEmpty::parse_string("123").is_ok());
 assert!(LineNotAllowEmpty::parse_string("123\0").is_err());
 assert!(LineNotAllowEmpty::parse_string("123\n456").is_err());
+assert!(LineNotAllowEmpty::parse_string("123\u{2028}456").is_err());
 assert!(LineNotAllowEmpty::parse_string("   ").is_err());
 # }
 ```
 
-* Traits: `ValidateLength`
+* Traits: `ValidateString`
 * By default, the length is unlimited
 
 #### mac_address
@@ -690,6 +694,9 @@ assert!(SemVerReq::parse_string(">= 0.4").is_ok());
 
 #### signed_integer
 
+Use a decimal string to read a JSON integer below `i64::MIN` or above `u64::MAX`.
+With the default `serde_json` settings, these values are written as JSON numbers but cannot be read back as numbers.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "signed_integer"))]
 # {
@@ -718,6 +725,8 @@ assert!(NonZeroShort::parse_i8(0).is_err());
 
 #### text
 
+The text validator rejects control characters (U+0000 to U+001F and U+007F to U+009F) except TAB, LF, VT, and CR.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "text"))]
 # {
@@ -730,14 +739,18 @@ pub struct TextNotAllowEmpty(pub String);
 assert!(TextNotAllowEmpty::parse_string("123").is_ok());
 assert!(TextNotAllowEmpty::parse_string("123\0").is_err());
 assert!(TextNotAllowEmpty::parse_string("123\n456").is_ok());
+assert!(TextNotAllowEmpty::parse_string("123\u{85}456").is_err());
 assert!(TextNotAllowEmpty::parse_string("   ").is_err());
 # }
 ```
 
-* Traits: `ValidateLength`
+* Traits: `ValidateString`
 * By default, the length is unlimited
 
 #### unsigned_integer
+
+Use a decimal string to read a JSON integer above `u64::MAX`.
+With the default `serde_json` settings, these values are written as JSON numbers but cannot be read back as numbers.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "unsigned_integer"))]
@@ -1011,6 +1024,15 @@ pub mod prelude {
         pub use crate::phonenumber;
         #[cfg(feature = "regex")]
         pub use crate::regex;
+        #[cfg(all(
+            feature = "serde",
+            any(
+                feature = "base32_decoded",
+                feature = "base64_decoded",
+                feature = "base64_url_decoded"
+            )
+        ))]
+        pub use crate::result::serde_traits::deserialize_decoded_bytes;
         #[cfg(feature = "rocket")]
         pub use crate::rocket;
         #[cfg(feature = "semver-dep")]

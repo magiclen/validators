@@ -191,7 +191,7 @@ impl ValidatorHandler for SignedIntegerHandler {
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> Result<#data_type, #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<#data_type, #error_path> {
                         use ::core::str::FromStr;
 
                         let i = FromStr::from_str(s)?;
@@ -201,7 +201,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                         Ok(i)
                     }
 
-                    fn v_parse_i(i: #data_type) -> Result<(), #error_path> {
+                    fn v_parse_i(i: #data_type) -> ::core::result::Result<(), #error_path> {
                         #handle_range
 
                         Ok(())
@@ -214,17 +214,17 @@ impl ValidatorHandler for SignedIntegerHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
                                 Ok(())
@@ -239,14 +239,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(Self(i))
                             }
 
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(())
@@ -260,7 +260,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i64::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i64::MIN as i128 {
@@ -271,7 +271,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i64::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i64::MIN as i128 {
@@ -282,14 +282,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn parse_i64(i: i64) -> Result<Self, Self::Error> {
+                            fn parse_i64(i: i64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(Self(i))
                             }
 
                             #[inline]
-                            fn validate_i64(i: i64) -> Result<(), Self::Error> {
+                            fn validate_i64(i: i64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(())
@@ -303,7 +303,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i32::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i32::MIN as i128 {
@@ -314,7 +314,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i32::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i32::MIN as i128 {
@@ -325,14 +325,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn parse_i32(i: i32) -> Result<Self, Self::Error> {
+                            fn parse_i32(i: i32) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(Self(i))
                             }
 
                             #[inline]
-                            fn validate_i32(i: i32) -> Result<(), Self::Error> {
+                            fn validate_i32(i: i32) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(())
@@ -346,7 +346,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i16::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i16::MIN as i128 {
@@ -357,7 +357,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i16::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i16::MIN as i128 {
@@ -368,14 +368,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn parse_i16(i: i16) -> Result<Self, Self::Error> {
+                            fn parse_i16(i: i16) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(Self(i))
                             }
 
                             #[inline]
-                            fn validate_i16(i: i16) -> Result<(), Self::Error> {
+                            fn validate_i16(i: i16) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(())
@@ -389,7 +389,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i8::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i8::MIN as i128 {
@@ -400,7 +400,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i8::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < i8::MIN as i128 {
@@ -411,14 +411,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn parse_i8(i: i8) -> Result<Self, Self::Error> {
+                            fn parse_i8(i: i8) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(Self(i))
                             }
 
                             #[inline]
-                            fn validate_i8(i: i8) -> Result<(), Self::Error> {
+                            fn validate_i8(i: i8) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(())
@@ -433,7 +433,7 @@ impl ValidatorHandler for SignedIntegerHandler {
 
                             #[allow(unexpected_cfgs)]
                             #[inline]
-                            fn parse_i128(i: i128) -> Result<Self, Self::Error> {
+                            fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > isize::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < isize::MIN as i128 {
@@ -445,7 +445,7 @@ impl ValidatorHandler for SignedIntegerHandler {
 
                             #[allow(unexpected_cfgs)]
                             #[inline]
-                            fn validate_i128(i: i128) -> Result<(), Self::Error> {
+                            fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > isize::MAX as i128 {
                                     Err(#error_path::TooLarge)
                                 } else if i < isize::MIN as i128 {
@@ -456,49 +456,49 @@ impl ValidatorHandler for SignedIntegerHandler {
                             }
 
                             #[inline]
-                            fn parse_isize(i: isize) -> Result<Self, Self::Error> {
+                            fn parse_isize(i: isize) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(Self(i))
                             }
 
                             #[inline]
-                            fn validate_isize(i: isize) -> Result<(), Self::Error> {
+                            fn validate_isize(i: isize) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
                                 Ok(())
                             }
 
                             #[cfg(target_pointer_width = "16")]
-                            fn parse_i16(i: i16) -> Result<Self, Self::Error> {
+                            fn parse_i16(i: i16) -> ::core::result::Result<Self, Self::Error> {
                                 Self::parse_isize(i as isize)
                             }
 
                             #[cfg(target_pointer_width = "32")]
-                            fn parse_i32(i: i32) -> Result<Self, Self::Error> {
+                            fn parse_i32(i: i32) -> ::core::result::Result<Self, Self::Error> {
                                 Self::parse_isize(i as isize)
                             }
 
                             #[cfg(target_pointer_width = "64")]
-                            fn parse_i64(i: i64) -> Result<Self, Self::Error> {
+                            fn parse_i64(i: i64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::parse_isize(i as isize)
                             }
 
                             #[cfg(target_pointer_width = "16")]
                             #[inline]
-                            fn validate_i16(i: i16) -> Result<(), Self::Error> {
+                            fn validate_i16(i: i16) -> ::core::result::Result<(), Self::Error> {
                                 Self::validate_isize(i as isize)
                             }
 
                             #[cfg(target_pointer_width = "32")]
                             #[inline]
-                            fn validate_i32(i: i32) -> Result<(), Self::Error> {
+                            fn validate_i32(i: i32) -> ::core::result::Result<(), Self::Error> {
                                 Self::validate_isize(i as isize)
                             }
 
                             #[cfg(target_pointer_width = "64")]
                             #[inline]
-                            fn validate_i64(i: i64) -> Result<(), Self::Error> {
+                            fn validate_i64(i: i64) -> ::core::result::Result<(), Self::Error> {
                                 Self::validate_isize(i as isize)
                             }
                         }
@@ -512,7 +512,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
-                            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
                                 validators_prelude::serde::Serialize::serialize(&self.0, serializer)
@@ -581,7 +581,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -595,62 +595,62 @@ impl ValidatorHandler for SignedIntegerHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_string<E>(self, v: validators_prelude::String) -> Result<Self::Value, E>
+                                            fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i8<E>(self, v: i8) -> Result<Self::Value, E>
+                                            fn visit_i8<E>(self, v: i8) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateSignedInteger>::parse_i8(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i16<E>(self, v: i16) -> Result<Self::Value, E>
+                                            fn visit_i16<E>(self, v: i16) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateSignedInteger>::parse_i16(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i32<E>(self, v: i32) -> Result<Self::Value, E>
+                                            fn visit_i32<E>(self, v: i32) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateSignedInteger>::parse_i32(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>
+                                            fn visit_i64<E>(self, v: i64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateSignedInteger>::parse_i64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
-                                            fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
+                                            fn visit_i128<E>(self, v: i128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateSignedInteger>::parse_i128(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
-                                            fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>
+                                            fn visit_u64<E>(self, v: u64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 self.visit_i128(i128::from(v))
                                             }
 
                                             #[inline]
-                                            fn visit_u128<E>(self, v: u128) -> Result<Self::Value, E>
+                                            fn visit_u128<E>(self, v: u128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 let v = ::core::convert::TryFrom::try_from(v).map_err(|_| E::custom(#error_path::TooLarge))?;

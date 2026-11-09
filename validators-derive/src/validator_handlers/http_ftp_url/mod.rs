@@ -86,7 +86,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
 
             token_stream.extend(quote! {
                         impl #name {
-                            fn v_parse_str(s: &str) -> Result<(validators_prelude::url::Url, validators_prelude::Protocol), #error_path> {
+                            fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::url::Url, validators_prelude::Protocol), #error_path> {
                                 let protocol = {
                                     use validators_prelude::str_utils::StartsWithIgnoreAsciiCaseMultiple;
 
@@ -116,7 +116,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
                             type Error = #error_path;
 
                             #[inline]
-                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 let (url, protocol) = Self::v_parse_str(s.into().as_str())?;
 
                                 Ok(Self {
@@ -126,7 +126,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
                             }
 
                             #[inline]
-                            fn parse_str<S: AsRef<str>>(s: S) -> Result<Self, Self::Error> {
+                            fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                                 let (url, protocol) = Self::v_parse_str(s.as_ref())?;
 
                                 Ok(Self {
@@ -136,7 +136,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
                             }
 
                             #[inline]
-                            fn validate_str<S: AsRef<str>>(s: S) -> Result<(), Self::Error> {
+                            fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
                                 Ok(())
@@ -150,7 +150,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
                     token_stream.extend(quote! {
                                 impl validators_prelude::serde::Serialize for #name {
                                     #[inline]
-                                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                                    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                         where
                                             S: validators_prelude::serde::Serializer, {
                                         validators_prelude::serde::Serialize::serialize(&self.url, serializer)
@@ -179,7 +179,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                                     where
                                         D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
@@ -193,7 +193,7 @@ impl ValidatorHandler for HttpFtpUrlHandler {
                                             }
 
                                             #[inline]
-                                            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
                                                 <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)

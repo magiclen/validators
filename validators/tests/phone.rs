@@ -43,3 +43,25 @@ fn valid_in_second_country() {
     assert_eq!(1, phone.0.len());
     assert!(phone.0.contains_key(&Id::BR));
 }
+
+#[cfg(feature = "serde_json")]
+#[test]
+fn serde_roundtrip() {
+    use validators::serde_json;
+
+    let phone: TWPhone = serde_json::from_str(r#""0912345678""#).unwrap();
+    let json = serde_json::to_string(&phone).unwrap();
+
+    assert_eq!(phone.0, serde_json::from_str::<TWPhone>(&json).unwrap().0);
+
+    let phone = TWorUSPhone::parse_str("+14155552671").unwrap();
+    let json = serde_json::to_string(&phone).unwrap();
+
+    assert_eq!(phone.0, serde_json::from_str::<TWorUSPhone>(&json).unwrap().0);
+
+    let phone = InternationalPhone::parse_str("+14155552671").unwrap();
+    let json = serde_json::to_string(&phone).unwrap();
+
+    assert_eq!(phone.0, serde_json::from_str::<InternationalPhone>(&json).unwrap().0);
+    assert!(serde_json::from_str::<TWPhone>(&json).is_err());
+}
