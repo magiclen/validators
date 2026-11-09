@@ -29,7 +29,7 @@ pub(crate) mod allow;
 ))]
 #[allow(dead_code)]
 pub(crate) mod boolean;
-#[cfg(any(feature = "test", feature = "mac_address", feature = "uuid"))]
+#[cfg(any(feature = "test", feature = "hex_decoded", feature = "mac_address", feature = "uuid"))]
 #[allow(dead_code)]
 pub(crate) mod case_option;
 #[cfg(any(feature = "line", feature = "text"))]

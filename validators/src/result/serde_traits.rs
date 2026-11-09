@@ -14,7 +14,12 @@ use super::Result;
 #[allow(unused)]
 use crate::{errors::*, traits::*};
 
-#[cfg(any(feature = "base32_decoded", feature = "base64_decoded", feature = "base64_url_decoded"))]
+#[cfg(any(
+    feature = "base32_decoded",
+    feature = "base64_decoded",
+    feature = "base64_url_decoded",
+    feature = "hex_decoded"
+))]
 #[doc(hidden)]
 pub fn deserialize_decoded_bytes<'de, D, T, E>(
     deserializer: D,
@@ -478,6 +483,18 @@ impl<'de, T: ValidateString<Error = EmailError>> serde::Deserialize<'de> for Res
         }
 
         deserializer.deserialize_str(MyVisitor(PhantomData))
+    }
+}
+
+#[cfg(feature = "hex_decoded")]
+impl<'de, T: ValidateString<Error = HexDecodedError> + ValidateBytes<Error = HexDecodedError>>
+    serde::Deserialize<'de> for Result<T, HexDecodedError>
+{
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>, {
+        deserialize_decoded_bytes(deserializer, "HexDecodedError").map(Result::new)
     }
 }
 

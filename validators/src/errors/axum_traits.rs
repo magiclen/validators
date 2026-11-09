@@ -32,6 +32,7 @@ impl_into_response! {
     ("byte", ByteError),
     ("domain", DomainError),
     ("email", EmailError),
+    ("hex_decoded", HexDecodedError),
     ("host", HostError),
     ("http_url", HttpURLError),
     ("http_ftp_url", HttpFtpURLError),

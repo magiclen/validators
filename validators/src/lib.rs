@@ -298,6 +298,29 @@ assert!(EmailWithoutComment::parse_string("(john)joke@example.com").is_err());
 * Traits: `ValidateString`, `ToEmailString`
 * By default, `comment = Allow, ip = Allow, local = Allow, at_least_two_labels = Allow, non_ascii = Allow`
 
+#### hex_decoded
+
+This validator decodes a non-empty string of ASCII hex digits.
+Each pair of digits becomes one byte.
+Serde uses the same byte representation as `base64_decoded`.
+
+```rust
+# #[cfg(all(feature = "derive", feature = "hex_decoded"))]
+# {
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(hex_decoded(case(Upper)))]
+pub struct HexDecoded(pub Vec<u8>);
+
+assert_eq!(&[0, 171, 255], HexDecoded::parse_str("00ABFF").unwrap().0.as_slice());
+# }
+```
+
+* Traits: `ValidateString`, `ValidateBytes`, `CollectionLength`
+* By default, `case = Any`, which allows mixed case.
+* Use `case(Upper)` or `case(Lower)` to require one letter case.
+
 #### host
 
 ```rust
@@ -1029,7 +1052,8 @@ pub mod prelude {
             any(
                 feature = "base32_decoded",
                 feature = "base64_decoded",
-                feature = "base64_url_decoded"
+                feature = "base64_url_decoded",
+                feature = "hex_decoded"
             )
         ))]
         pub use crate::result::serde_traits::deserialize_decoded_bytes;
