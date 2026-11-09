@@ -86,6 +86,28 @@ impl ValidatorHandler for PhoneHandler {
                             }
                         },
                         _ => {
+                            let check_countries = |on_valid: proc_macro2::TokenStream| {
+                                quote! {
+                                    #(
+                                        let country = validators_prelude::phonenumber::country::Id::#countries;
+
+                                        match validators_prelude::phonenumber::parse(Some(country), s) {
+                                            Ok(phonenumber) => {
+                                                if phonenumber.country().id() == Some(country) && phonenumber.is_valid() {
+                                                    #on_valid
+                                                }
+
+                                                failure = Some(#error_path::Invalid);
+                                            }
+                                            Err(error) if failure.is_none() => failure = Some(error.into()),
+                                            Err(_) => (),
+                                        }
+                                    )*
+                                }
+                            };
+                            let collect_matches = check_countries(quote! { map.insert(country, phonenumber); });
+                            let find_match = check_countries(quote! { return Ok(()); });
+
                             quote! {
                                 impl #name {
                                     #[inline]
@@ -93,21 +115,7 @@ impl ValidatorHandler for PhoneHandler {
                                         let mut map = ::std::collections::HashMap::with_capacity(2);
                                         let mut failure = None;
 
-                                        #(
-                                            let country = validators_prelude::phonenumber::country::Id::#countries;
-
-                                            match validators_prelude::phonenumber::parse(Some(country), s) {
-                                                Ok(phonenumber) => {
-                                                    if phonenumber.country().id() == Some(country) && phonenumber.is_valid() {
-                                                        map.insert(country, phonenumber);
-                                                    }
-
-                                                    failure = Some(#error_path::Invalid);
-                                                }
-                                                Err(error) if failure.is_none() => failure = Some(error.into()),
-                                                Err(_) => (),
-                                            }
-                                        )*
+                                        #collect_matches
 
                                         if map.is_empty() {
                                             Err(failure.unwrap_or(#error_path::Invalid))
@@ -115,10 +123,29 @@ impl ValidatorHandler for PhoneHandler {
                                             Ok(map)
                                         }
                                     }
+
+                                    #[inline]
+                                    fn v_validate_str(s: &str) -> ::core::result::Result<(), #error_path> {
+                                        let mut failure = None;
+
+                                        #find_match
+
+                                        Err(failure.unwrap_or(#error_path::Invalid))
+                                    }
                                 }
                             }
                         }
                     });
+
+            let validate = if countries.len() > 1 {
+                quote! { Self::v_validate_str(s.as_ref()) }
+            } else {
+                quote! {
+                    Self::v_parse_str(s.as_ref())?;
+
+                    Ok(())
+                }
+            };
 
             token_stream.extend(quote! {
                         impl ValidateString for #name {
@@ -136,9 +163,7 @@ impl ValidatorHandler for PhoneHandler {
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
-                                Self::v_parse_str(s.as_ref())?;
-
-                                Ok(())
+                                #validate
                             }
                         }
                     });

@@ -7,7 +7,12 @@ use crate::{
     panic,
 };
 
-pub(crate) struct TextHandler;
+pub(crate) struct Utf8Handler<const IS_LINE: bool>;
+
+#[cfg(feature = "line")]
+pub(crate) type LineHandler = Utf8Handler<true>;
+#[cfg(feature = "text")]
+pub(crate) type TextHandler = Utf8Handler<false>;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -15,7 +20,7 @@ pub struct Struct(TypeEnum);
 
 const ITEM: Struct = Struct(TypeEnum::String);
 
-impl ValidatorHandler for TextHandler {
+impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
         let type_attribute = Utf8Attribute::build_from_meta(&meta)?;
 
@@ -27,11 +32,34 @@ impl ValidatorHandler for TextHandler {
 
             let name = ast.ident;
 
-            let error_path: Path = syn::parse2(quote! { validators_prelude::TextError }).unwrap();
+            let (error_path, invalid_char, invalid_ascii) = if IS_LINE {
+                (
+                    quote! { validators_prelude::LineError },
+                    quote! {
+                        '\x00'..='\x08' | '\x0A'..='\x1F' | '\x7F'..='\u{9F}' | '\u{2028}' | '\u{2029}'
+                    },
+                    quote! { b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F' },
+                )
+            } else {
+                (
+                    quote! { validators_prelude::TextError },
+                    quote! { '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F'..='\u{9F}' },
+                    quote! { b'\x00'..=b'\x08' | b'\x0C' | b'\x0E'..=b'\x1F' | b'\x7F' },
+                )
+            };
+            let error_path: Path = syn::parse2(error_path).unwrap();
 
-            // Control characters other than TAB, LF, VT, and CR are not allowed in text.
-            let invalid_char = quote! {
-                '\x00'..='\x08' | '\x0C' | '\x0E'..='\x1F' | '\x7F'..='\u{9F}'
+            let check_line_separators = if IS_LINE {
+                quote! {
+                    // 0xE2 0x80 0xA8 and 0xE2 0x80 0xA9 encode U+2028 and U+2029.
+                    0xE2 => {
+                        if let Some([0x80, 0xA8 | 0xA9]) = bytes.get(i + 1..i + 3) {
+                            return Err(#error_path::Invalid);
+                        }
+                    }
+                }
+            } else {
+                quote! {}
             };
 
             let check_bytes = quote! {
@@ -39,7 +67,7 @@ impl ValidatorHandler for TextHandler {
 
                 for (i, e) in bytes.iter().copied().enumerate() {
                     match e {
-                        b'\x00'..=b'\x08' | b'\x0C' | b'\x0E'..=b'\x1F' | b'\x7F' => {
+                        #invalid_ascii => {
                             return Err(#error_path::Invalid);
                         }
                         // 0xC2 followed by 0x80..=0x9F encodes U+0080..=U+009F.
@@ -48,6 +76,7 @@ impl ValidatorHandler for TextHandler {
                                 return Err(#error_path::Invalid);
                             }
                         }
+                        #check_line_separators
                         _ => (),
                     }
                 }

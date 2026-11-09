@@ -40,6 +40,7 @@ fn valid_in_second_country() {
 
     let phone = USorBRPhone::parse_str("011997123456").unwrap();
 
+    assert!(USorBRPhone::validate_str("011997123456").is_ok());
     assert_eq!(1, phone.0.len());
     assert!(phone.0.contains_key(&Id::BR));
 }

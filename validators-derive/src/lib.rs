@@ -138,7 +138,7 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
             },
             #[cfg(feature = "line")]
             Validator::line => {
-                return validator_handlers::line::LineHandler::meta_handler(ast, meta);
+                return validator_handlers::utf8::LineHandler::meta_handler(ast, meta);
             },
             #[cfg(feature = "mac_address")]
             Validator::mac_address => {
@@ -172,7 +172,7 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
             },
             #[cfg(feature = "text")]
             Validator::text => {
-                return validator_handlers::text::TextHandler::meta_handler(ast, meta);
+                return validator_handlers::utf8::TextHandler::meta_handler(ast, meta);
             },
             #[cfg(feature = "unsigned_integer")]
             Validator::unsigned_integer => {

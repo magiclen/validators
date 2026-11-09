@@ -57,9 +57,6 @@ pub(crate) mod json;
 #[cfg(feature = "length")]
 pub(crate) mod length;
 
-#[cfg(feature = "line")]
-pub(crate) mod line;
-
 #[cfg(feature = "mac_address")]
 pub(crate) mod mac_address;
 
@@ -81,14 +78,14 @@ pub(crate) mod semver_req;
 #[cfg(feature = "signed_integer")]
 pub(crate) mod signed_integer;
 
-#[cfg(feature = "text")]
-pub(crate) mod text;
-
 #[cfg(feature = "unsigned_integer")]
 pub(crate) mod unsigned_integer;
 
 #[cfg(feature = "url")]
 pub(crate) mod url;
+
+#[cfg(any(feature = "line", feature = "text"))]
+pub(crate) mod utf8;
 
 #[cfg(feature = "uuid")]
 pub(crate) mod uuid;
