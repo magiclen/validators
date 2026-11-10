@@ -32,7 +32,7 @@ fn other_collections() {
     #[validator(length(min = 1, max = 2))]
     struct Queue(VecDeque<u8>);
 
-    assert!(Queue::parse_collection(VecDeque::from([1, 2])).is_ok());
+    assert_eq!(VecDeque::from([1, 2]), Queue::parse_collection(VecDeque::from([1, 2])).unwrap().0);
     assert!(Queue::parse_collection(VecDeque::new()).is_err());
 
     // A hash set with another hasher, such as `FxHashSet`, also works.
@@ -49,7 +49,10 @@ fn other_collections() {
         #[validator(length(min = 1, max = 2))]
         struct CustomSet(CustomHashSet);
 
-        assert!(CustomSet::parse_collection(CustomHashSet::from_iter([1, 2])).is_ok());
+        assert_eq!(
+            CustomHashSet::from_iter([1, 2]),
+            CustomSet::parse_collection(CustomHashSet::from_iter([1, 2])).unwrap().0
+        );
         assert!(CustomSet::parse_collection(CustomHashSet::from_iter([1, 2, 3])).is_err());
     }
 }
