@@ -431,6 +431,10 @@ assert!(Ipv6AllowPort::parse_string("[::ffff:c000:0280]").is_ok());
 
 Serde serialization writes the inner value directly.
 
+`validators::Result<T, JsonError>` reads a `serde_json::Value` first, so it keeps the last value of a repeated object key even if `T` would reject the duplicate.
+With the default `serde_json` settings, `Value` stores a large integer such as `18446744073709551617` as a float, so the wrapper cannot read it as `u128`.
+Use `T::parse_str` on the original JSON text to run the validator directly.
+
 ```rust
 use validators::prelude::*;
 
@@ -512,6 +516,9 @@ assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 #### number
 
 With Serde, human-readable formats (such as JSON) write NaN and infinity as the strings `"NaN"`, `"inf"`, and `"-inf"`, so they can be read back.
+
+When `serde_json/arbitrary_precision` is enabled, a JSON number with a fraction, such as `0.5`, fails to deserialize into a `number` validator or `validators::Result<T, NumberError>`.
+Use a JSON string such as `"0.5"` for these values in that configuration.
 
 ```rust
 use validators::prelude::*;

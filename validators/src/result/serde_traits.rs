@@ -98,6 +98,80 @@ where
     }
 }
 
+#[cfg(any(feature = "bit", feature = "byte"))]
+#[doc(hidden)]
+pub fn deserialize_byte_unit<'de, D, T, E>(
+    deserializer: D,
+    expected: &'static str,
+    too_small: E,
+) -> core::result::Result<core::result::Result<T, E>, D::Error>
+where
+    D: Deserializer<'de>,
+    T: ValidateString<Error = E> + ValidateUnsignedInteger<Error = E>, {
+    struct ByteUnitVisitor<T, E> {
+        expected:  &'static str,
+        too_small: E,
+        marker:    PhantomData<fn() -> T>,
+    }
+
+    impl<'de, T: ValidateString<Error = E> + ValidateUnsignedInteger<Error = E>, E> Visitor<'de>
+        for ByteUnitVisitor<T, E>
+    {
+        type Value = core::result::Result<T, E>;
+
+        fn expecting(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            f.write_str(self.expected)
+        }
+
+        #[inline]
+        fn visit_str<F: DeError>(self, v: &str) -> core::result::Result<Self::Value, F> {
+            Ok(T::parse_str(v))
+        }
+
+        #[inline]
+        fn visit_string<F: DeError>(self, v: String) -> core::result::Result<Self::Value, F> {
+            Ok(T::parse_string(v))
+        }
+
+        #[inline]
+        fn visit_u64<F: DeError>(self, v: u64) -> core::result::Result<Self::Value, F> {
+            Ok(T::parse_u64(v))
+        }
+
+        #[inline]
+        fn visit_u128<F: DeError>(self, v: u128) -> core::result::Result<Self::Value, F> {
+            Ok(T::parse_u128(v))
+        }
+
+        #[inline]
+        fn visit_i64<F: DeError>(self, v: i64) -> core::result::Result<Self::Value, F> {
+            self.visit_i128(i128::from(v))
+        }
+
+        #[inline]
+        fn visit_i128<F: DeError>(self, v: i128) -> core::result::Result<Self::Value, F> {
+            // Only a negative number cannot become `u128`.
+            match u128::try_from(v) {
+                Ok(v) => Ok(T::parse_u128(v)),
+                Err(_) => Ok(Err(self.too_small)),
+            }
+        }
+    }
+
+    let visitor = ByteUnitVisitor {
+        expected,
+        too_small,
+        marker: PhantomData,
+    };
+
+    if deserializer.is_human_readable() {
+        // Accept both strings such as `"1 KB"` and plain integers.
+        deserializer.deserialize_any(visitor)
+    } else {
+        deserializer.deserialize_u128(visitor)
+    }
+}
+
 #[cfg(feature = "phone")]
 #[doc(hidden)]
 pub struct SerdePhoneNumber<'a>(pub &'a phonenumber::PhoneNumber);
@@ -351,15 +425,7 @@ impl<'de, T: ValidateString<Error = BitError> + ValidateUnsignedInteger<Error = 
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        if deserializer.is_human_readable() {
-            let s = String::deserialize(deserializer)?;
-
-            Ok(Result::new(T::parse_string(s)))
-        } else {
-            let s = u128::deserialize(deserializer)?;
-
-            Ok(Result::new(T::parse_u128(s)))
-        }
+        deserialize_byte_unit(deserializer, "BitError", BitError::TooSmall).map(Result::new)
     }
 }
 
@@ -467,15 +533,7 @@ impl<'de, T: ValidateString<Error = ByteError> + ValidateUnsignedInteger<Error =
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        if deserializer.is_human_readable() {
-            let s = String::deserialize(deserializer)?;
-
-            Ok(Result::new(T::parse_string(s)))
-        } else {
-            let s = u128::deserialize(deserializer)?;
-
-            Ok(Result::new(T::parse_u128(s)))
-        }
+        deserialize_byte_unit(deserializer, "ByteError", ByteError::TooSmall).map(Result::new)
     }
 }
 

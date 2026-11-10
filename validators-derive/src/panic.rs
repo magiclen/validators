@@ -47,6 +47,11 @@ pub(crate) fn derive_attribute_not_set_up_yet(ast: &DeriveInput) -> syn::Error {
 }
 
 #[inline]
+pub(crate) fn generics_not_supported(ast: &DeriveInput) -> syn::Error {
+    syn::Error::new_spanned(&ast.generics, "`Validator` cannot be derived for generic types")
+}
+
+#[inline]
 pub(crate) fn validator_format_incorrect(node: impl ToTokens) -> syn::Error {
     syn::Error::new_spanned(node, "you are using an incorrect format of the `Validator` attribute")
 }

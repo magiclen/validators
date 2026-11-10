@@ -199,38 +199,11 @@ impl ValidatorHandler for ByteHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
                                     where
-                                        D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
-
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
-                                            type Value = #name;
-
-                                            #[inline]
-                                            fn expecting(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                                                f.write_str(#expect)
-                                            }
-
-                                            #[inline]
-                                            fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
-                                            where
-                                                E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
-                                            }
-
-                                            fn visit_u128<E>(self, v: u128) -> ::core::result::Result<Self::Value, E>
-                                            where
-                                                E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateUnsignedInteger>::parse_u128(v).map_err(validators_prelude::serde::de::Error::custom)
-                                            }
-                                        }
-
-                                        if deserializer.is_human_readable() {
-                                            deserializer.deserialize_str(MyVisitor)
-                                        } else {
-                                            deserializer.deserialize_u128(MyVisitor)
-                                        }
+                                        __D: validators_prelude::serde::Deserializer<'de>, {
+                                        validators_prelude::deserialize_byte_unit(deserializer, #expect, #error_path::TooSmall)?
+                                            .map_err(validators_prelude::serde::de::Error::custom)
                                     }
                                 }
                             });

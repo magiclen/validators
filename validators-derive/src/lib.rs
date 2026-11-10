@@ -51,6 +51,11 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
     }
 
     if let Some((validator, meta)) = use_validator {
+        // The generated `impl` blocks do not carry generic parameters.
+        if !ast.generics.params.is_empty() {
+            return Err(panic::generics_not_supported(&ast));
+        }
+
         match validator {
             #[cfg(feature = "base32")]
             Validator::base32 => {

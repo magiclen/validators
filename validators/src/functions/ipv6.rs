@@ -4,7 +4,9 @@ use crate::functions::is_local_ipv4;
 
 /// Determine whether the input `Ipv6Addr` is local.
 ///
-/// An address is local if it is not globally reachable, such as an unspecified, loopback, link-local, site-local, unique local, documentation, discard-only, dummy (`100:0:0:1::/64`), benchmarking, local-use translation (`64:ff9b:1::/48`), or SRv6 (`5f00::/16`) address, or a multicast address without the global scope.
+/// An address is local if it is not globally reachable, such as an unspecified, loopback, link-local, site-local, unique local, documentation, discard-only, dummy (`100:0:0:1::/64`), local-use translation (`64:ff9b:1::/48`), or SRv6 (`5f00::/16`) address, or a multicast address without the global scope.
+/// The IETF protocol assignments block (`2001::/23`), such as benchmarking (`2001:2::/48`), is also local, except for its globally reachable parts such as AMT (`2001:3::/32`).
+/// Teredo (`2001::/32`) and 6to4 (`2002::/16`) addresses are not local, because the IANA registry lists their global reachability as N/A.
 /// An address that contains an IPv4 address (such as `::ffff:127.0.0.1` or `64:ff9b::7f00:1`) is checked by `is_local_ipv4`.
 #[inline]
 pub const fn is_local_ipv6(addr: Ipv6Addr) -> bool {
@@ -43,9 +45,17 @@ pub const fn is_local_ipv6(addr: Ipv6Addr) -> bool {
         match segments {
             // 100::/64 (discard-only)
             // 100:0:0:1::/64 (dummy prefix, RFC 9780)
-            // 2001:2::/48 (benchmarking)
             // 64:ff9b:1::/48 (IPv4/IPv6 translation for local use)
-            [0x100, 0, 0, 0 | 1, ..] | [0x2001, 2, 0, ..] | [0x64, 0xFF9B, 1, ..] => return true,
+            [0x100, 0, 0, 0 | 1, ..] | [0x64, 0xFF9B, 1, ..] => return true,
+            // The IANA registry lists global reachability as N/A for Teredo.
+            [0x2001, 0, ..] => return false,
+            // These IETF assignments are globally reachable.
+            [0x2001, 1, 0, 0, 0, 0, 0, 1..=3]
+            | [0x2001, 3, ..]
+            | [0x2001, 4, 0x112, ..]
+            | [0x2001, 0x20..=0x3F, ..] => return false,
+            // The rest of 2001::/23 is local.
+            [0x2001, 0..=0x1FF, ..] => return true,
             // 3fff::/20 (documentation)
             [0x3FFF, second, ..] if second & 0xF000 == 0 => return true,
             // 5f00::/16 (SRv6 segment identifiers)

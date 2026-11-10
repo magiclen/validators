@@ -872,12 +872,40 @@ impl ValidatorHandler for EmailHandler {
                 quote! {}
             };
 
-            // A comment must end at `)`, so stopping at any other byte here makes the email invalid.
-            // Nested comments are not supported, and TAB is the only allowed control character.
-            let comment_boundary = if type_attribute.non_ascii.disallow() {
-                quote! { |e| matches!(e, b'(' | b')' | b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F'..=b'\xFF') }
+            let parse_comment = if type_attribute.comment.disallow() {
+                quote! {}
             } else {
-                quote! { |e| matches!(e, b'(' | b')' | b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F') }
+                let invalid_byte = if type_attribute.non_ascii.disallow() {
+                    quote! { b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F'..=b'\xFF' }
+                } else {
+                    quote! { b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F' }
+                };
+
+                quote! {
+                    fn parse_comment(s: &str, max_len: usize) -> ::core::result::Result<(&str, usize), #error_path> {
+                        let mut escaped = false;
+
+                        // The limit includes the opening and closing parentheses.
+                        for (index, byte) in s.bytes().take(max_len).enumerate().skip(1) {
+                            if matches!(byte, #invalid_byte) {
+                                return Err(#error_path::Invalid);
+                            }
+
+                            if escaped {
+                                escaped = false;
+                            } else {
+                                match byte {
+                                    b'\\' => escaped = true,
+                                    b'(' => return Err(#error_path::Invalid),
+                                    b')' => return Ok((&s[1..index], index + 1)),
+                                    _ => (),
+                                }
+                            }
+                        }
+
+                        Err(#error_path::Invalid)
+                    }
+                }
             };
 
             let handle_comment_1 = if type_attribute.comment.disallow() {
@@ -886,27 +914,14 @@ impl ValidatorHandler for EmailHandler {
                 }
             } else {
                 quote! {
-                    if length > 1 {
-                        // only take 63 - 1, 1 is reserved for the meaningful local part.
-                        match bytes[1..].iter().take(62).copied().position(#comment_boundary) {
-                            Some(mut index) if bytes[index + 1] == b')' => {
-                                index += 1;
-                                let comment = &s[1..index];
+                    // Leave one byte for the local part.
+                    let (comment, local_part_length) = parse_comment(s, 63)?;
 
-                                let local_part_length = index + 1;
-
-                                if local_part_length == length {
-                                    // end
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                (local_part_length, Some(comment))
-                            }
-                            _ => return Err(#error_path::Invalid),
-                        }
-                    } else {
+                    if local_part_length == length {
                         return Err(#error_path::Invalid);
                     }
+
+                    (local_part_length, Some(comment))
                 }
             };
 
@@ -916,34 +931,15 @@ impl ValidatorHandler for EmailHandler {
                 }
             } else {
                 quote! {
-                    local_part_length += 1;
+                    let (comment, comment_len) = parse_comment(&s[local_part_length..], 64 - local_part_length)?;
 
-                    if local_part_length < 64 && length > local_part_length {
-                        match bytes[local_part_length..]
-                            .iter()
-                            .take(64 - local_part_length)
-                            .copied()
-                            .position(#comment_boundary)
-                        {
-                            Some(mut index) if bytes[local_part_length + index] == b')' => {
-                                index += local_part_length;
-                                let comment =
-                                    &s[local_part_length..index];
+                    local_part_length += comment_len;
 
-                                local_part_length = index + 1;
-
-                                if local_part_length == length {
-                                    // end
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                Some(comment)
-                            }
-                            _ => return Err(#error_path::Invalid),
-                        }
-                    } else {
+                    if local_part_length == length {
                         return Err(#error_path::Invalid);
                     }
+
+                    Some(comment)
                 }
             };
 
@@ -953,52 +949,40 @@ impl ValidatorHandler for EmailHandler {
                 }
             } else {
                 quote! {
-                    if length > 1 {
-                        // only take 254 - 1, 1 is reserved for the meaningful domain part.
-                        match bytes[1..].iter().take(253).copied().position(#comment_boundary) {
-                            Some(mut index) if bytes[index + 1] == b')' => {
-                                index += 1;
-                                let comment = &s[1..index];
+                    // Leave one byte for the domain.
+                    let (comment, domain_part_length) = parse_comment(s, 254)?;
 
-                                let domain_part_length = index + 1;
-
-                                if domain_part_length == length {
-                                    // end
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                (domain_part_length, Some(comment))
-                            }
-                            _ => return Err(#error_path::Invalid),
-                        }
-                    } else {
+                    if domain_part_length == length {
                         return Err(#error_path::Invalid);
                     }
+
+                    (domain_part_length, Some(comment))
                 }
             };
 
             let handle_comment_4 = if type_attribute.comment.disallow() {
                 quote! {
+                    // Other bytes after an IP literal are not a comment.
+                    if bytes[domain_part_length] != b'(' {
+                        return Err(#error_path::Invalid);
+                    }
+
                     return Err(#error_path::CommentDisallow);
                 }
             } else {
                 quote! {
-                    if bytes[domain_part_length] == b'(' {
-                        domain_part_length += 1;
-
-                        if length > domain_part_length {
-                            match bytes[domain_part_length..].iter().copied().position(#comment_boundary) {
-                                Some(index) if domain_part_length + index + 1 == length && bytes[length - 1] == b')' => {
-                                    Some(&s[domain_part_length..(length - 1)])
-                                }
-                                _ => return Err(#error_path::Invalid),
-                            }
-                        } else {
-                            return Err(#error_path::Invalid);
-                        }
-                    } else {
+                    if bytes[domain_part_length] != b'(' {
                         return Err(#error_path::Invalid);
                     }
+
+                    let tail = &s[domain_part_length..];
+                    let (comment, comment_len) = parse_comment(tail, tail.len())?;
+
+                    if comment_len != tail.len() {
+                        return Err(#error_path::Invalid);
+                    }
+
+                    Some(comment)
                 }
             };
 
@@ -1006,6 +990,8 @@ impl ValidatorHandler for EmailHandler {
                 impl #name {
                     #conflict_meta
                     fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, validators_prelude::Host, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
+                        #parse_comment
+
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
@@ -1744,9 +1730,9 @@ impl ValidatorHandler for EmailHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
                             where
-                                D: validators_prelude::serde::Deserializer<'de>, {
+                                __D: validators_prelude::serde::Deserializer<'de>, {
                                 struct MyVisitor;
 
                                 impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
@@ -1761,7 +1747,7 @@ impl ValidatorHandler for EmailHandler {
                                     fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
-                                        <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
+                                        <Self::Value as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                     }
                                 }
 

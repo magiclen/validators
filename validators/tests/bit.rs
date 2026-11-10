@@ -5,6 +5,29 @@ use validators::{
     prelude::{validators_prelude::RangeOption, *},
 };
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_u64() {
+    use validators::{
+        Result as ValidationResult,
+        serde::{
+            Deserialize,
+            de::{IntoDeserializer, value::Error},
+        },
+    };
+
+    #[derive(Validator)]
+    #[validator(bit)]
+    struct BitSize(byte_unit::Bit);
+
+    let size = BitSize::deserialize(IntoDeserializer::<Error>::into_deserializer(1000u64)).unwrap();
+    let result: ValidationResult<BitSize, validators_prelude::BitError> =
+        Deserialize::deserialize(IntoDeserializer::<Error>::into_deserializer(1000u64)).unwrap();
+
+    assert_eq!(1000u64, size.0);
+    assert_eq!(1000u64, result.into_std_result().unwrap().0);
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     if let RangeOption::Inside {
         max,

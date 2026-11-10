@@ -1,8 +1,10 @@
+#[allow(unused_imports)]
 use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
 
+#[allow(unused_imports)]
 use super::*;
 
 /// Implement `IntoResponse` for every validator error type so that handlers can return these errors directly with the `?` operator.

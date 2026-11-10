@@ -117,6 +117,8 @@ fn local_ranges() {
         (false, Ipv4Addr::new(100, 128, 0, 0)),
         (true, Ipv4Addr::new(192, 0, 0, 8)),
         (false, Ipv4Addr::new(192, 0, 0, 9)),
+        (false, Ipv4Addr::new(192, 88, 99, 1)),
+        (true, Ipv4Addr::new(192, 88, 99, 2)),
         (true, Ipv4Addr::new(198, 19, 255, 255)),
         (false, Ipv4Addr::new(198, 20, 0, 0)),
         (true, Ipv4Addr::new(240, 0, 0, 1)),

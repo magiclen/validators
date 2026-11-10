@@ -302,7 +302,7 @@ impl ValidatorHandler for HostHandler {
 
                             #check_local
 
-                            (validators_prelude::Host::IPv6(ip), None, is_local)
+                            (Ok(::std::net::IpAddr::V6(ip)), None, is_local)
                         }
                         Err(_) => return Err(#error_path::Invalid),
                     }
@@ -325,7 +325,7 @@ impl ValidatorHandler for HostHandler {
                                         let port_str = &s[(colon_index + 1)..];
 
                                         // A port has only digits, but `parse` also accepts a leading `+`.
-                                        if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                        if port_str.starts_with('+') {
                                             return Err(#error_path::Invalid);
                                         }
 
@@ -335,7 +335,7 @@ impl ValidatorHandler for HostHandler {
 
                                                 #check_local
 
-                                                (validators_prelude::Host::IPv6(ip), Some(port), is_local)
+                                                (Ok(::std::net::IpAddr::V6(ip)), Some(port), is_local)
                                             }
                                             Err(_) => return Err(#error_path::Invalid),
                                         }
@@ -386,7 +386,7 @@ impl ValidatorHandler for HostHandler {
 
                         #check_local
 
-                        (validators_prelude::Host::IPv6(ip), None, is_local)
+                        (Ok(::std::net::IpAddr::V6(ip)), None, is_local)
                     }
                 }
             };
@@ -427,7 +427,7 @@ impl ValidatorHandler for HostHandler {
                     match port_str {
                         Some(port_str) => {
                             // A port has only digits, but `parse` also accepts a leading `+`.
-                            if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                            if port_str.starts_with('+') {
                                 return Err(#error_path::Invalid);
                             }
 
@@ -468,7 +468,7 @@ impl ValidatorHandler for HostHandler {
 
                         #check_local
 
-                        (validators_prelude::Host::IPv4(ip), port, is_local)
+                        (Ok(::std::net::IpAddr::V4(ip)), port, is_local)
                     }
                 }
             };
@@ -517,14 +517,17 @@ impl ValidatorHandler for HostHandler {
 
                         #check_local
 
-                        (validators_prelude::Host::Domain(ascii_domain), port, is_local)
+                        (Err(ascii_domain), port, is_local)
                     }
                 }
             };
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::Host, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<
+                        (::core::result::Result<::std::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<u16>, bool),
+                        #error_path,
+                    > {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();
@@ -556,8 +559,7 @@ impl ValidatorHandler for HostHandler {
                                                     validators_prelude::idna::uts46::Hyphens::CheckFirstLast,
                                                     validators_prelude::idna::uts46::DnsLength::VerifyAllowRootDot,
                                                 )
-                                                .map_err(|_| #error_path::Invalid)?
-                                                .into_owned();
+                                                .map_err(|_| #error_path::Invalid)?;
 
                                             if ascii_domain.ends_with('.') {
                                                 return Err(#error_path::Invalid);
@@ -643,7 +645,18 @@ impl ValidatorHandler for HostHandler {
 
                     #[inline]
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                        let (host, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
+                        let mut s = s.into();
+                        let (host, _port, _is_local) = Self::v_parse_str(s.as_str())?;
+                        let host = match host {
+                            Ok(::std::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
+                            Ok(::std::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
+                            Err(validators_prelude::Cow::Borrowed(domain)) => {
+                                // The borrowed domain is always a prefix of the input.
+                                s.truncate(domain.len());
+                                validators_prelude::Host::Domain(s)
+                            }
+                            Err(validators_prelude::Cow::Owned(domain)) => validators_prelude::Host::Domain(domain),
+                        };
 
                         Ok(#create_instance)
                     }
@@ -651,15 +664,18 @@ impl ValidatorHandler for HostHandler {
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (host, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
+                        let host = match host {
+                            Ok(::std::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
+                            Ok(::std::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
+                            Err(domain) => validators_prelude::Host::Domain(domain.into_owned()),
+                        };
 
                         Ok(#create_instance)
                     }
 
                     #[inline]
                     fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
-                        Self::v_parse_str(s.as_ref())?;
-
-                        Ok(())
+                        Self::v_parse_str(s.as_ref()).map(|_| ())
                     }
                 }
             });
@@ -828,9 +844,9 @@ impl ValidatorHandler for HostHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
                             where
-                                D: validators_prelude::serde::Deserializer<'de>, {
+                                __D: validators_prelude::serde::Deserializer<'de>, {
                                 struct MyVisitor;
 
                                 impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
@@ -845,7 +861,7 @@ impl ValidatorHandler for HostHandler {
                                     fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                     where
                                         E: validators_prelude::serde::de::Error, {
-                                        <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
+                                        <Self::Value as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                     }
                                 }
 

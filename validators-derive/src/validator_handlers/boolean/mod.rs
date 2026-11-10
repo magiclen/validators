@@ -322,9 +322,9 @@ impl ValidatorHandler for BooleanHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
                                     where
-                                        D: validators_prelude::serde::Deserializer<'de>, {
+                                        __D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
 
                                         impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
@@ -339,14 +339,14 @@ impl ValidatorHandler for BooleanHandler {
                                             fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
                                             fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             fn visit_bool<E>(self, v: bool) -> ::core::result::Result<Self::Value, E>
@@ -359,21 +359,21 @@ impl ValidatorHandler for BooleanHandler {
                                             fn visit_char<E>(self, v: char) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateChar>::parse_char(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateChar>::parse_char(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
                                             fn visit_i64<E>(self, v: i64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                 <#name as ValidateSignedInteger>::parse_i64(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                 <Self::Value as ValidateSignedInteger>::parse_i64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
                                             fn visit_u64<E>(self, v: u64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateUnsignedInteger>::parse_u64(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateUnsignedInteger>::parse_u64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
@@ -381,7 +381,7 @@ impl ValidatorHandler for BooleanHandler {
                                             where
                                                 E: validators_prelude::serde::de::Error,
                                             {
-                                                <#name as ValidateSignedInteger>::parse_i128(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateSignedInteger>::parse_i128(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
@@ -389,7 +389,7 @@ impl ValidatorHandler for BooleanHandler {
                                             where
                                                 E: validators_prelude::serde::de::Error,
                                             {
-                                                <#name as ValidateUnsignedInteger>::parse_u128(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateUnsignedInteger>::parse_u128(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
                                         }
 

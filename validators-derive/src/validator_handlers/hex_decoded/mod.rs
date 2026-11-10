@@ -204,9 +204,9 @@ impl ValidatorHandler for HexDecodedHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
                             where
-                                D: validators_prelude::serde::Deserializer<'de>,
+                                __D: validators_prelude::serde::Deserializer<'de>,
                             {
                                 validators_prelude::deserialize_decoded_bytes(deserializer, #expected)?
                                     .map_err(validators_prelude::serde::de::Error::custom)

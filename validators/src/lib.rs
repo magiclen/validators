@@ -483,6 +483,10 @@ assert!(Ipv6AllowPort::parse_string("[::ffff:c000:0280]").is_ok());
 
 Serde serialization writes the inner value directly.
 
+`validators::Result<T, JsonError>` reads a `serde_json::Value` first, so it keeps the last value of a repeated object key even if `T` would reject the duplicate.
+With the default `serde_json` settings, `Value` stores a large integer such as `18446744073709551617` as a float, so the wrapper cannot read it as `u128`.
+Use `T::parse_str` on the original JSON text to run the validator directly.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "json"))]
 # {
@@ -576,6 +580,9 @@ assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 #### number
 
 With Serde, human-readable formats (such as JSON) write NaN and infinity as the strings `"NaN"`, `"inf"`, and `"-inf"`, so they can be read back.
+
+When `serde_json/arbitrary_precision` is enabled, a JSON number with a fraction, such as `0.5`, fails to deserialize into a `number` validator or `validators::Result<T, NumberError>`.
+Use a JSON string such as `"0.5"` for these values in that configuration.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "number"))]
@@ -1079,6 +1086,7 @@ pub mod prelude {
         pub use crate::encoded_bytes::base64;
         #[cfg(any(feature = "base64_url", feature = "base64_url_decoded"))]
         pub use crate::encoded_bytes::base64_url;
+        #[allow(unused_imports)]
         pub use crate::errors::*;
         #[cfg(feature = "idna")]
         pub use crate::idna;
@@ -1088,6 +1096,8 @@ pub mod prelude {
         pub use crate::regex;
         #[cfg(all(feature = "serde", feature = "phone"))]
         pub use crate::result::serde_traits::SerdePhoneNumber;
+        #[cfg(all(feature = "serde", any(feature = "bit", feature = "byte")))]
+        pub use crate::result::serde_traits::deserialize_byte_unit;
         #[cfg(all(
             feature = "serde",
             any(

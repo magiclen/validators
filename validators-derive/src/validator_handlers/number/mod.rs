@@ -403,9 +403,9 @@ impl ValidatorHandler for NumberHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
+                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
                                     where
-                                        D: validators_prelude::serde::Deserializer<'de>, {
+                                        __D: validators_prelude::serde::Deserializer<'de>, {
                                         struct MyVisitor;
 
                                         impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
@@ -420,28 +420,28 @@ impl ValidatorHandler for NumberHandler {
                                             fn visit_str<E>(self, v: &str) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
                                             fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
                                             fn visit_f64<E>(self, v: f64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateNumber>::parse_f64(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateNumber>::parse_f64(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
                                             fn visit_f32<E>(self, v: f32) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                <#name as ValidateNumber>::parse_f32(v).map_err(validators_prelude::serde::de::Error::custom)
+                                                <Self::Value as ValidateNumber>::parse_f32(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]

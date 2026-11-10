@@ -18,6 +18,8 @@ pub const fn is_local_ipv4(addr: Ipv4Addr) -> bool {
         || (a == 100 && b & 0b1100_0000 == 0b0100_0000)
         // 192.0.0.0/24 (IETF protocol assignments), except 192.0.0.9 and 192.0.0.10 which are globally reachable
         || (a == 192 && b == 0 && c == 0 && d != 9 && d != 10)
+        // 192.88.99.2/32 (6a44 relay anycast)
+        || matches!([a, b, c, d], [192, 88, 99, 2])
         // 198.18.0.0/15 (benchmarking)
         || (a == 198 && b & 0b1111_1110 == 18)
         // 240.0.0.0/4 (reserved), including the broadcast address

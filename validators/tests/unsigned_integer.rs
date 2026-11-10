@@ -26,6 +26,30 @@ fn deserialize_i64() {
     assert_eq!(42, result.into_std_result().unwrap().0);
 }
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_single_letter_names() {
+    use validators::serde::{
+        Deserialize,
+        de::{IntoDeserializer, value::Error},
+    };
+
+    // The generated code also has generic parameters, so these names must still work.
+    #[derive(Validator)]
+    #[validator(unsigned_integer)]
+    struct D(u8);
+
+    #[derive(Validator)]
+    #[validator(unsigned_integer)]
+    struct E(u8);
+
+    let d = D::deserialize(IntoDeserializer::<Error>::into_deserializer(1u8)).unwrap();
+    let e = E::deserialize(IntoDeserializer::<Error>::into_deserializer(2u8)).unwrap();
+
+    assert_eq!(1, d.0);
+    assert_eq!(2, e.0);
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
         RangeOption::Inside {
