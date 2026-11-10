@@ -21,6 +21,30 @@ fn deserialize_integers() {
     }
 }
 
+#[cfg(feature = "serde_json")]
+#[test]
+fn serde_roundtrip_non_finite() {
+    use validators::serde_json;
+
+    #[derive(Validator)]
+    #[validator(number)]
+    struct Number(f64);
+
+    let json = serde_json::to_string(&Number::parse_f64(f64::NAN).unwrap()).unwrap();
+    let number: Number = serde_json::from_str(&json).unwrap();
+
+    assert_eq!(r#""NaN""#, json);
+    assert!(number.0.is_nan());
+
+    for (expected_json, value) in [(r#""inf""#, f64::INFINITY), (r#""-inf""#, f64::NEG_INFINITY)] {
+        let json = serde_json::to_string(&Number::parse_f64(value).unwrap()).unwrap();
+        let number: Number = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(expected_json, json);
+        assert_eq!(value, number.0);
+    }
+}
+
 #[cfg(feature = "serde")]
 #[test]
 fn deserialize_binary_f32() {

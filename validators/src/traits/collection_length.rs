@@ -1,7 +1,7 @@
 #[cfg(feature = "serde_json")]
 use alloc::string::String;
 use alloc::{
-    collections::{BTreeMap, BTreeSet, BinaryHeap},
+    collections::{BTreeMap, BTreeSet, BinaryHeap, LinkedList, VecDeque},
     vec::Vec,
 };
 #[cfg(feature = "std")]
@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 #[cfg(feature = "serde_json")]
 use serde_json::{Map, Value};
 
-/// For types which should have the a `len` method.
+/// For types which should have a `len` method.
 pub trait CollectionLength {
     fn len(&self) -> usize;
 
@@ -21,6 +21,20 @@ pub trait CollectionLength {
 }
 
 impl<T> CollectionLength for Vec<T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T> CollectionLength for VecDeque<T> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.len()
+    }
+}
+
+impl<T> CollectionLength for LinkedList<T> {
     #[inline]
     fn len(&self) -> usize {
         self.len()
@@ -48,8 +62,9 @@ impl<K, T> CollectionLength for BTreeMap<K, T> {
     }
 }
 
+// Any hasher is allowed, so types such as `FxHashSet` also work.
 #[cfg(feature = "std")]
-impl<T> CollectionLength for HashSet<T> {
+impl<T, S> CollectionLength for HashSet<T, S> {
     #[inline]
     fn len(&self) -> usize {
         self.len()
@@ -57,7 +72,7 @@ impl<T> CollectionLength for HashSet<T> {
 }
 
 #[cfg(feature = "std")]
-impl<K, T> CollectionLength for HashMap<K, T> {
+impl<K, T, S> CollectionLength for HashMap<K, T, S> {
     #[inline]
     fn len(&self) -> usize {
         self.len()

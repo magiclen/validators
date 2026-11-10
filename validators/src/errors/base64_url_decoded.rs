@@ -9,7 +9,8 @@ pub enum Base64UrlDecodedError {
     PaddingMust,
     /// May not be valid, but it appears that the padding part exists.
     PaddingDisallow,
-    /// The input cannot be decoded as a single value.
+    /// The input cannot be decoded.
+    /// This is only a fallback, and the other variants are returned in normal cases.
     Decode,
 }
 

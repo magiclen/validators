@@ -55,6 +55,28 @@ fn normalized_domain_length() {
 }
 
 #[test]
+fn address_length() {
+    #[derive(Validator)]
+    #[validator(email(comment(Disallow)))]
+    struct Address {
+        local_part:  String,
+        need_quoted: bool,
+        domain_part: validators::models::Host,
+    }
+
+    let local_part = "a".repeat(64);
+    let label = "b".repeat(63);
+    let address = format!("{local_part}@{label}.{label}.{}.com", "c".repeat(57));
+
+    assert_eq!(254, address.len());
+    assert!(Address::validate_str(&address).is_ok());
+
+    let address = format!("{local_part}@{label}.{label}.{}.com", "c".repeat(58));
+
+    assert!(Address::validate_str(address).is_err());
+}
+
+#[test]
 fn basic() {
     macro_rules! test_case {
         ($test:ident, $validator:ident) => {
@@ -68,12 +90,16 @@ fn basic() {
             test("just\"not\"right@example.com", false);
             test("a@example.com(note)extra", false);
             test("a@example.com。", false);
+            test("simple@127.0.0.1", false);
             test("alice.@example.com", false);
             test("alice.(note)@example.com", false);
             test("(note\r\n)alice@example.com", false);
             test("alice(note\n)@example.com", false);
             test("alice@(note\0)example.com", false);
             test("alice@example.com(note\r)", false);
+            test("(note\x1b)alice@example.com", false);
+            test("alice(note\x7f)@example.com", false);
+            test("(no(te)alice@example.com", false);
             test(&format!("{}(x)@example.com", "a".repeat(64)), false);
             test(&format!("{}@example.com", "中".repeat(22)), false);
             test("this is\"not\\allowed@example.com", false);
@@ -176,6 +202,12 @@ fn basic() {
             );
             test("simple@localhost", !Validator::V_IP.must() && Validator::V_LOCAL.allow());
             test(
+                "simple@foo.localhost",
+                !Validator::V_IP.must()
+                    && Validator::V_LOCAL.allow()
+                    && !Validator::V_AT_LEAST_TWO_LABELS.disallow(),
+            );
+            test(
                 "simple@[168.17.212.1]",
                 Validator::V_IP.allow()
                     && !Validator::V_LOCAL.must()
@@ -209,6 +241,21 @@ fn basic() {
             test(
                 "(a)simple(b)@(c)example.com(d)",
                 Validator::V_COMMENT.allow()
+                    && !Validator::V_IP.must()
+                    && !Validator::V_LOCAL.must()
+                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+            );
+            test(
+                "(a\tb)simple@example.com",
+                Validator::V_COMMENT.allow()
+                    && !Validator::V_IP.must()
+                    && !Validator::V_LOCAL.must()
+                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+            );
+            test(
+                "(中文)simple@example.com",
+                Validator::V_COMMENT.allow()
+                    && Validator::V_NON_ASCII.allow()
                     && !Validator::V_IP.must()
                     && !Validator::V_LOCAL.must()
                     && Validator::V_AT_LEAST_TWO_LABELS.allow(),

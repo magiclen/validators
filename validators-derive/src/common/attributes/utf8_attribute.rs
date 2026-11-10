@@ -30,36 +30,29 @@ impl Utf8Attribute {
                 let result =
                     list.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated)?;
 
-                let mut length_is_set = false;
                 let mut serde_options_is_set = false;
                 let mut rocket_options_is_set = false;
 
                 let mut handler = |meta: &Meta| -> syn::Result<bool> {
                     if let Some(ident) = meta.path().get_ident() {
                         match ident.to_string().as_str() {
-                            "char_length" => {
+                            name @ ("char_length" | "byte_length") => {
                                 let v = Length::from_meta(meta)?;
+                                let is_byte_length = name == "byte_length";
 
-                                if length_is_set {
-                                    return Err(panic::parameter_reset(ident));
+                                if let Some((was_byte_length, _)) = &length {
+                                    return Err(if *was_byte_length == is_byte_length {
+                                        panic::parameter_reset(ident)
+                                    } else {
+                                        syn::Error::new_spanned(
+                                            ident,
+                                            "`char_length` and `byte_length` cannot be used \
+                                             together",
+                                        )
+                                    });
                                 }
 
-                                length_is_set = true;
-
-                                length = Some((false, v));
-
-                                return Ok(true);
-                            },
-                            "byte_length" => {
-                                let v = Length::from_meta(meta)?;
-
-                                if length_is_set {
-                                    return Err(panic::parameter_reset(ident));
-                                }
-
-                                length_is_set = true;
-
-                                length = Some((true, v));
+                                length = Some((is_byte_length, v));
 
                                 return Ok(true);
                             },

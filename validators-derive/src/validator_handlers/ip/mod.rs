@@ -196,6 +196,11 @@ impl ValidatorHandler for IpHandler {
                                     Ok(ip) => {
                                         let port_str = &s[(colon_index + 1)..];
 
+                                        // A port has only digits, but `parse` also accepts a leading `+`.
+                                        if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                            return Err(#error_path::Invalid);
+                                        }
+
                                         match port_str.parse::<u16>() {
                                             Ok(port) => {
                                                 let is_local = #handle_local_ipv6;
@@ -261,6 +266,11 @@ impl ValidatorHandler for IpHandler {
                             Ok(ip) => {
                                 let port_str =
                                     &s[(colon_index + 1)..];
+
+                                // A port has only digits, but `parse` also accepts a leading `+`.
+                                if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                    return Err(#error_path::Invalid);
+                                }
 
                                 match port_str.parse::<u16>() {
                                     Ok(port) => {
@@ -392,7 +402,7 @@ impl ValidatorHandler for IpHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 match &self.ip {
                                     ::std::net::IpAddr::V4(ip) => {
                                         match self.port {
@@ -415,7 +425,7 @@ impl ValidatorHandler for IpHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 let port = self.port;
 
                                 match &self.ip {
@@ -430,7 +440,7 @@ impl ValidatorHandler for IpHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 match &self.0 {
                                     ::std::net::IpAddr::V4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                     ::std::net::IpAddr::V6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),

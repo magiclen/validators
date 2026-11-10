@@ -317,7 +317,12 @@ impl ValidatorHandler for NumberHandler {
                             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
-                                validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                                // JSON cannot store NaN or infinity, so write them as strings that can be read back.
+                                if serializer.is_human_readable() && !self.0.is_finite() {
+                                    serializer.collect_str(&self.0)
+                                } else {
+                                    validators_prelude::serde::Serialize::serialize(&self.0, serializer)
+                                }
                             }
                         }
                     });

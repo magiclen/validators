@@ -7,7 +7,7 @@ This library is designed for validating and modeling user input. The crate inclu
 
 ## Features
 
-By default, every validators this crate supports will be enabled. You can disable all of them by turning off the default features and enable only the validators that you want to use by adding them to the `features` explicitly.
+By default, every validator this crate supports will be enabled. You can disable all of them by turning off the default features and enable only the validators that you want to use by adding them to the `features` explicitly.
 
 For example,
 
@@ -21,6 +21,9 @@ default-features = false
 Certain validators do not require the use of the `std` library. However, if needed, you can explicitly enable the `std` feature.
 
 This library can support the Serde framework, the Rocket framework and the Axum framework by enabling the `serde`, `rocket` and `axum` features, respectively.
+
+The `full` feature lets range parameters use the Rust range syntax, such as `range(Inside(-5..=5))`.
+The `byte-unit-u128` feature lets the `bit` and `byte` validators handle values larger than `u64::MAX`.
 
 ## Validators
 
@@ -60,8 +63,9 @@ assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=
 #### base32_decoded
 
 The decoded Base32, Base64, and Base64url validators accept one encoded value at a time.
-With Serde, they can also read non-empty byte arrays (such as JSON arrays) as already decoded data.
-In non-human-readable formats (such as bincode or CBOR), they ask for bytes and read them as decoded data.
+With Serde, human-readable formats (such as JSON) write the encoded string, with padding unless `padding = Disallow`.
+When reading, they also accept non-empty byte arrays (such as JSON arrays) as already decoded data.
+In non-human-readable formats (such as bincode or CBOR), they write the decoded bytes and ask for bytes when reading.
 
 ```rust
 use validators::prelude::*;
@@ -237,6 +241,8 @@ assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap(
 
 #### email
 
+See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
+
 ```rust
 use validators::prelude::*;
 use validators::models::Host;
@@ -294,7 +300,7 @@ assert_eq!(&[0, 171, 255], HexDecoded::parse_str("00ABFF").unwrap().0.as_slice()
 #### host
 
 The `local` option checks the parsed name or IP address.
-For example, `host` and `domain` can accept `127.1` as a domain with `local(Disallow)`, while a WHATWG URL parser reads it as the loopback address `127.0.0.1`.
+For example, `host`, `domain`, and `email` (such as `a@127.1`) can accept `127.1` as a domain with `local(Disallow)`, while a WHATWG URL parser reads it as the loopback address `127.0.0.1`.
 
 ```rust
 use validators::prelude::*;
@@ -462,7 +468,7 @@ assert!(NonEmptyNotTooLongVec::parse_collection(vec![0]).is_ok());
 assert!(NonEmptyNotTooLongVec::parse_collection(vec![0, 1, 2, 3]).is_err());
 ```
 
-* Traits: `ValidateLength`, `CollectionLength`
+* Traits: `ValidateLength`
 * By default, the length is unlimited
 
 #### line
@@ -500,9 +506,12 @@ assert!(MacAddress::parse_string("08:00:27:B2:46:C3").is_ok());
 ```
 
 * Traits: `ValidateString`, `ToMacAddressString`
-* By default, `case = Any, separator(Allow(b':')`
+* By default, `case = Any, separator(Allow(b':'))`
+* With `case = Any`, `to_mac_address_string` and Serde write uppercase letters
 
 #### number
+
+With Serde, human-readable formats (such as JSON) write NaN and infinity as the strings `"NaN"`, `"inf"`, and `"-inf"`, so they can be read back.
 
 ```rust
 use validators::prelude::*;
@@ -575,6 +584,7 @@ assert!(TWorUSPhone::parse_string("+14155552671").is_ok());
 #### regex
 
 A regex supplied as a string literal is compiled on first use and then cached.
+The pattern is not anchored automatically, so use `^` and `$` to match the whole string.
 
 ```rust
 use std::sync::LazyLock;
@@ -615,7 +625,7 @@ assert!(Poker::parse_string("0").is_err());
 ```
 
 * Traits: `ValidateString`
-* The `regex` parameter must be set to a string literal or an expression
+* The `regex` parameter must be set to a string literal or an expression that dereferences to `Regex`, such as a `LazyLock<Regex>` static
 
 #### semver
 
@@ -749,7 +759,8 @@ assert!(UUID::parse_string("A866664A-F9D3-4DDE-89CB-182015FA4F41").is_ok());
 ```
 
 * Traits: `ValidateString`, `ToUuidString`
-* By default, `case = Any, separator(Allow(b'-')`
+* By default, `case = Any, separator(Allow(b'-'))`
+* With `case = Any`, `to_uuid_string` and Serde write uppercase letters
 
 ## `validators::Result`
 
@@ -762,7 +773,7 @@ use rocket::{FromForm, get};
 use validators::prelude::*;
 
 #[derive(Debug, Validator)]
-#[validator(number(range(Outside(max = 0))))]
+#[validator(number(range(Outside(min = 0, max = 0))))]
 pub struct NonZeroNumber(f64);
 
 #[derive(Debug, FromForm)]
@@ -785,7 +796,7 @@ use rocket::{FromForm, get};
 use validators::prelude::*;
 
 #[derive(Debug, Validator)]
-#[validator(number(range(Outside(max = 0))))]
+#[validator(number(range(Outside(min = 0, max = 0))))]
 pub struct NonZeroNumber(f64);
 
 #[derive(Debug, FromForm)]

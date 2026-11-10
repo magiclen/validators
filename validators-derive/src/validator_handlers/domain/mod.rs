@@ -552,6 +552,11 @@ impl ValidatorHandler for DomainHandler {
                 quote! {
                     match port_str {
                         Some(port_str) => {
+                            // A port has only digits, but `parse` also accepts a leading `+`.
+                            if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                return Err(#error_path::Invalid);
+                            }
+
                             match port_str.parse::<u16>() {
                                 Ok(port) => Some(port),
                                 Err(_) => return Err(#error_path::Invalid),
@@ -676,8 +681,9 @@ impl ValidatorHandler for DomainHandler {
                                     }
                                 },
                                 TriAllow::Disallow => {
+                                    // Local names are not exempt here, because subdomains such as `foo.localhost` have two labels.
                                     quote! {
-                                        if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                        if validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
                                             return Err(#error_path::AtLeastTwoLabelsDisallow);
                                         }
                                     }
@@ -959,7 +965,7 @@ impl ValidatorHandler for DomainHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 match self.port {
                                     Some(port) => {
                                         let non_fully_qualified_domain = QualifyDomain::get_domain_non_fully_qualified(self);
@@ -976,7 +982,7 @@ impl ValidatorHandler for DomainHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 let non_fully_qualified_domain = QualifyDomain::get_domain_non_fully_qualified(self);
                                 let port = self.port;
 
@@ -989,7 +995,7 @@ impl ValidatorHandler for DomainHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 validators_prelude::Cow::Borrowed(self.get_domain_non_fully_qualified())
                             }
                         }
@@ -1053,8 +1059,14 @@ impl ValidatorHandler for DomainHandler {
                                 s.push_str("IPv4 string");
                             },
                             TriAllow::Disallow => {
-                                if type_attribute.at_least_two_labels.must() {
-                                    s.push_str("at-least-two-labels and ");
+                                match type_attribute.at_least_two_labels {
+                                    TriAllow::Allow => (),
+                                    TriAllow::Must => {
+                                        s.push_str("at-least-two-labels and ");
+                                    },
+                                    TriAllow::Disallow => {
+                                        s.push_str("one-label and ");
+                                    },
                                 }
 
                                 s.push_str("non-IPv4 domain name");

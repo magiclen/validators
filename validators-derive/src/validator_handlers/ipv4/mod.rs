@@ -176,6 +176,11 @@ impl ValidatorHandler for Ipv4Handler {
                                 let port_str =
                                     &s[(colon_index + 1)..];
 
+                                // A port has only digits, but `parse` also accepts a leading `+`.
+                                if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                    return Err(#error_path::Invalid);
+                                }
+
                                 match port_str.parse::<u16>() {
                                     Ok(port) => {
                                         let is_local = #handle_local_ipv4;
@@ -291,7 +296,7 @@ impl ValidatorHandler for Ipv4Handler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 let ip = self.ipv4;
 
                                 match self.port {
@@ -306,7 +311,7 @@ impl ValidatorHandler for Ipv4Handler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 let ip = self.ipv4;
                                 let port = self.port;
 
@@ -319,7 +324,7 @@ impl ValidatorHandler for Ipv4Handler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 let ip = self.0;
 
                                 validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip))

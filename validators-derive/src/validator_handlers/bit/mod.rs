@@ -49,15 +49,15 @@ impl ValidatorHandler for BitHandler {
                 type_attribute.range.inclusive,
             );
 
+            // Compare `u128` values, so older `byte-unit` versions without `PartialOrd<u128>` also work.
             let handle_range = if equal {
                 let min = type_attribute.range.min.unwrap();
 
                 quote! {
-                    match ::core::cmp::PartialOrd::partial_cmp(&v, &#min) {
-                        Some(::core::cmp::Ordering::Equal) => (),
-                        Some(::core::cmp::Ordering::Less) => return Err(#error_path::TooSmall),
-                        Some(::core::cmp::Ordering::Greater) => return Err(#error_path::TooLarge),
-                        None => unreachable!(),
+                    match ::core::cmp::Ord::cmp(&v.as_u128(), &#min) {
+                        ::core::cmp::Ordering::Equal => (),
+                        ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
+                        ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
                     }
                 }
             } else {
@@ -65,7 +65,7 @@ impl ValidatorHandler for BitHandler {
 
                 if let Some(min) = type_attribute.range.min {
                     token_stream.extend(quote! {
-                        if v < #min {
+                        if v.as_u128() < #min {
                             return Err(#error_path::TooSmall);
                         }
                     });
@@ -74,13 +74,13 @@ impl ValidatorHandler for BitHandler {
                 if let Some(max) = type_attribute.range.max {
                     token_stream.extend(if type_attribute.range.inclusive {
                         quote! {
-                            if v > #max {
+                            if v.as_u128() > #max {
                                 return Err(#error_path::TooLarge);
                             }
                         }
                     } else {
                         quote! {
-                            if v >= #max {
+                            if v.as_u128() >= #max {
                                 return Err(#error_path::TooLarge);
                             }
                         }

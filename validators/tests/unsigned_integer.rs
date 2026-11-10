@@ -9,7 +9,7 @@ fn deserialize_i64() {
         Result as ValidationResult,
         serde::{
             Deserialize,
-            de::value::{Error, I64Deserializer},
+            de::{IntoDeserializer, value::Error},
         },
     };
 
@@ -17,9 +17,10 @@ fn deserialize_i64() {
     #[validator(unsigned_integer)]
     struct Integer(u8);
 
-    let integer = Integer::deserialize(I64Deserializer::<Error>::new(42)).unwrap();
+    let integer =
+        Integer::deserialize(IntoDeserializer::<Error>::into_deserializer(42i64)).unwrap();
     let result: ValidationResult<Integer, validators_prelude::UnsignedIntegerError> =
-        Deserialize::deserialize(I64Deserializer::<Error>::new(42)).unwrap();
+        Deserialize::deserialize(IntoDeserializer::<Error>::into_deserializer(42i64)).unwrap();
 
     assert_eq!(42, integer.0);
     assert_eq!(42, result.into_std_result().unwrap().0);

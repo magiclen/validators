@@ -50,52 +50,22 @@ impl ValidatorHandler for MacAddressHandler {
                 match type_attribute.separator {
                     SeparatorOption::Allow(separator) => {
                         quote! {
-                            if !(12..=17).contains(&length) {
-                                return Err(#error_path::Invalid);
-                            }
+                            // Separators must be used between all the groups or not at all.
+                            let (first, second, third, forth, fifth, sixth) = match length {
+                                12 => (&bytes[..2], &bytes[2..4], &bytes[4..6], &bytes[6..8], &bytes[8..10], &bytes[10..]),
+                                17 => {
+                                    if bytes[2] != #separator
+                                        || bytes[5] != #separator
+                                        || bytes[8] != #separator
+                                        || bytes[11] != #separator
+                                        || bytes[14] != #separator
+                                    {
+                                        return Err(#error_path::Invalid);
+                                    }
 
-                            let (first, second, third, forth, fifth, sixth) = if length == 12 {
-                                (&bytes[..2], &bytes[2..4], &bytes[4..6], &bytes[6..8], &bytes[8..10], &bytes[10..])
-                            } else {
-                                let first = &bytes[0..2];
-
-                                let mut no_colon_counter = if bytes[2] != #separator {
-                                    1
-                                } else {
-                                    0
-                                };
-
-                                let second = &bytes[(3 - no_colon_counter)..(5 - no_colon_counter)];
-
-                                if bytes[5 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
-                                }
-
-                                let third = &bytes[(6 - no_colon_counter)..(8 - no_colon_counter)];
-
-                                if bytes[8 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
-                                }
-
-                                let forth = &bytes[(9 - no_colon_counter)..(11 - no_colon_counter)];
-
-                                if bytes[11 - no_colon_counter] != #separator {
-                                    no_colon_counter += 1;
-                                }
-
-                                let fifth = bytes.get((12 - no_colon_counter)..(14 - no_colon_counter)).ok_or(#error_path::Invalid)?;
-
-                                if bytes.get(14 - no_colon_counter) != Some(&#separator) {
-                                    no_colon_counter += 1;
-                                }
-
-                                let sixth = bytes.get((15 - no_colon_counter)..).ok_or(#error_path::Invalid)?;
-
-                                if sixth.len() != 2 {
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                (first, second, third, forth, fifth, sixth)
+                                    (&bytes[0..2], &bytes[3..5], &bytes[6..8], &bytes[9..11], &bytes[12..14], &bytes[15..])
+                                },
+                                _ => return Err(#error_path::Invalid),
                             };
 
                             first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
@@ -104,7 +74,8 @@ impl ValidatorHandler for MacAddressHandler {
                     SeparatorOption::Must(separator) => {
                         quote! {
                             if length != 17 {
-                                return Err(#error_path::SeparatorMust);
+                                // Only the length without separators means that separators are missing.
+                                return Err(if length == 12 { #error_path::SeparatorMust } else { #error_path::Invalid });
                             }
 
                             if bytes[2] != #separator
@@ -129,7 +100,8 @@ impl ValidatorHandler for MacAddressHandler {
                     SeparatorOption::Disallow => {
                         quote! {
                             if length != 12 {
-                                return Err(#error_path::SeparatorDisallow);
+                                // Only the length with separators means that separators exist.
+                                return Err(if length == 17 { #error_path::SeparatorDisallow } else { #error_path::Invalid });
                             }
 
                             bytes.iter().copied()

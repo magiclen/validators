@@ -15,7 +15,7 @@ pub(crate) struct PhoneHandler;
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
-const ITEM: Struct = Struct(TypeEnum::String);
+const ITEM: Struct = Struct(TypeEnum::PhoneNumber);
 const ITEM_MAP: Struct = Struct(TypeEnum::HashMapPhoneNumber);
 
 impl ValidatorHandler for PhoneHandler {

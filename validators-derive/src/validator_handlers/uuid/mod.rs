@@ -49,47 +49,17 @@ impl ValidatorHandler for UuidHandler {
                 match type_attribute.separator {
                     SeparatorOption::Allow(separator) => {
                         quote! {
-                            if !(32..=36).contains(&length) {
-                                return Err(#error_path::Invalid);
-                            }
+                            // Separators must be used between all the groups or not at all.
+                            let (time_low, time_mid, time_high_and_version, clock_seq, node) = match length {
+                                32 => (&bytes[..8], &bytes[8..12], &bytes[12..16], &bytes[16..20], &bytes[20..]),
+                                36 => {
+                                    if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
+                                        return Err(#error_path::Invalid);
+                                    }
 
-                            let (time_low, time_mid, time_high_and_version, clock_seq, node) = if length == 32 {
-                                (&bytes[..8], &bytes[8..12], &bytes[12..16], &bytes[16..20], &bytes[20..])
-                            } else {
-                                let time_low = &bytes[0..8];
-
-                                let mut no_hyphen_counter = if bytes[8] != #separator {
-                                    1
-                                } else {
-                                    0
-                                };
-
-                                let time_mid = &bytes[(9 - no_hyphen_counter)..(13 - no_hyphen_counter)];
-
-                                if bytes[13 - no_hyphen_counter] != #separator {
-                                    no_hyphen_counter += 1;
-                                }
-
-                                let time_high_and_version =
-                                    &bytes[(14 - no_hyphen_counter)..(18 - no_hyphen_counter)];
-
-                                if bytes[18 - no_hyphen_counter] != #separator {
-                                    no_hyphen_counter += 1;
-                                }
-
-                                let clock_seq = &bytes[(19 - no_hyphen_counter)..(23 - no_hyphen_counter)];
-
-                                if bytes[23 - no_hyphen_counter] != #separator {
-                                    no_hyphen_counter += 1;
-                                }
-
-                                let node = &bytes[(24 - no_hyphen_counter)..];
-
-                                if node.len() != 12 {
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                (time_low, time_mid, time_high_and_version, clock_seq, node)
+                                    (&bytes[0..8], &bytes[9..13], &bytes[14..18], &bytes[19..23], &bytes[24..])
+                                },
+                                _ => return Err(#error_path::Invalid),
                             };
 
                             time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
@@ -98,7 +68,8 @@ impl ValidatorHandler for UuidHandler {
                     SeparatorOption::Must(separator) => {
                         quote! {
                             if length != 36 {
-                                return Err(#error_path::SeparatorMust);
+                                // Only the length without separators means that separators are missing.
+                                return Err(if length == 32 { #error_path::SeparatorMust } else { #error_path::Invalid });
                             }
 
                             if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
@@ -117,7 +88,8 @@ impl ValidatorHandler for UuidHandler {
                     SeparatorOption::Disallow => {
                         quote! {
                             if length != 32 {
-                                return Err(#error_path::SeparatorDisallow);
+                                // Only the length with separators means that separators exist.
+                                return Err(if length == 36 { #error_path::SeparatorDisallow } else { #error_path::Invalid });
                             }
 
                             bytes.iter().copied()

@@ -47,20 +47,19 @@ impl TypeEnum {
             TypeEnum::IpAddr => "std::net::IpAddr",
             TypeEnum::Ipv4Addr => "std::net::Ipv4Addr",
             TypeEnum::Ipv6Addr => "std::net::Ipv6Addr",
-            TypeEnum::Host => "crate::validators::models::Host",
-            TypeEnum::Protocol => "crate::validators::models::Protocol",
+            TypeEnum::Host => "validators::models::Host",
+            TypeEnum::Protocol => "validators::models::Protocol",
             TypeEnum::Bit => "byte_unit::Bit",
             TypeEnum::Byte => "byte_unit::Byte",
-            TypeEnum::Serde => "T: crate::serde::se::Serialize + crate::serde::de::Deserialize",
-            TypeEnum::Version => "crate::semver::Version",
-            TypeEnum::VersionReq => "crate::semver::VersionReq",
+            TypeEnum::Serde => "T: serde::se::Serialize + serde::de::Deserialize",
+            TypeEnum::Version => "semver::Version",
+            TypeEnum::VersionReq => "semver::VersionReq",
             TypeEnum::Url => "url::Url",
-            TypeEnum::PhoneNumber => "crate::phonenumber::PhoneNumber",
+            TypeEnum::PhoneNumber => "phonenumber::PhoneNumber",
             TypeEnum::HashMapPhoneNumber => {
-                "std::collection::HashMap<crate::phonenumber::country::Id, \
-                 crate::phonenumber::PhoneNumber>"
+                "std::collections::HashMap<phonenumber::country::Id, phonenumber::PhoneNumber>"
             },
-            TypeEnum::CollectionLength => "T: crate::validators::traits::CollectionLength",
+            TypeEnum::CollectionLength => "T: validators::traits::CollectionLength",
         }
     }
 }

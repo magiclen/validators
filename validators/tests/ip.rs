@@ -12,6 +12,8 @@ fn basic() {
             test("", false);
             test("127.0.0.1", Validator::V_LOCAL.allow() && !Validator::V_PORT.must());
             test("127.0.0.1:8080", Validator::V_LOCAL.allow() && Validator::V_PORT.allow());
+            test("127.0.0.1:+8080", false);
+            test("[::1]:+8080", false);
             test("168.17.212.1", !Validator::V_LOCAL.must() && !Validator::V_PORT.must());
             test("168.17.212.1:8080", !Validator::V_LOCAL.must() && Validator::V_PORT.allow());
             test(

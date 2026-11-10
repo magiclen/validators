@@ -45,6 +45,14 @@ fn basic() {
             test("localhost。", false);
             test("localhost:8080", Validator::V_LOCAL.allow() && Validator::V_PORT.allow());
             test("localhost.:8080", false);
+            test("localhost:+8080", false);
+            test(
+                "foo.localhost",
+                Validator::V_LOCAL.allow()
+                    && !Validator::V_PORT.must()
+                    && !Validator::V_AT_LEAST_TWO_LABELS.disallow(),
+            );
+            test("[::1]:+8080", false);
             test(
                 "myhost",
                 !Validator::V_LOCAL.must()

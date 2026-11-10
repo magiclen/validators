@@ -16,7 +16,7 @@ pub(crate) struct UnsignedIntegerHandler;
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
-const ITEM: Struct = Struct(TypeEnum::SignedInteger);
+const ITEM: Struct = Struct(TypeEnum::UnsignedInteger);
 
 enum UnsignedIntegerType {
     Usize,
@@ -415,7 +415,6 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
 
-                            #[allow(unexpected_cfgs)]
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > usize::MAX as u128 {
@@ -425,7 +424,6 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                 }
                             }
 
-                            #[allow(unexpected_cfgs)]
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 if u > usize::MAX as u128 {
@@ -518,7 +516,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                     };
 
                     let expect = {
-                        let mut s = String::from("a unsigned integer");
+                        let mut s = String::from("an unsigned integer");
 
                         match &type_attribute.range {
                             RangeTokenStream::Inside {

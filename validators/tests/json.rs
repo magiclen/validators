@@ -68,6 +68,28 @@ fn serde_roundtrip() {
 }
 
 #[test]
+fn non_finite_numbers() {
+    use validators::serde_json::Value;
+
+    #[derive(Validator)]
+    #[validator(json)]
+    struct JSONValue(Value);
+
+    #[derive(Validator)]
+    #[validator(json)]
+    struct JSONOptionalNumber(Option<f64>);
+
+    #[derive(Validator)]
+    #[validator(json)]
+    struct JSONNumber(f64);
+
+    assert!(JSONValue::parse_f64(f64::NAN).is_err());
+    assert!(JSONOptionalNumber::parse_f64(f64::INFINITY).is_err());
+    assert!(JSONNumber::parse_f32(f32::NEG_INFINITY).is_err());
+    assert_eq!(1.5, JSONNumber::parse_f64(1.5).unwrap().0);
+}
+
+#[test]
 fn serde_result_errors() {
     use validators::{Result, errors::JsonError, serde_json};
 

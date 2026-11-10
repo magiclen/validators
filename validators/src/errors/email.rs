@@ -15,9 +15,9 @@ pub enum EmailError {
     LocalDisallow,
     /// May not be valid, but it is guaranteed that the domain part has only one label.
     AtLeastTwoLabelsMust,
-    /// May not be valid and the domain part seems to has at least two labels.
+    /// May not be valid and the domain part seems to have at least two labels.
     AtLeastTwoLabelsDisallow,
-    /// May not be valid and comments seems to exist.
+    /// May not be valid and comments seem to exist.
     CommentDisallow,
 }
 

@@ -43,44 +43,11 @@ impl ValidatorHandler for Base32DecodedHandler {
                 });
             }
 
-            let check_last_length = if type_attribute.padding.must() {
-                quote! {
-                    if last_length != 8 {
-                        return Err(#error_path::PaddingMust);
-                    }
-                }
-            } else {
-                quote! {}
-            };
-
-            let handle_padding = if type_attribute.padding.disallow() {
-                quote! {
-                    return Err(#error_path::PaddingDisallow);
-                }
-            } else {
-                quote! {
-                    match p {
-                        2 | 4 | 5 | 7 => {
-                            if last_length != 8 {
-                                // has padding
-                                return Err(#error_path::Invalid);
-                            }
-
-                            for e in last_bytes[p + 1..].iter().copied() {
-                                if e != b'=' {
-                                    return Err(#error_path::Invalid);
-                                }
-                            }
-
-                            return Self::v_validate_last_block(
-                                last_bytes,
-                                &validators_prelude::data_encoding::BASE32,
-                            );
-                        }
-                        _ => return Err(#error_path::Invalid),
-                    }
-                }
-            };
+            let padding_must = type_attribute.padding.must();
+            let padding_disallow = type_attribute.padding.disallow();
+            let encoding = quote! { validators_prelude::base32 };
+            let padded = quote! { validators_prelude::data_encoding::BASE32 };
+            let unpadded = quote! { validators_prelude::data_encoding::BASE32_NOPAD };
 
             let decode_padded = quote! {
                 // The decoder accepts concatenated values, so check for padding before the last block.
@@ -90,10 +57,10 @@ impl ValidatorHandler for Base32DecodedHandler {
                     return Err(#error_path::Decode);
                 }
 
-                validators_prelude::data_encoding::BASE32.decode(v).map_err(|_| #error_path::Decode)
+                #padded.decode(v).map_err(|_| #error_path::Decode)
             };
             let decode_unpadded = quote! {
-                validators_prelude::data_encoding::BASE32_NOPAD.decode(v).map_err(|_| #error_path::Decode)
+                #unpadded.decode(v).map_err(|_| #error_path::Decode)
             };
 
             let decode = match type_attribute.padding {
@@ -120,6 +87,11 @@ impl ValidatorHandler for Base32DecodedHandler {
                                     return Err(#error_path::Invalid);
                                 }
 
+                                // The decoder only reports `Decode`, so ask the validator for a more specific error.
+                                Self::v_decode_u8_slice(v).map_err(|error| Self::v_validate_u8_slice(v).err().unwrap_or(error))
+                            }
+
+                            fn v_decode_u8_slice(v: &[u8]) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
                                 #decode
                             }
 
@@ -128,76 +100,9 @@ impl ValidatorHandler for Base32DecodedHandler {
                                 Self::v_validate_u8_slice(s.as_bytes())
                             }
 
+                            #[inline]
                             fn v_validate_u8_slice(v: &[u8]) -> ::core::result::Result<(), #error_path> {
-                                let length = v.len();
-
-                                if length == 0 {
-                                    return Err(#error_path::Invalid);
-                                }
-
-                                let last_length = {
-                                    let l = length & 0b111;
-
-                                    if l == 0 {
-                                        8
-                                    } else {
-                                        l
-                                    }
-                                };
-
-                                #check_last_length
-
-                                let last_bytes = if length > 8 {
-                                    for e in v.iter().copied().take(length - last_length) {
-                                        match e {
-                                            b'A'..=b'Z' | b'2'..=b'7' => (),
-                                            _ => return Err(#error_path::Invalid),
-                                        }
-                                    }
-
-                                    &v[(length - last_length)..]
-                                } else {
-                                    v.as_ref()
-                                };
-
-                                let mut p = 0;
-
-                                loop {
-                                    if p == last_length {
-                                        return if last_length == 8 {
-                                            Ok(())
-                                        } else {
-                                            Self::v_validate_last_block(
-                                                last_bytes,
-                                                &validators_prelude::data_encoding::BASE32_NOPAD,
-                                            )
-                                        };
-                                    }
-
-                                    let e = last_bytes[p];
-
-                                    match e {
-                                        b'A'..=b'Z' | b'2'..=b'7' => (),
-                                        b'=' => {
-                                            #handle_padding
-                                        }
-                                        _ => return Err(#error_path::Invalid),
-                                    }
-
-                                    p += 1;
-                                }
-                            }
-
-                            fn v_validate_last_block(
-                                last_bytes: &[u8],
-                                encoding: &validators_prelude::data_encoding::Encoding,
-                            ) -> ::core::result::Result<(), #error_path> {
-                                let output_len = encoding.decode_len(last_bytes.len()).map_err(|_| #error_path::Decode)?;
-                                let mut output = [0; 5];
-
-                                encoding.decode_mut(last_bytes, &mut output[..output_len]).map_err(|_| #error_path::Decode)?;
-
-                                Ok(())
+                                #encoding::validate_decoded::<#padding_must, #padding_disallow>(v)
                             }
                         }
                     });
@@ -264,13 +169,21 @@ impl ValidatorHandler for Base32DecodedHandler {
             #[cfg(feature = "serde")]
             {
                 if type_attribute.serde_options.serialize {
+                    let output_encoding =
+                        if type_attribute.padding.disallow() { &unpadded } else { &padded };
+
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
                             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
-                                serializer.serialize_bytes(self.0.as_slice())
+                                // Human-readable formats use the encoded string, and other formats use the bytes.
+                                if serializer.is_human_readable() {
+                                    serializer.serialize_str(&#output_encoding.encode(&self.0))
+                                } else {
+                                    serializer.serialize_bytes(self.0.as_slice())
+                                }
                             }
                         }
                     });

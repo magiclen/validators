@@ -84,7 +84,7 @@ impl ValidatorHandler for SemverHandler {
                             fn deserialize<D>(deserializer: D) -> ::core::result::Result<Self, D::Error>
                             where
                                 D: validators_prelude::serde::Deserializer<'de>, {
-                                validators_prelude::serde::Deserialize::deserialize(deserializer)
+                                validators_prelude::serde::Deserialize::deserialize(deserializer).map(Self)
                             }
                         }
                     });

@@ -90,7 +90,10 @@ impl ValidatorHandler for HttpUrlHandler {
                                 let is_https = {
                                     use validators_prelude::str_utils::StartsWithIgnoreAsciiCaseMultiple;
 
-                                    if let Some(index) = s.starts_with_ignore_ascii_case_with_lowercase_multiple(&["http:", "https:"]) {
+                                    // The URL parser ignores leading C0 control characters and spaces, so do the same here.
+                                    let scheme_str = s.trim_start_matches(|c: char| c <= ' ');
+
+                                    if let Some(index) = scheme_str.starts_with_ignore_ascii_case_with_lowercase_multiple(&["http:", "https:"]) {
                                         match index {
                                             0 => false,
                                             1 => true,

@@ -111,3 +111,29 @@ fn basic() {
         }
     }
 }
+
+#[test]
+fn local_ranges() {
+    use std::net::Ipv6Addr;
+
+    use validators::functions::is_local_ipv6;
+
+    // Each range has an address inside it, and some also have an address just outside it.
+    for (expected, ip) in [
+        (true, "100::1"),
+        (true, "100:0:0:1::1"),
+        (false, "100:0:0:2::1"),
+        (true, "2001:2::1"),
+        (false, "2001:3::1"),
+        (true, "3fff::1"),
+        (false, "3fff:1000::1"),
+        (true, "64:ff9b:1::1"),
+        (true, "5f00::1"),
+        // The last 32 bits are 169.254.169.254 and 8.8.8.8.
+        (true, "64:ff9b::a9fe:a9fe"),
+        (false, "64:ff9b::808:808"),
+        (false, "2606:4700:4700::1111"),
+    ] {
+        assert_eq!(expected, is_local_ipv6(ip.parse::<Ipv6Addr>().unwrap()), "{ip}");
+    }
+}

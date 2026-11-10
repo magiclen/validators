@@ -431,7 +431,6 @@ impl ValidatorHandler for SignedIntegerHandler {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
 
-                            #[allow(unexpected_cfgs)]
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > isize::MAX as i128 {
@@ -443,7 +442,6 @@ impl ValidatorHandler for SignedIntegerHandler {
                                 }
                             }
 
-                            #[allow(unexpected_cfgs)]
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > isize::MAX as i128 {

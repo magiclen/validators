@@ -324,6 +324,11 @@ impl ValidatorHandler for HostHandler {
                                     Ok(ip) => {
                                         let port_str = &s[(colon_index + 1)..];
 
+                                        // A port has only digits, but `parse` also accepts a leading `+`.
+                                        if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                            return Err(#error_path::Invalid);
+                                        }
+
                                         match port_str.parse::<u16>() {
                                             Ok(port) => {
                                                 let is_local = #handle_local_ipv6;
@@ -421,6 +426,11 @@ impl ValidatorHandler for HostHandler {
                 quote! {
                     match port_str {
                         Some(port_str) => {
+                            // A port has only digits, but `parse` also accepts a leading `+`.
+                            if !port_str.bytes().all(|e| e.is_ascii_digit()) {
+                                return Err(#error_path::Invalid);
+                            }
+
                             match port_str.parse::<u16>() {
                                 Ok(port) => Some(port),
                                 Err(_) => return Err(#error_path::Invalid),
@@ -475,8 +485,9 @@ impl ValidatorHandler for HostHandler {
                             }
                         },
                         TriAllow::Disallow => {
+                            // Local names are not exempt here, because subdomains such as `foo.localhost` have two labels.
                             quote! {
-                                if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                if validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
                                     return Err(#error_path::AtLeastTwoLabelsDisallow);
                                 }
                             }
@@ -661,7 +672,7 @@ impl ValidatorHandler for HostHandler {
                     quote! {
                         impl ToUriAuthorityString for #name {
                             #[inline]
-                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                            fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 match &self.0 {
                                     validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                     validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
@@ -676,7 +687,7 @@ impl ValidatorHandler for HostHandler {
                             quote! {
                                 impl ToUriAuthorityString for #name {
                                     #[inline]
-                                    fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                                    fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                         match &self.host {
                                             validators_prelude::Host::IPv4(ip) => {
                                                 match self.port {
@@ -705,7 +716,7 @@ impl ValidatorHandler for HostHandler {
                             quote! {
                                 impl ToUriAuthorityString for #name {
                                     #[inline]
-                                    fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                                    fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                         let port = self.port;
 
                                         match &self.host {
@@ -721,7 +732,7 @@ impl ValidatorHandler for HostHandler {
                             quote! {
                                 impl ToUriAuthorityString for #name {
                                     #[inline]
-                                    fn to_uri_authority_string(&self) -> validators_prelude::Cow<str> {
+                                    fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                         match &self.host {
                                             validators_prelude::Host::IPv4(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                             validators_prelude::Host::IPv6(ip) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
@@ -764,7 +775,12 @@ impl ValidatorHandler for HostHandler {
                             },
                         }
 
-                        s.push_str("domain name or an IP string");
+                        // `at_least_two_labels(Disallow)` rejects every IP address.
+                        if type_attribute.at_least_two_labels.disallow() {
+                            s.push_str("domain name");
+                        } else {
+                            s.push_str("domain name or an IP string");
+                        }
 
                         match type_attribute.local {
                             TriAllow::Allow => match type_attribute.port {

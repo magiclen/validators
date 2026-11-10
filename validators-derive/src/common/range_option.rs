@@ -1,5 +1,9 @@
-use std::{fmt::Display, str::FromStr};
+use std::{
+    fmt::{self, Display, Formatter},
+    str::FromStr,
+};
 
+use quote::ToTokens;
 use syn::Meta;
 
 use crate::common::{
@@ -55,7 +59,8 @@ where
                             inclusive,
                         });
                     },
-                    "Unlimited" => return Ok(Self::Unlimited),
+                    // `Unlimited` takes no arguments, so do not ignore them silently.
+                    "Unlimited" if matches!(meta, Meta::Path(_)) => return Ok(Self::Unlimited),
                     _ => (),
                 }
             }
@@ -73,16 +78,46 @@ where
     }
 }
 
+/// A range bound.
+/// It becomes a suffixed literal (such as `1u8`) in the generated code, and it is shown without the suffix (such as `1`) in messages.
+pub(crate) struct RangeBound {
+    tokens: proc_macro2::TokenStream,
+    text:   String,
+}
+
+impl RangeBound {
+    #[inline]
+    fn new<T: RangedNumber>(value: T) -> Self {
+        Self {
+            tokens: value.into_token_stream(), text: value.to_string()
+        }
+    }
+}
+
+impl ToTokens for RangeBound {
+    #[inline]
+    fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
+        self.tokens.to_tokens(token_stream);
+    }
+}
+
+impl Display for RangeBound {
+    #[inline]
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.text)
+    }
+}
+
 pub(crate) enum RangeTokenStream {
     Inside {
-        min:       Option<proc_macro2::TokenStream>,
-        max:       Option<proc_macro2::TokenStream>,
+        min:       Option<RangeBound>,
+        max:       Option<RangeBound>,
         inclusive: bool,
         equal:     bool,
     },
     Outside {
-        min:       Option<proc_macro2::TokenStream>,
-        max:       Option<proc_macro2::TokenStream>,
+        min:       Option<RangeBound>,
+        max:       Option<RangeBound>,
         inclusive: bool,
         equal:     bool,
     },
@@ -107,8 +142,8 @@ where
                 max,
                 inclusive,
             } => Self::Inside {
-                min: min.map(|a| a.into_token_stream()),
-                max: max.map(|a| a.into_token_stream()),
+                min: min.map(RangeBound::new),
+                max: max.map(RangeBound::new),
                 inclusive,
                 equal: range_equal(min, max, inclusive),
             },
@@ -117,8 +152,8 @@ where
                 max,
                 inclusive,
             } => Self::Outside {
-                min: min.map(|a| a.into_token_stream()),
-                max: max.map(|a| a.into_token_stream()),
+                min: min.map(RangeBound::new),
+                max: max.map(RangeBound::new),
                 inclusive,
                 equal: range_equal(min, max, inclusive),
             },

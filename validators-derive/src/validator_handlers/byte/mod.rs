@@ -16,7 +16,7 @@ pub(crate) struct ByteHandler;
 #[derive(Debug)]
 pub struct Struct(TypeEnum);
 
-const ITEM: Struct = Struct(TypeEnum::Bit);
+const ITEM: Struct = Struct(TypeEnum::Byte);
 
 impl ValidatorHandler for ByteHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
@@ -51,15 +51,15 @@ impl ValidatorHandler for ByteHandler {
                 type_attribute.range.inclusive,
             );
 
+            // Compare `u128` values, so older `byte-unit` versions without `PartialOrd<u128>` also work.
             let handle_range = if equal {
                 let min = type_attribute.range.min.unwrap();
 
                 quote! {
-                    match ::core::cmp::PartialOrd::partial_cmp(&v, &#min) {
-                        Some(::core::cmp::Ordering::Equal) => (),
-                        Some(::core::cmp::Ordering::Less) => return Err(#error_path::TooSmall),
-                        Some(::core::cmp::Ordering::Greater) => return Err(#error_path::TooLarge),
-                        None => unreachable!(),
+                    match ::core::cmp::Ord::cmp(&v.as_u128(), &#min) {
+                        ::core::cmp::Ordering::Equal => (),
+                        ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
+                        ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
                     }
                 }
             } else {
@@ -67,7 +67,7 @@ impl ValidatorHandler for ByteHandler {
 
                 if let Some(min) = type_attribute.range.min {
                     token_stream.extend(quote! {
-                        if v < #min {
+                        if v.as_u128() < #min {
                             return Err(#error_path::TooSmall);
                         }
                     });
@@ -76,13 +76,13 @@ impl ValidatorHandler for ByteHandler {
                 if let Some(max) = type_attribute.range.max {
                     token_stream.extend(if type_attribute.range.inclusive {
                         quote! {
-                            if v > #max {
+                            if v.as_u128() > #max {
                                 return Err(#error_path::TooLarge);
                             }
                         }
                     } else {
                         quote! {
-                            if v >= #max {
+                            if v.as_u128() >= #max {
                                 return Err(#error_path::TooLarge);
                             }
                         }
@@ -194,7 +194,7 @@ impl ValidatorHandler for ByteHandler {
 
                 if type_attribute.serde_options.deserialize {
                     let expect =
-                        "a string such as \"123\", \"123Kib\", \"50.84 Mb\", or a positive integer";
+                        "a string such as \"123\", \"123KiB\", \"50.84 MB\", or a positive integer";
 
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {

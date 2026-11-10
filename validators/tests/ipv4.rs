@@ -102,3 +102,27 @@ fn basic() {
         }
     }
 }
+
+#[test]
+fn local_ranges() {
+    use std::net::Ipv4Addr;
+
+    use validators::functions::is_local_ipv4;
+
+    // Each range has an address inside it, and most also have an address just outside it.
+    for (expected, ip) in [
+        (true, Ipv4Addr::new(0, 1, 2, 3)),
+        (false, Ipv4Addr::new(1, 0, 0, 0)),
+        (true, Ipv4Addr::new(100, 64, 0, 0)),
+        (false, Ipv4Addr::new(100, 128, 0, 0)),
+        (true, Ipv4Addr::new(192, 0, 0, 8)),
+        (false, Ipv4Addr::new(192, 0, 0, 9)),
+        (true, Ipv4Addr::new(198, 19, 255, 255)),
+        (false, Ipv4Addr::new(198, 20, 0, 0)),
+        (true, Ipv4Addr::new(240, 0, 0, 1)),
+        (true, Ipv4Addr::new(255, 255, 255, 255)),
+        (false, Ipv4Addr::new(8, 8, 8, 8)),
+    ] {
+        assert_eq!(expected, is_local_ipv4(ip), "{ip}");
+    }
+}

@@ -181,6 +181,13 @@ fn basic() {
                     && Validator::V_PORT.allow(),
             );
             test(
+                "foo.localhost",
+                !Validator::V_IPV4.must()
+                    && Validator::V_LOCAL.allow()
+                    && !Validator::V_PORT.must()
+                    && !Validator::V_AT_LEAST_TWO_LABELS.disallow(),
+            );
+            test(
                 "myhost",
                 !Validator::V_IPV4.must()
                     && !Validator::V_LOCAL.must()

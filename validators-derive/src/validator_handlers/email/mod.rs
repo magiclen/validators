@@ -743,7 +743,7 @@ impl ValidatorHandler for EmailHandler {
                                                 domain_part_length = closing_bracket_index + 1;
 
                                                 // adjust length
-                                                domain_part_length_offset += format!("{}", ip).len()
+                                                domain_part_length_offset += validators_prelude::format!("{}", ip).len()
                                                     as isize
                                                     - ip_str.len() as isize;
 
@@ -810,8 +810,9 @@ impl ValidatorHandler for EmailHandler {
                             }
                         },
                         TriAllow::Disallow => {
+                            // Local names are not exempt here, because subdomains such as `foo.localhost` have two labels.
                             quote! {
-                                if !is_local && validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
+                                if validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
                                     return Err(#error_path::AtLeastTwoLabelsDisallow);
                                 }
                             }
@@ -841,6 +842,11 @@ impl ValidatorHandler for EmailHandler {
                                 return Err(#error_path::Invalid);
                             }
 
+                            // An IPv4 address must be written in brackets, such as `[127.0.0.1]`.
+                            if ascii_domain.parse::<::std::net::Ipv4Addr>().is_ok() {
+                                return Err(#error_path::Invalid);
+                            }
+
                             domain_part_length += domain_str.len();
 
                             let is_local = #handle_local_domain;
@@ -866,7 +872,13 @@ impl ValidatorHandler for EmailHandler {
                 quote! {}
             };
 
-            let comment_boundary = quote! { |e| matches!(e, b')' | b'\r' | b'\n' | b'\0') };
+            // A comment must end at `)`, so stopping at any other byte here makes the email invalid.
+            // Nested comments are not supported, and TAB is the only allowed control character.
+            let comment_boundary = if type_attribute.non_ascii.disallow() {
+                quote! { |e| matches!(e, b'(' | b')' | b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F'..=b'\xFF') }
+            } else {
+                quote! { |e| matches!(e, b'(' | b')' | b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F') }
+            };
 
             let handle_comment_1 = if type_attribute.comment.disallow() {
                 quote! {
@@ -1228,6 +1240,16 @@ impl ValidatorHandler for EmailHandler {
 
                         if length as isize + domain_part_length_offset > 255 {
                             return Err(#error_path::Invalid);
+                        }
+
+                        // RFC 5321 limits an address without comments to 254 octets.
+                        // An IP literal is too short to reach this limit.
+                        if let validators_prelude::Host::Domain(domain) = &host {
+                            let quotes_length = if need_quoted { 2 } else { 0 };
+
+                            if local_part.len() + quotes_length + 1 + domain.len() > 254 {
+                                return Err(#error_path::Invalid);
+                            }
                         }
 
                         // comment 4

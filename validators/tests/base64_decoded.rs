@@ -95,6 +95,7 @@ fn decode() {
         let decoded: Validator = serde_json::from_str(&json).unwrap();
         let wrapped: Result<Validator, Base64DecodedError> = serde_json::from_str(&json).unwrap();
 
+        assert_eq!(r#""MTIzNDU2Nzg5MA==""#, json);
         assert_eq!(b"1234567890", decoded.0.as_slice());
         assert_eq!(b"1234567890", wrapped.into_std_result().unwrap().0.as_slice());
 
@@ -102,6 +103,25 @@ fn decode() {
 
         assert!(matches!(empty.into_std_result(), Err(Base64DecodedError::Invalid)));
     }
+}
+
+#[test]
+fn parse_error() {
+    use validators::errors::Base64DecodedError;
+
+    #[derive(Validator)]
+    #[validator(base64_decoded(padding(Must)))]
+    struct WithPadding(Vec<u8>);
+
+    #[derive(Validator)]
+    #[validator(base64_decoded(padding(Disallow)))]
+    struct WithoutPadding(Vec<u8>);
+
+    assert!(matches!(WithPadding::parse_str("QQ"), Err(Base64DecodedError::PaddingMust)));
+    assert!(matches!(WithoutPadding::parse_str("QQ=="), Err(Base64DecodedError::PaddingDisallow)));
+    assert!(matches!(WithPadding::parse_str("Q!Q="), Err(Base64DecodedError::Invalid)));
+    assert!(matches!(WithPadding::parse_str("Zh=="), Err(Base64DecodedError::Invalid)));
+    assert!(matches!(WithoutPadding::parse_str("A"), Err(Base64DecodedError::Invalid)));
 }
 
 #[cfg(feature = "serde")]

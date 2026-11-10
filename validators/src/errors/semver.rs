@@ -1,6 +1,6 @@
 use core::fmt::{self, Display, Formatter};
 
-/// Error from the `semver` and `semver_req` validator.
+/// Error from the `semver` and `semver_req` validators.
 #[derive(Debug)]
 pub struct SemverError(pub semver::Error);
 

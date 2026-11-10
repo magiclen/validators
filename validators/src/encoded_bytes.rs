@@ -1,3 +1,4 @@
+#[cfg(any(feature = "base32", feature = "base64", feature = "base64_url"))]
 use alloc::{borrow::Cow, string::String};
 
 enum Error {
@@ -15,10 +16,10 @@ trait Alphabet {
     fn tail_mask(length: usize) -> Option<u8>;
 }
 
-#[cfg(feature = "base32")]
+#[cfg(any(feature = "base32", feature = "base32_decoded"))]
 struct Base32;
 
-#[cfg(feature = "base32")]
+#[cfg(any(feature = "base32", feature = "base32_decoded"))]
 impl Alphabet for Base32 {
     const BLOCK_LEN: usize = 8;
 
@@ -43,10 +44,20 @@ impl Alphabet for Base32 {
     }
 }
 
-#[cfg(any(feature = "base64", feature = "base64_url"))]
+#[cfg(any(
+    feature = "base64",
+    feature = "base64_decoded",
+    feature = "base64_url",
+    feature = "base64_url_decoded"
+))]
 struct Base64<const URL_SAFE: bool>;
 
-#[cfg(any(feature = "base64", feature = "base64_url"))]
+#[cfg(any(
+    feature = "base64",
+    feature = "base64_decoded",
+    feature = "base64_url",
+    feature = "base64_url_decoded"
+))]
 impl<const URL_SAFE: bool> Alphabet for Base64<URL_SAFE> {
     const BLOCK_LEN: usize = 4;
 
@@ -87,7 +98,8 @@ fn validate<A: Alphabet, const PADDING_MUST: bool, const PADDING_DISALLOW: bool>
         0
     } else {
         if PADDING_MUST {
-            return Err(Error::PaddingMust);
+            // `PaddingMust` promises that there is no padding, so an input with `=` is invalid instead.
+            return Err(if bytes.contains(&b'=') { Error::Invalid } else { Error::PaddingMust });
         }
 
         A::tail_mask(tail_len).ok_or(Error::Invalid)?
@@ -131,6 +143,7 @@ fn check_tail_bits(value: u8, mask: u8) -> Result<(), Error> {
     if value & mask == 0 { Ok(()) } else { Err(Error::Invalid) }
 }
 
+#[cfg(any(feature = "base32", feature = "base64", feature = "base64_url"))]
 #[inline]
 fn parse<A: Alphabet, const PADDING_MUST: bool, const PADDING_DISALLOW: bool>(
     bytes: Cow<'_, [u8]>,
@@ -142,11 +155,24 @@ fn parse<A: Alphabet, const PADDING_MUST: bool, const PADDING_DISALLOW: bool>(
 }
 
 macro_rules! export_encoding {
-    ($module:ident, $alphabet:ty, $error:ident) => {
+    (
+        $module:ident,
+        $alphabet:ty,
+        $feature:literal,
+        $error:ident,
+        $decoded_feature:literal,
+        $decoded_error:ident
+    ) => {
         pub mod $module {
-            use super::{Cow, Error, String};
+            use super::Error;
+            #[cfg(feature = $feature)]
+            use super::{Cow, String};
+            #[cfg(feature = $decoded_feature)]
+            use crate::errors::$decoded_error;
+            #[cfg(feature = $feature)]
             use crate::errors::$error;
 
+            #[cfg(feature = $feature)]
             #[inline]
             fn map_error(error: Error) -> $error {
                 match error {
@@ -156,6 +182,7 @@ macro_rules! export_encoding {
                 }
             }
 
+            #[cfg(feature = $feature)]
             #[inline]
             pub fn validate<const PADDING_MUST: bool, const PADDING_DISALLOW: bool>(
                 bytes: &[u8],
@@ -164,19 +191,60 @@ macro_rules! export_encoding {
                     .map_err(map_error)
             }
 
+            #[cfg(feature = $feature)]
             #[inline]
             pub fn parse<const PADDING_MUST: bool, const PADDING_DISALLOW: bool>(
                 bytes: Cow<'_, [u8]>,
             ) -> Result<String, $error> {
                 super::parse::<$alphabet, PADDING_MUST, PADDING_DISALLOW>(bytes).map_err(map_error)
             }
+
+            #[cfg(feature = $decoded_feature)]
+            #[inline]
+            fn map_decoded_error(error: Error) -> $decoded_error {
+                match error {
+                    Error::Invalid => $decoded_error::Invalid,
+                    Error::PaddingMust => $decoded_error::PaddingMust,
+                    Error::PaddingDisallow => $decoded_error::PaddingDisallow,
+                }
+            }
+
+            #[cfg(feature = $decoded_feature)]
+            #[inline]
+            pub fn validate_decoded<const PADDING_MUST: bool, const PADDING_DISALLOW: bool>(
+                bytes: &[u8],
+            ) -> Result<(), $decoded_error> {
+                super::validate::<$alphabet, PADDING_MUST, PADDING_DISALLOW>(bytes)
+                    .map_err(map_decoded_error)
+            }
         }
     };
 }
 
-#[cfg(feature = "base32")]
-export_encoding!(base32, super::Base32, Base32Error);
-#[cfg(feature = "base64")]
-export_encoding!(base64, super::Base64<false>, Base64Error);
-#[cfg(feature = "base64_url")]
-export_encoding!(base64_url, super::Base64<true>, Base64UrlError);
+#[cfg(any(feature = "base32", feature = "base32_decoded"))]
+export_encoding!(
+    base32,
+    super::Base32,
+    "base32",
+    Base32Error,
+    "base32_decoded",
+    Base32DecodedError
+);
+#[cfg(any(feature = "base64", feature = "base64_decoded"))]
+export_encoding!(
+    base64,
+    super::Base64<false>,
+    "base64",
+    Base64Error,
+    "base64_decoded",
+    Base64DecodedError
+);
+#[cfg(any(feature = "base64_url", feature = "base64_url_decoded"))]
+export_encoding!(
+    base64_url,
+    super::Base64<true>,
+    "base64_url",
+    Base64UrlError,
+    "base64_url_decoded",
+    Base64UrlDecodedError
+);

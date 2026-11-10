@@ -43,7 +43,7 @@ impl ValidatorHandler for JsonHandler {
                                 match validators_prelude::serde_json::to_value(i) {
                                     Ok(value) => Self::v_parse_json_value(value),
                                     Err(_) => {
-                                        let deserializer = validators_prelude::serde::de::value::I128Deserializer::<validators_prelude::serde_json::Error>::new(i);
+                                        let deserializer = <i128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(i);
 
                                         Ok(validators_prelude::serde::Deserialize::deserialize(deserializer)?)
                                     }
@@ -62,7 +62,7 @@ impl ValidatorHandler for JsonHandler {
                                 match validators_prelude::serde_json::to_value(u) {
                                     Ok(value) => Self::v_parse_json_value(value),
                                     Err(_) => {
-                                        let deserializer = validators_prelude::serde::de::value::U128Deserializer::<validators_prelude::serde_json::Error>::new(u);
+                                        let deserializer = <u128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(u);
 
                                         Ok(validators_prelude::serde::Deserialize::deserialize(deserializer)?)
                                     }
@@ -78,6 +78,11 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn v_parse_f64(f: f64) -> ::core::result::Result<#data_type, #error_path> {
+                                // `serde_json` turns NaN and infinity into `null`, so reject them here.
+                                if !f.is_finite() {
+                                    return Err(<validators_prelude::serde_json::Error as validators_prelude::serde::ser::Error>::custom("NaN and infinity cannot be represented in JSON").into());
+                                }
+
                                 let value = validators_prelude::serde_json::to_value(f)?;
 
                                 Ok(validators_prelude::serde_json::from_value(value)?)

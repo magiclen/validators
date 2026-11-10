@@ -40,6 +40,7 @@ fn basic() {
                     test("example:", false);
                     test("ftp://example.org/", false);
                     test("https://example.org/", !Validator::V_LOCAL.must());
+                    test(" https://example.org/", !Validator::V_LOCAL.must());
                     test("http://localhost:3000/", Validator::V_LOCAL.allow());
                     test("http://api.LOCALHOST.:3000/", Validator::V_LOCAL.allow());
                     test("http://127.0.0.1:3000/", Validator::V_LOCAL.allow());

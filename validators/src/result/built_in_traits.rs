@@ -8,7 +8,7 @@ use core::{
 use super::Result;
 use crate::traits::*;
 
-impl<T: Debug, E: Debug> Debug for Result<T, E> {
+impl<T: Debug, E: Debug, K> Debug for Result<T, E, K> {
     #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Debug::fmt(&self.0, f)
@@ -22,14 +22,14 @@ impl<T, E> From<core::result::Result<T, E>> for Result<T, E> {
     }
 }
 
-impl<T, E> From<Result<T, E>> for core::result::Result<T, E> {
+impl<T, E, K> From<Result<T, E, K>> for core::result::Result<T, E> {
     #[inline]
-    fn from(result: Result<T, E>) -> Self {
+    fn from(result: Result<T, E, K>) -> Self {
         result.0
     }
 }
 
-impl<T, E> Deref for Result<T, E> {
+impl<T, E, K> Deref for Result<T, E, K> {
     type Target = core::result::Result<T, E>;
 
     #[inline]
@@ -38,7 +38,7 @@ impl<T, E> Deref for Result<T, E> {
     }
 }
 
-impl<T, E> DerefMut for Result<T, E> {
+impl<T, E, K> DerefMut for Result<T, E, K> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0

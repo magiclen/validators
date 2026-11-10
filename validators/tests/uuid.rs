@@ -82,6 +82,7 @@ fn basic() {
                     test("A866664A-F9D3-4DDE-89CB-182015FA4F41", Validator::V_CASE.upper() && Validator::V_SEPARATOR.allow() == Some(b'-'));
                     test("A866664A-f9D3-4dde-89CB-182015FA4F41", Validator::V_CASE.any() && Validator::V_SEPARATOR.allow() == Some(b'-'));
                     test("a866664a f9d3 4dde 89cb 182015fa4f41", false);
+                    test("a866664a-f9d34dde89cb182015fa4f41", false);
                     test("a866664af9d34dde89cb182015fa4f41", Validator::V_CASE.lower() && !Validator::V_SEPARATOR.must().is_some());
                     test("A866664AF9D34DDE89CB182015FA4F41", Validator::V_CASE.upper() && !Validator::V_SEPARATOR.must().is_some());
                     test("A866664AF9D34dde89CB182015FA4F41", Validator::V_CASE.any() && !Validator::V_SEPARATOR.must().is_some());

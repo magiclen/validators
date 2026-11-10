@@ -2,7 +2,7 @@ use core::fmt::{self, Display, Formatter};
 
 use byte_unit::ParseError;
 
-/// Error from the `bit` validator.
+/// Error from the `byte` validator.
 #[derive(Debug, Clone)]
 pub enum ByteError {
     ParseError(ParseError),

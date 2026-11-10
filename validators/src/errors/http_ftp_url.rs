@@ -8,7 +8,9 @@ pub enum HttpFtpURLError {
     ParseError(url::ParseError),
     /// May not be valid, but it is guaranteed that the scheme (protocol) is not `http`, `https` or `ftp`
     ProtocolError,
+    /// May not be valid, but it is guaranteed that the host is not local.
     LocalMust,
+    /// May not be valid, but it is guaranteed that the host is local.
     LocalDisallow,
 }
 
