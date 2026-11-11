@@ -15,6 +15,9 @@ fn basic() {
             test("[0000:0000:0000:0000:0000:0000:370:7348]:8080", false);
             test("127.0.0.1", Validator::V_LOCAL.allow() && !Validator::V_PORT.must());
             test("127.0.0.1:8080", Validator::V_LOCAL.allow() && Validator::V_PORT.allow());
+            for input in ["224.0.0.1", "239.255.255.250"] {
+                test(input, Validator::V_LOCAL.allow() && !Validator::V_PORT.must());
+            }
             test("168.17.212.1", !Validator::V_LOCAL.must() && !Validator::V_PORT.must());
             test("168.17.212.1:8080", !Validator::V_LOCAL.must() && Validator::V_PORT.allow());
         };
@@ -121,6 +124,13 @@ fn local_ranges() {
         (true, Ipv4Addr::new(192, 88, 99, 2)),
         (true, Ipv4Addr::new(198, 19, 255, 255)),
         (false, Ipv4Addr::new(198, 20, 0, 0)),
+        (false, Ipv4Addr::new(223, 255, 255, 255)),
+        (true, Ipv4Addr::new(224, 0, 0, 0)),
+        (true, Ipv4Addr::new(224, 0, 0, 255)),
+        (false, Ipv4Addr::new(224, 0, 1, 0)),
+        (false, Ipv4Addr::new(238, 255, 255, 255)),
+        (true, Ipv4Addr::new(239, 0, 0, 0)),
+        (true, Ipv4Addr::new(239, 255, 255, 255)),
         (true, Ipv4Addr::new(240, 0, 0, 1)),
         (true, Ipv4Addr::new(255, 255, 255, 255)),
         (false, Ipv4Addr::new(8, 8, 8, 8)),

@@ -1,6 +1,6 @@
 #![cfg(all(feature = "test", feature = "derive", feature = "email"))]
 
-use validators::prelude::*;
+use validators::{errors::EmailError, prelude::*};
 
 #[test]
 fn quoted_without_comments() {
@@ -42,6 +42,64 @@ struct AddressWithComments {
 }
 
 #[test]
+fn empty_quoted_local_part() {
+    #[derive(Validator)]
+    #[validator(email(comment(Disallow)))]
+    struct Address {
+        local_part:  String,
+        need_quoted: bool,
+        domain_part: validators::models::Host,
+    }
+
+    for domain in ["example.com", "[127.0.0.1]", "[IPv6:::1]"] {
+        let input = format!(r#"""@{domain}"#);
+        let address = Address::parse_str(&input).unwrap();
+
+        assert_eq!("", address.local_part);
+        assert!(address.need_quoted);
+        assert_eq!(input, address.to_email_string());
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&address).unwrap();
+            let decoded: Address = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(serde_json::to_string(&input).unwrap(), json);
+            assert_eq!("", decoded.local_part);
+            assert!(decoded.need_quoted);
+            assert_eq!(input, decoded.to_email_string());
+        }
+
+        let input = format!(r#"(a)""(b)@(c){domain}(d)"#);
+        let address = AddressWithComments::parse_str(&input).unwrap();
+
+        assert_eq!("", address.local_part);
+        assert!(address.need_quoted);
+        assert_eq!(input, address.to_email_string());
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&address).unwrap();
+            let decoded: AddressWithComments = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(serde_json::to_string(&input).unwrap(), json);
+            assert_eq!("", decoded.local_part);
+            assert!(decoded.need_quoted);
+            assert_eq!(input, decoded.to_email_string());
+        }
+    }
+
+    let comment = "x".repeat(60);
+
+    assert!(AddressWithComments::validate_str(format!(r#"({comment})""@example.com"#)).is_ok());
+    assert!(AddressWithComments::validate_str(format!(r#"({comment})"a"@example.com"#)).is_err());
+}
+
+#[test]
 fn escaped_comments() {
     let input = r"(a\))alice(b\()@(c\\)example.com(d\))";
     let address = AddressWithComments::parse_str(input).unwrap();
@@ -52,18 +110,28 @@ fn escaped_comments() {
 
 #[test]
 fn normalized_domain_length() {
+    #[derive(Validator)]
+    #[validator(email(comment(Disallow)))]
+    struct Address {
+        local_part:  String,
+        need_quoted: bool,
+        domain_part: validators::models::Host,
+    }
+
     let comment = "x".repeat(224);
     let input = format!(r#""a b"@[IPv6:::ffff:ffff:ffff]({comment})"#);
     let expected = format!(r#""a b"@[IPv6:::ffff:255.255.255.255]({comment})"#);
-    let address = AddressWithComments::parse_str(input).unwrap();
+    let address = AddressWithComments::parse_str(&input).unwrap();
     let normalized = address.to_email_string();
 
     assert_eq!(expected, normalized);
     assert!(AddressWithComments::validate_str(normalized).is_ok());
-    assert!(
-        AddressWithComments::parse_str(format!(r#""a b"@[IPv6:::ffff:ffff:ffff]({comment}x)"#))
-            .is_err()
-    );
+    assert!(matches!(Address::validate_str(input), Err(EmailError::CommentDisallow)));
+
+    let input = format!(r#""a b"@[IPv6:::ffff:ffff:ffff]({comment}x)"#);
+
+    assert!(matches!(AddressWithComments::parse_str(&input), Err(EmailError::Invalid)));
+    assert!(matches!(Address::validate_str(input), Err(EmailError::Invalid)));
 }
 
 #[test]
@@ -96,6 +164,7 @@ fn basic() {
             let test = $test;
 
             test("", false);
+            test("@example.com", false);
             test("Abc.example.com", false);
             test("A@b@c@example.com", false);
             test("a\"b(c)d,e:f;g<h>i[j\\k]l@example.com", false);
@@ -122,6 +191,12 @@ fn basic() {
             );
             test("i_like_underscore@but_its_not_allow_in _this_part.example.com", false);
             test("\"joh\"n\"\"@example.com", false);
+            test(
+                "\"\"@example.com",
+                !Validator::V_IP.must()
+                    && !Validator::V_LOCAL.must()
+                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+            );
             test(
                 "simple@example.com",
                 !Validator::V_IP.must()

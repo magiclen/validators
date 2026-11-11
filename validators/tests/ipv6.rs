@@ -140,6 +140,9 @@ fn local_ranges() {
         // The last 32 bits are 169.254.169.254 and 8.8.8.8.
         (true, "64:ff9b::a9fe:a9fe"),
         (false, "64:ff9b::808:808"),
+        (true, "::ffff:224.0.0.1"),
+        (false, "::ffff:224.0.1.0"),
+        (true, "64:ff9b::efff:fffa"),
         (false, "2606:4700:4700::1111"),
     ] {
         assert_eq!(expected, is_local_ipv6(ip.parse::<Ipv6Addr>().unwrap()), "{ip}");

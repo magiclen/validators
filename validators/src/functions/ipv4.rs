@@ -3,7 +3,7 @@ use std::net::{AddrParseError, Ipv4Addr};
 
 /// Determine whether the input `Ipv4Addr` is local.
 ///
-/// An address is local if it is not globally reachable, such as a private, shared (CGNAT), loopback, link-local, documentation, benchmarking, reserved, or broadcast address.
+/// An address is local if it is not globally reachable, such as a private, shared (CGNAT), loopback, link-local, documentation, benchmarking, scoped multicast, reserved, or broadcast address.
 #[inline]
 pub const fn is_local_ipv4(addr: Ipv4Addr) -> bool {
     let [a, b, c, d] = addr.octets();
@@ -22,6 +22,8 @@ pub const fn is_local_ipv4(addr: Ipv4Addr) -> bool {
         || matches!([a, b, c, d], [192, 88, 99, 2])
         // 198.18.0.0/15 (benchmarking)
         || (a == 198 && b & 0b1111_1110 == 18)
+        // 224.0.0.0/24 (link-local multicast) and 239.0.0.0/8 (administratively scoped multicast)
+        || (a == 224 && b == 0 && c == 0) || a == 239
         // 240.0.0.0/4 (reserved), including the broadcast address
         || a & 0b1111_0000 == 0b1111_0000
 }

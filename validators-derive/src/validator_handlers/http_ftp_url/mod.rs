@@ -96,25 +96,34 @@ impl ValidatorHandler for HttpFtpUrlHandler {
             token_stream.extend(quote! {
                         impl #name {
                             fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::url::Url, validators_prelude::Protocol), #error_path> {
-                                let protocol = {
+                                let (url, protocol) = {
                                     use validators_prelude::str_utils::StartsWithIgnoreAsciiCaseMultiple;
 
                                     // The URL parser ignores leading C0 control characters and spaces, so do the same here.
                                     let scheme_str = s.trim_start_matches(|c: char| c <= ' ');
 
                                     if let Some(index) = scheme_str.starts_with_ignore_ascii_case_with_lowercase_multiple(&["http:", "https:", "ftp:"]) {
-                                        match index {
+                                        let protocol = match index {
                                             0 => validators_prelude::Protocol::HTTP,
                                             1 => validators_prelude::Protocol::HTTPS,
                                             2 => validators_prelude::Protocol::FTP,
                                             _ => unreachable!()
-                                        }
+                                        };
+
+                                        (validators_prelude::url::Url::parse(s)?, protocol)
                                     } else {
-                                        return Err(#error_path::ProtocolError);
+                                        // The URL parser also removes tabs and newlines inside the scheme.
+                                        let url = validators_prelude::url::Url::parse(s).map_err(|_| #error_path::ProtocolError)?;
+                                        let protocol = match url.scheme() {
+                                            "http" => validators_prelude::Protocol::HTTP,
+                                            "https" => validators_prelude::Protocol::HTTPS,
+                                            "ftp" => validators_prelude::Protocol::FTP,
+                                            _ => return Err(#error_path::ProtocolError),
+                                        };
+
+                                        (url, protocol)
                                     }
                                 };
-
-                                let url = validators_prelude::url::Url::parse(s)?;
 
                                 #handle_local
 

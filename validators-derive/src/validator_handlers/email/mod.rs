@@ -751,8 +751,22 @@ impl ValidatorHandler for EmailHandler {
                                             Ok(ip) => {
                                                 domain_part_length = closing_bracket_index + 1;
 
+                                                struct LengthCounter(usize);
+
+                                                impl ::core::fmt::Write for LengthCounter {
+                                                    fn write_str(&mut self, s: &str) -> ::core::fmt::Result {
+                                                        self.0 += s.len();
+
+                                                        Ok(())
+                                                    }
+                                                }
+
+                                                let mut ip_length = LengthCounter(0);
+
+                                                ::core::fmt::write(&mut ip_length, ::core::format_args!("{}", ip)).unwrap();
+
                                                 // adjust length
-                                                domain_part_length_offset += validators_prelude::format!("{}", ip).len()
+                                                domain_part_length_offset += ip_length.0
                                                     as isize
                                                     - ip_str.len() as isize;
 
@@ -1019,7 +1033,7 @@ impl ValidatorHandler for EmailHandler {
                             // quoted
                             let mut p = local_part_length + 1;
 
-                            if p >= 63 || p == length {
+                            if p >= 64 || p == length {
                                 return Err(#error_path::Invalid);
                             }
 
@@ -1039,6 +1053,7 @@ impl ValidatorHandler for EmailHandler {
                                 | b'?'
                                 | b'^'..=b'`'
                                 | b'{'..=b'~' => (false, false, false),
+                                b'"' => (false, true, false),
                                 b'.' => (false, true, true),
                                 b'\\' => (true, true, false),
                                 #quoted_only => (false, true, false),
@@ -1047,7 +1062,9 @@ impl ValidatorHandler for EmailHandler {
                                 },
                             };
 
-                            p += 1;
+                            if e != b'"' {
+                                p += 1;
+                            }
 
                             loop {
                                 if p == length || p >= 64 {

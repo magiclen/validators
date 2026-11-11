@@ -41,7 +41,9 @@ fn basic() {
                     test("ftp://example.org/", false);
                     test("https://example.org/", !Validator::V_LOCAL.must());
                     test(" https://example.org/", !Validator::V_LOCAL.must());
+                    test("ht\ttps://example.org/", !Validator::V_LOCAL.must());
                     test("http://localhost:3000/", Validator::V_LOCAL.allow());
+                    test("ht\ntp://localhost:3000/", Validator::V_LOCAL.allow());
                     test("http://api.LOCALHOST.:3000/", Validator::V_LOCAL.allow());
                     test("http://127.0.0.1:3000/", Validator::V_LOCAL.allow());
                 }
@@ -60,4 +62,32 @@ fn basic() {
             local => Disallow,
         },
     }
+}
+
+#[test]
+fn normalized_protocol() {
+    use validators::errors::HttpURLError;
+
+    #[derive(Validator)]
+    #[validator(http_url)]
+    struct Address {
+        url:      url::Url,
+        is_https: bool,
+    }
+
+    for (input, expected, is_https) in [
+        ("ht\ttps://example.org/", "https://example.org/", true),
+        ("h\nttp://example.org/", "http://example.org/", false),
+        ("h\rTtPs://example.org/", "https://example.org/", true),
+        (" \0HTTPS://example.org/", "https://example.org/", true),
+    ] {
+        let address = Address::parse_str(input).unwrap();
+
+        assert_eq!(expected, address.url.as_str());
+        assert_eq!(is_https, address.is_https);
+    }
+
+    assert!(matches!(Address::parse_str("f\ttp://example.org/"), Err(HttpURLError::ProtocolError)));
+    assert!(matches!(Address::parse_str("ht\ttps://"), Err(HttpURLError::ProtocolError)));
+    assert!(matches!(Address::parse_str("https://"), Err(HttpURLError::ParseError(_))));
 }

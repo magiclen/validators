@@ -280,6 +280,7 @@ assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap(
 #### email
 
 See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
+An empty local part must be quoted, such as `""@example.com`.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "email"))]
@@ -411,6 +412,8 @@ assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example").is_err());
 
 #### http_url
 
+The URL parser removes ASCII TAB, LF, and CR before reading the protocol.
+
 ```rust
 # #[cfg(all(feature = "derive", feature = "http_url"))]
 # {
@@ -434,6 +437,8 @@ assert!(HttpURL::parse_string("ftp://example.org/").is_err());
 * By default, `local = Allow`
 
 #### http_ftp_url
+
+The URL parser removes ASCII TAB, LF, and CR before reading the protocol.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "http_ftp_url"))]
