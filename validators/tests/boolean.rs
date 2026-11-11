@@ -6,6 +6,26 @@ use validators::{Result, errors::BooleanError, prelude::*};
 #[validator(boolean)]
 pub struct Validator(pub bool);
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_shadowed_names() {
+    use validators::serde::{
+        Deserialize,
+        de::{IntoDeserializer, value::Error},
+    };
+
+    #[derive(Validator)]
+    #[validator(boolean)]
+    struct MyVisitor(bool);
+
+    #[derive(Validator)]
+    #[validator(boolean)]
+    struct E(bool);
+
+    assert!(MyVisitor::deserialize(IntoDeserializer::<Error>::into_deserializer(true)).unwrap().0);
+    assert!(E::deserialize(IntoDeserializer::<Error>::into_deserializer(true)).unwrap().0);
+}
+
 #[test]
 fn basic() {
     assert!(Validator::validate_str("").is_err());

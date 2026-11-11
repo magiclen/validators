@@ -17,6 +17,41 @@ pub struct TWPhone(pub PhoneNumber);
 #[validator(phone(countries(TW, US)))]
 pub struct TWorUSPhone(pub std::collections::HashMap<Id, PhoneNumber>);
 
+#[cfg(feature = "serde_json")]
+#[test]
+fn deserialize_shadowed_map_names() {
+    macro_rules! check {
+        ($($name:ident),* $(,)?) => {
+            $(
+                {
+                    #[allow(non_camel_case_types)]
+                    #[derive(Validator)]
+                    #[validator(phone(countries(TW, US)))]
+                    struct $name(std::collections::HashMap<Id, PhoneNumber>);
+
+                    let value: $name = validators::serde_json::from_str(r#"{"US":"+14155552671"}"#).unwrap();
+
+                    assert_eq!("+14155552671", value.0[&Id::US].to_string());
+                }
+            )*
+        };
+    }
+
+    check!(
+        MyVisitor,
+        __D,
+        A,
+        E,
+        Entry,
+        Error,
+        __ValidatorsMapAccess,
+        deserializer,
+        __validators_deserializer,
+        __validators_map,
+        __validators_value
+    );
+}
+
 #[test]
 fn basic() {
     assert!(InternationalPhone::validate_str("+886912345678").is_ok());

@@ -2,6 +2,47 @@
 
 use validators::prelude::*;
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_shadowed_names() {
+    use validators::serde::{
+        Deserialize,
+        de::{IntoDeserializer, value::Error},
+    };
+
+    #[derive(Validator)]
+    #[validator(base64)]
+    struct MyVisitor(String);
+
+    #[derive(Validator)]
+    #[validator(base64)]
+    struct __D(String);
+
+    type r#__ValidatorsVisitor1 = String;
+
+    #[derive(Validator)]
+    #[validator(base64)]
+    struct __ValidatorsVisitor(r#__ValidatorsVisitor1);
+
+    type __ValidatorsDeserializer1 = String;
+
+    #[derive(Validator)]
+    #[validator(base64)]
+    struct __ValidatorsDeserializer(__ValidatorsDeserializer1);
+
+    macro_rules! check {
+        ($($validator:ty),* $(,)?) => {
+            $(
+                let value = <$validator>::deserialize(IntoDeserializer::<Error>::into_deserializer("Zg==")).unwrap();
+
+                assert_eq!("Zg==", value.0);
+            )*
+        };
+    }
+
+    check!(MyVisitor, __D, __ValidatorsVisitor, __ValidatorsDeserializer);
+}
+
 #[test]
 fn rejects_invalid_utf8_with_shadowed_err() {
     use validators::errors::Base64Error;

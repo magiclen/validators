@@ -2,6 +2,23 @@
 
 use validators::prelude::*;
 
+#[test]
+fn without_length_bounds() {
+    #[derive(Validator)]
+    #[validator(line)]
+    struct Line(String);
+
+    for input in ["", "   ", "　　　", "123", "a\tb"] {
+        assert!(Line::validate_str(input).is_ok());
+        assert_eq!(input, Line::parse_str(input).unwrap().0);
+    }
+
+    for input in ["123\n456", "\n123", "123\u{2028}456", "123\u{85}456", "123\0"] {
+        assert!(Line::validate_str(input).is_err());
+        assert!(Line::parse_str(input).is_err());
+    }
+}
+
 fn check_char_length(
     s: &str,
     min: Option<usize>,
@@ -107,7 +124,6 @@ fn char() {
     }
 
     test! {
-        {},
         {
             min => 1,
         },

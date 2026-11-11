@@ -17,6 +17,15 @@ const ITEM: Struct = Struct(TypeEnum::Boolean);
 
 impl ValidatorHandler for BooleanHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+
         #[allow(unused_variables)]
         let type_attribute = BasicAttribute::build_from_meta(&meta)?;
 
@@ -322,12 +331,12 @@ impl ValidatorHandler for BooleanHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        struct #visitor;
 
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                             type Value = #name;
 
                                             #[inline]
@@ -352,7 +361,7 @@ impl ValidatorHandler for BooleanHandler {
                                             fn visit_bool<E>(self, v: bool) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                Ok(#name(v))
+                                                <Self::Value as ValidateBoolean>::parse_bool(v).map_err(validators_prelude::serde::de::Error::custom)
                                             }
 
                                             #[inline]
@@ -393,10 +402,10 @@ impl ValidatorHandler for BooleanHandler {
                                             }
                                         }
 
-                                        if deserializer.is_human_readable() {
-                                            deserializer.deserialize_any(MyVisitor)
+                                        if #deserializer_name.is_human_readable() {
+                                            #deserializer_name.deserialize_any(#visitor)
                                         } else {
-                                            deserializer.deserialize_bool(MyVisitor)
+                                            #deserializer_name.deserialize_bool(#visitor)
                                         }
                                     }
                                 }

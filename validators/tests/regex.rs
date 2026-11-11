@@ -4,6 +4,16 @@ use std::sync::LazyLock;
 
 use validators::{prelude::*, regex::Regex};
 
+#[test]
+fn parse_shadowed_name() {
+    #[derive(Validator)]
+    #[validator(regex(regex("^a$")))]
+    struct S(String);
+
+    assert_eq!("a", S::parse_str("a").unwrap().0);
+    assert_eq!("a", S::parse_string(String::from("a")).unwrap().0);
+}
+
 static RE_NON_ZERO_NUMBERS: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[1-9]+$").unwrap());
 
 static RE_POKER: LazyLock<Regex> = LazyLock::new(|| Regex::new("^([AJQK1-9]|10)$").unwrap());

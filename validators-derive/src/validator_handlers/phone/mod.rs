@@ -20,6 +20,21 @@ const ITEM_MAP: Struct = Struct(TypeEnum::HashMapPhoneNumber);
 
 impl ValidatorHandler for PhoneHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+        #[cfg(feature = "serde")]
+        let map_access = ident_generator.next("__ValidatorsMapAccess");
+        #[cfg(feature = "serde")]
+        let map_name = ident_generator.next("__validators_map");
+        #[cfg(feature = "serde")]
+        let value_name = ident_generator.next("__validators_value");
+
         let type_attribute = PhoneAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
@@ -232,61 +247,60 @@ impl ValidatorHandler for PhoneHandler {
                     let (visit_map, deserialize) = if countries.len() > 1 {
                         (
                             quote! {
-                                fn visit_map<A>(self, mut map: A) -> ::core::result::Result<Self::Value, A::Error>
+                                fn visit_map<#map_access>(self, mut #map_name: #map_access) -> ::core::result::Result<Self::Value, #map_access::Error>
                                 where
-                                    A: validators_prelude::serde::de::MapAccess<'de>, {
-                                    use ::std::collections::hash_map::Entry;
-                                    use validators_prelude::serde::de::Error;
+                                    #map_access: validators_prelude::serde::de::MapAccess<'de>, {
+                                    use validators_prelude::serde::de::Error as _;
 
-                                    let mut value = ::std::collections::HashMap::new();
+                                    let mut #value_name = ::std::collections::HashMap::new();
 
-                                    while let Some((country, s)) = map.next_entry::<validators_prelude::phonenumber::country::Id, validators_prelude::String>()? {
+                                    while let Some((country, s)) = #map_name.next_entry::<validators_prelude::phonenumber::country::Id, validators_prelude::String>()? {
                                         if !matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*) {
-                                            return Err(A::Error::custom(#error_path::Invalid));
+                                            return Err(#map_access::Error::custom(#error_path::Invalid));
                                         }
 
-                                        let Entry::Vacant(entry) = value.entry(country) else {
-                                            return Err(A::Error::custom("duplicate phone number country"));
+                                        let ::std::collections::hash_map::Entry::Vacant(entry) = #value_name.entry(country) else {
+                                            return Err(#map_access::Error::custom("duplicate phone number country"));
                                         };
 
                                         let phonenumber = validators_prelude::phonenumber::parse(Some(country), &s)
-                                            .map_err(|error| A::Error::custom(#error_path::from(error)))?;
+                                            .map_err(|error| #map_access::Error::custom(#error_path::from(error)))?;
 
                                         if phonenumber.country().id() != Some(country) || !phonenumber.is_valid() {
-                                            return Err(A::Error::custom(#error_path::Invalid));
+                                            return Err(#map_access::Error::custom(#error_path::Invalid));
                                         }
 
                                         entry.insert(phonenumber);
                                     }
 
-                                    if value.is_empty() {
-                                        return Err(A::Error::custom(#error_path::Invalid));
+                                    if #value_name.is_empty() {
+                                        return Err(#map_access::Error::custom(#error_path::Invalid));
                                     }
 
-                                    Ok(#name(value))
+                                    Ok(#name(#value_name))
                                 }
                             },
                             quote! {
-                                if deserializer.is_human_readable() {
-                                    deserializer.deserialize_any(MyVisitor)
+                                if #deserializer_name.is_human_readable() {
+                                    #deserializer_name.deserialize_any(#visitor)
                                 } else {
-                                    deserializer.deserialize_map(MyVisitor)
+                                    #deserializer_name.deserialize_map(#visitor)
                                 }
                             },
                         )
                     } else {
-                        (quote! {}, quote! { deserializer.deserialize_str(MyVisitor) })
+                        (quote! {}, quote! { #deserializer_name.deserialize_str(#visitor) })
                     };
 
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        struct #visitor;
 
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                             type Value = #name;
 
                                             #[inline]

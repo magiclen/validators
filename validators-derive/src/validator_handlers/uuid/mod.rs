@@ -20,6 +20,15 @@ const ITEM: Struct = Struct(TypeEnum::U128);
 
 impl ValidatorHandler for UuidHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+
         let type_attribute = UuidAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
@@ -248,88 +257,38 @@ impl ValidatorHandler for UuidHandler {
                     });
 
             let separator = type_attribute.separator.allow().map(char::from);
+            let (prepare_format, format_parameters, format_string) = if let Some(separator) =
+                separator
+            {
+                let format_string = if type_attribute.case.upper() {
+                    "{:02X}{:02X}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:\
+                     02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}"
+                } else {
+                    "{:02x}{:02x}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:\
+                     02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}"
+                };
 
-            token_stream.extend(if type_attribute.case.upper() {
-                        if let Some(separator) = separator {
-                            quote! {
-                                impl ToUuidString for #name {
-                                    #[inline]
-                                    fn to_uuid_string(&self) -> validators_prelude::String {
-                                        let bytes: [u8; 16] = self.0.to_le_bytes();
+                (
+                    quote! { let bytes: [u8; 16] = self.0.to_le_bytes(); },
+                    quote! { bytes[15], bytes[14], bytes[13], bytes[12], bytes[11], bytes[10], bytes[9], bytes[8], bytes[7], bytes[6], bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0], separator = #separator },
+                    format_string,
+                )
+            } else {
+                let format_string = if type_attribute.case.upper() { "{:032X}" } else { "{:032x}" };
 
-                                        validators_prelude::format!(
-                                            "{:02X}{:02X}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{separator}{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}",
-                                            bytes[15],
-                                            bytes[14],
-                                            bytes[13],
-                                            bytes[12],
-                                            bytes[11],
-                                            bytes[10],
-                                            bytes[9],
-                                            bytes[8],
-                                            bytes[7],
-                                            bytes[6],
-                                            bytes[5],
-                                            bytes[4],
-                                            bytes[3],
-                                            bytes[2],
-                                            bytes[1],
-                                            bytes[0],
-                                            separator = #separator
-                                        )
-                                    }
-                                }
-                            }
-                        } else {
-                            quote! {
-                                impl ToUuidString for #name {
-                                    #[inline]
-                                    fn to_uuid_string(&self) -> validators_prelude::String {
-                                        validators_prelude::format!("{:032X}", self.0)
-                                    }
-                                }
-                            }
-                        }
-                    } else if let Some(separator) = separator {
-                        quote! {
-                            impl ToUuidString for #name {
-                                #[inline]
-                                fn to_uuid_string(&self) -> validators_prelude::String {
-                                    let bytes: [u8; 16] = self.0.to_le_bytes();
+                (quote! {}, quote! { self.0 }, format_string)
+            };
 
-                                    validators_prelude::format!(
-                                        "{:02x}{:02x}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{separator}{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
-                                        bytes[15],
-                                        bytes[14],
-                                        bytes[13],
-                                        bytes[12],
-                                        bytes[11],
-                                        bytes[10],
-                                        bytes[9],
-                                        bytes[8],
-                                        bytes[7],
-                                        bytes[6],
-                                        bytes[5],
-                                        bytes[4],
-                                        bytes[3],
-                                        bytes[2],
-                                        bytes[1],
-                                        bytes[0],
-                                        separator = #separator
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        quote! {
-                            impl ToUuidString for #name {
-                                #[inline]
-                                fn to_uuid_string(&self) -> validators_prelude::String {
-                                    validators_prelude::format!("{:032x}", self.0)
-                                }
-                            }
-                        }
-                    });
+            token_stream.extend(quote! {
+                impl ToUuidString for #name {
+                    #[inline]
+                    fn to_uuid_string(&self) -> validators_prelude::String {
+                        #prepare_format
+
+                        validators_prelude::format!(#format_string, #format_parameters)
+                    }
+                }
+            });
 
             #[cfg(feature = "serde")]
             {
@@ -340,7 +299,9 @@ impl ValidatorHandler for UuidHandler {
                             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                                 where
                                     S: validators_prelude::serde::Serializer, {
-                                serializer.serialize_str(&ToUuidString::to_uuid_string(self))
+                                #prepare_format
+
+                                serializer.collect_str(&::core::format_args!(#format_string, #format_parameters))
                             }
                         }
                     });
@@ -385,12 +346,12 @@ impl ValidatorHandler for UuidHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        struct #visitor;
 
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                             type Value = #name;
 
                                             #[inline]
@@ -406,7 +367,7 @@ impl ValidatorHandler for UuidHandler {
                                             }
                                         }
 
-                                        deserializer.deserialize_str(MyVisitor)
+                                        #deserializer_name.deserialize_str(#visitor)
                                     }
                                 }
                             });

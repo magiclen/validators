@@ -17,6 +17,13 @@ const ITEM: Struct = Struct(TypeEnum::CollectionLength);
 
 impl ValidatorHandler for LengthHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+
         let type_attribute = LengthAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
@@ -177,10 +184,10 @@ impl ValidatorHandler for LengthHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        let v: #data_type = validators_prelude::serde::Deserialize::deserialize(deserializer)?;
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        let v: #data_type = validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?;
 
                                         Self::v_parse_v(&v).map_err(validators_prelude::serde::de::Error::custom)?;
 

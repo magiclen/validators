@@ -43,6 +43,16 @@ The struct used as a validator should possess specific components corresponding 
 
 The `#[validator(validator_name)]` attribute cannot be applied to fields within any structs or enums. The decision to use a procedural macro for defining a validator (i.e., a struct) instead of offering built-in structs for each configuration is motivated by the aim to eliminate runtime overhead for configurable validations and to enhance compilation speed.
 
+An explicit `range(Inside(...))` or `range(Outside(...))` must specify at least one `min` or `max` bound.
+The same requirement applies to `range(...)` in the `bit` and `byte` validators.
+An explicit `inclusive = true` or `inclusive = false` requires `max`, because it controls whether the upper bound is included.
+With `full`, range expressions also need at least one endpoint; an unbounded `..` is rejected in both the parenthesized and `=` forms.
+To leave the range unrestricted, omit `range`, or use `range(Unlimited)` with `number`, `signed_integer`, or `unsigned_integer`.
+
+For `line` and `text`, an explicit `char_length(...)` or `byte_length(...)` must specify at least one of `min`, `max`, or `trimmed_min`; zero is a valid bound.
+Omit these parameters to keep character validation without a length restriction.
+The collection `length` validator still defaults to unrestricted length when its bounds are omitted.
+
 #### base32
 
 ```rust

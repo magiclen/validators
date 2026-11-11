@@ -29,6 +29,15 @@ enum UnsignedIntegerType {
 
 impl ValidatorHandler for UnsignedIntegerHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
             && data.fields.len() == 1
@@ -572,12 +581,12 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        struct #visitor;
 
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                             type Value = #name;
 
                                             #[inline]
@@ -650,10 +659,10 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                             }
                                         }
 
-                                        if deserializer.is_human_readable() {
-                                            deserializer.deserialize_any(MyVisitor)
+                                        if #deserializer_name.is_human_readable() {
+                                            #deserializer_name.deserialize_any(#visitor)
                                         } else {
-                                            deserializer.#deserialize_binary(MyVisitor)
+                                            #deserializer_name.#deserialize_binary(#visitor)
                                         }
                                     }
                                 }

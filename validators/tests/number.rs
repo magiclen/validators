@@ -217,14 +217,14 @@ fn basic() {
                     #[validator(number($($p($v),)*conflict(Allow)))]
                     pub struct F64(f64);
 
-                    // test_inner!(
-                    //     stringify! {
-                    //         $(
-                    //             $p = $v,
-                    //         )*
-                    //     };
-                    //     F64,
-                    // );
+                    test_inner!(
+                        stringify! {
+                            $(
+                                $p = $v,
+                            )*
+                        };
+                        F64,
+                    );
                 }
             )*
         }

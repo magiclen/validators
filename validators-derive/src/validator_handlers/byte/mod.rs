@@ -20,6 +20,13 @@ const ITEM: Struct = Struct(TypeEnum::Byte);
 
 impl ValidatorHandler for ByteHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+
         let type_attribute = ByteAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
@@ -199,10 +206,10 @@ impl ValidatorHandler for ByteHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        validators_prelude::deserialize_byte_unit(deserializer, #expect, #error_path::TooSmall)?
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        validators_prelude::deserialize_byte_unit(#deserializer_name, #expect, #error_path::TooSmall)?
                                             .map_err(validators_prelude::serde::de::Error::custom)
                                     }
                                 }

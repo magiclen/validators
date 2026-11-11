@@ -38,6 +38,15 @@ const ITEM_WITH_PORT: StructAllowPort = StructAllowPort {
 
 impl ValidatorHandler for Ipv4Handler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+
         let type_attribute = IpXXAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data {
@@ -399,12 +408,12 @@ impl ValidatorHandler for Ipv4Handler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                            fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                             where
-                                __D: validators_prelude::serde::Deserializer<'de>, {
-                                struct MyVisitor;
+                                #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                struct #visitor;
 
-                                impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                     type Value = #name;
 
                                     #[inline]
@@ -420,7 +429,7 @@ impl ValidatorHandler for Ipv4Handler {
                                     }
                                 }
 
-                                deserializer.deserialize_str(MyVisitor)
+                                #deserializer_name.deserialize_str(#visitor)
                             }
                         }
                     });

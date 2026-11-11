@@ -165,6 +165,15 @@ const ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP: StructAllowCommentAllowLocal =
 
 impl ValidatorHandler for EmailHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+
         let type_attribute = EmailAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data {
@@ -747,7 +756,7 @@ impl ValidatorHandler for EmailHandler {
                                                     as isize
                                                     - ip_str.len() as isize;
 
-                                                (validators_prelude::Host::IPv6(ip), #handle_local_ipv6)
+                                                (::core::result::Result::Ok(::std::net::IpAddr::V6(ip)), #handle_local_ipv6)
                                             }
                                             Err(_) => return Err(#error_path::Invalid),
                                         }
@@ -768,7 +777,7 @@ impl ValidatorHandler for EmailHandler {
                                         Ok(ip) => {
                                             domain_part_length = closing_bracket_index + 1;
 
-                                            (validators_prelude::Host::IPv4(ip), #handle_local_ipv4)
+                                            (::core::result::Result::Ok(::std::net::IpAddr::V4(ip)), #handle_local_ipv4)
                                         }
                                         Err(_) => return Err(#error_path::Invalid),
                                     }
@@ -857,7 +866,7 @@ impl ValidatorHandler for EmailHandler {
                             domain_part_length_offset +=
                                 ascii_domain.len() as isize - domain_str.len() as isize;
 
-                            (validators_prelude::Host::Domain(ascii_domain.into_owned()), is_local)
+                            (::core::result::Result::Err(ascii_domain), is_local)
                         }
                         Err(_) => return Err(#error_path::Invalid),
                     }
@@ -989,7 +998,7 @@ impl ValidatorHandler for EmailHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, validators_prelude::Host, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, ::core::result::Result<::std::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
                         #parse_comment
 
                         let bytes = s.as_bytes();
@@ -1212,7 +1221,7 @@ impl ValidatorHandler for EmailHandler {
 
                         let mut domain_part_length_offset = 0isize;
 
-                        let (host, is_local): (validators_prelude::Host, bool) = match bytes[domain_part_length] {
+                        let (host, is_local): (::core::result::Result<::std::net::IpAddr, validators_prelude::Cow<'_, str>>, bool) = match bytes[domain_part_length] {
                             b'(' => return Err(#error_path::Invalid),
                             b'[' => {
                                 #handle_ip
@@ -1230,7 +1239,7 @@ impl ValidatorHandler for EmailHandler {
 
                         // RFC 5321 limits an address without comments to 254 octets.
                         // An IP literal is too short to reach this limit.
-                        if let validators_prelude::Host::Domain(domain) = &host {
+                        if let ::core::result::Result::Err(domain) = &host {
                             let quotes_length = if need_quoted { 2 } else { 0 };
 
                             if local_part.len() + quotes_length + 1 + domain.len() > 254 {
@@ -1482,6 +1491,11 @@ impl ValidatorHandler for EmailHandler {
 
             let parse = quote! {
                 let (local_part, need_quoted, domain_part, _comment_before_local_part, _comment_after_local_part, _comment_before_domain_part, _comment_after_domain_part, _is_local) = Self::v_parse_str(s)?;
+                let domain_part = match domain_part {
+                    ::core::result::Result::Ok(::std::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
+                    ::core::result::Result::Ok(::std::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
+                    ::core::result::Result::Err(domain) => validators_prelude::Host::Domain(domain.into_owned()),
+                };
                 let local_part = validators_prelude::String::from(local_part);
 
                 #own_comments
@@ -1510,9 +1524,7 @@ impl ValidatorHandler for EmailHandler {
 
                     #[inline]
                     fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
-                        Self::v_parse_str(s.as_ref())?;
-
-                        Ok(())
+                        Self::v_parse_str(s.as_ref()).map(|_| ())
                     }
                 }
             });
@@ -1730,12 +1742,12 @@ impl ValidatorHandler for EmailHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                            fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                             where
-                                __D: validators_prelude::serde::Deserializer<'de>, {
-                                struct MyVisitor;
+                                #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                struct #visitor;
 
-                                impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                     type Value = #name;
 
                                     #[inline]
@@ -1751,7 +1763,7 @@ impl ValidatorHandler for EmailHandler {
                                     }
                                 }
 
-                                deserializer.deserialize_str(MyVisitor)
+                                #deserializer_name.deserialize_str(#visitor)
                             }
                         }
                     });

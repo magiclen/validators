@@ -17,6 +17,15 @@ const ITEM: Struct = Struct(TypeEnum::String);
 
 impl ValidatorHandler for RegexHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+        #[cfg(feature = "serde")]
+        let visitor = ident_generator.next("__ValidatorsVisitor");
+
         let type_attribute = RegexAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
@@ -54,7 +63,7 @@ impl ValidatorHandler for RegexHandler {
 
                                 Self::v_parse_str(s.as_str())?;
 
-                                Ok(#name(s))
+                                Ok(Self(s))
                             }
 
                             #[inline]
@@ -63,7 +72,7 @@ impl ValidatorHandler for RegexHandler {
 
                                 Self::v_parse_str(s)?;
 
-                                Ok(#name(validators_prelude::String::from(s)))
+                                Ok(Self(validators_prelude::String::from(s)))
                             }
 
                             #[inline]
@@ -96,12 +105,12 @@ impl ValidatorHandler for RegexHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        struct MyVisitor;
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        struct #visitor;
 
-                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for MyVisitor {
+                                        impl<'de> validators_prelude::serde::de::Visitor<'de> for #visitor {
                                             type Value = #name;
 
                                             #[inline]
@@ -124,7 +133,7 @@ impl ValidatorHandler for RegexHandler {
                                             }
                                         }
 
-                                        deserializer.deserialize_string(MyVisitor)
+                                        #deserializer_name.deserialize_string(#visitor)
                                     }
                                 }
                             });

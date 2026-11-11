@@ -17,6 +17,13 @@ const ITEM: Struct = Struct(TypeEnum::U32);
 
 impl ValidatorHandler for HexColorHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+
         let type_attribute = HexAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
@@ -37,21 +44,30 @@ impl ValidatorHandler for HexColorHandler {
                 TriAllow::Allow => (quote! { 3 | 4 }, quote! { 6 | 8 }),
                 TriAllow::Disallow => (quote! { 3 }, quote! { 6 }),
             };
-            let format_color = match type_attribute.alpha {
-                TriAllow::Must => quote! {
-                    validators_prelude::format!(#rgba_format, self.0)
-                },
-                TriAllow::Allow => quote! {
-                    if (self.0 & 0xFF) == 0xFF {
-                        validators_prelude::format!(#rgb_format, self.0 >> 8)
+            let format_color = |serialize: bool| {
+                let format_value = |format, value| {
+                    if serialize {
+                        quote! { serializer.collect_str(&::core::format_args!(#format, #value)) }
                     } else {
-                        validators_prelude::format!(#rgba_format, self.0)
+                        quote! { validators_prelude::format!(#format, #value) }
                     }
-                },
-                TriAllow::Disallow => quote! {
-                    validators_prelude::format!(#rgb_format, self.0 >> 8)
-                },
+                };
+                let rgb = format_value(rgb_format, quote! { self.0 >> 8 });
+                let rgba = format_value(rgba_format, quote! { self.0 });
+
+                match type_attribute.alpha {
+                    TriAllow::Must => rgba,
+                    TriAllow::Allow => quote! {
+                        if (self.0 & 0xFF) == 0xFF {
+                            #rgb
+                        } else {
+                            #rgba
+                        }
+                    },
+                    TriAllow::Disallow => rgb,
+                }
             };
+            let format_color_string = format_color(false);
             let mut token_stream = proc_macro2::TokenStream::new();
 
             token_stream.extend(quote! {
@@ -108,7 +124,7 @@ impl ValidatorHandler for HexColorHandler {
                 impl ToHexColorString for #name {
                     #[inline]
                     fn to_hex_color_string(&self) -> validators_prelude::String {
-                        #format_color
+                        #format_color_string
                     }
                 }
             });
@@ -116,6 +132,7 @@ impl ValidatorHandler for HexColorHandler {
             #[cfg(feature = "serde")]
             {
                 if type_attribute.serde_options.serialize {
+                    let serialize_color = format_color(true);
                     token_stream.extend(quote! {
                         impl validators_prelude::serde::Serialize for #name {
                             #[inline]
@@ -123,7 +140,7 @@ impl ValidatorHandler for HexColorHandler {
                             where
                                 S: validators_prelude::serde::Serializer,
                             {
-                                serializer.serialize_str(&ToHexColorString::to_hex_color_string(self))
+                                #serialize_color
                             }
                         }
                     });
@@ -141,9 +158,9 @@ impl ValidatorHandler for HexColorHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                            fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                             where
-                                __D: validators_prelude::serde::Deserializer<'de>,
+                                #deserializer: validators_prelude::serde::Deserializer<'de>,
                             {
                                 struct MyVisitor<T>(::core::marker::PhantomData<T>);
 
@@ -166,7 +183,7 @@ impl ValidatorHandler for HexColorHandler {
                                     }
                                 }
 
-                                deserializer.deserialize_str(MyVisitor::<Self>(::core::marker::PhantomData))
+                                #deserializer_name.deserialize_str(MyVisitor::<Self>(::core::marker::PhantomData))
                             }
                         }
                     });

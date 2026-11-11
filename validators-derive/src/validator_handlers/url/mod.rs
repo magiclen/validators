@@ -17,6 +17,13 @@ const ITEM: Struct = Struct(TypeEnum::Url);
 
 impl ValidatorHandler for UrlHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        #[cfg(feature = "serde")]
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        #[cfg(feature = "serde")]
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+
         #[allow(unused_variables)]
         let type_attribute = BasicAttribute::build_from_meta(&meta)?;
 
@@ -81,10 +88,10 @@ impl ValidatorHandler for UrlHandler {
                     token_stream.extend(quote! {
                         impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                             #[inline]
-                            fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                            fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                             where
-                                __D: validators_prelude::serde::Deserializer<'de>, {
-                                validators_prelude::serde::Deserialize::deserialize(deserializer).map(Self)
+                                #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                validators_prelude::serde::Deserialize::deserialize(#deserializer_name).map(Self)
                             }
                         }
                     });

@@ -17,6 +17,11 @@ const ITEM: Struct = Struct(TypeEnum::Serde);
 
 impl ValidatorHandler for JsonHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
+        let mut ident_generator = crate::common::ident_generator::IdentGenerator::new(&ast);
+        #[cfg(feature = "serde")]
+        let deserializer = ident_generator.next("__ValidatorsDeserializer");
+        let deserializer_name = ident_generator.next("__validators_deserializer");
+
         #[allow(unused_variables)]
         let type_attribute = BasicAttribute::build_from_meta(&meta)?;
 
@@ -43,9 +48,9 @@ impl ValidatorHandler for JsonHandler {
                                 match validators_prelude::serde_json::to_value(i) {
                                     Ok(value) => Self::v_parse_json_value(value),
                                     Err(_) => {
-                                        let deserializer = <i128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(i);
+                                        let #deserializer_name = <i128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(i);
 
-                                        Ok(validators_prelude::serde::Deserialize::deserialize(deserializer)?)
+                                        Ok(validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?)
                                     }
                                 }
                             }
@@ -62,9 +67,9 @@ impl ValidatorHandler for JsonHandler {
                                 match validators_prelude::serde_json::to_value(u) {
                                     Ok(value) => Self::v_parse_json_value(value),
                                     Err(_) => {
-                                        let deserializer = <u128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(u);
+                                        let #deserializer_name = <u128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(u);
 
-                                        Ok(validators_prelude::serde::Deserialize::deserialize(deserializer)?)
+                                        Ok(validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?)
                                     }
                                 }
                             }
@@ -260,10 +265,10 @@ impl ValidatorHandler for JsonHandler {
                     token_stream.extend(quote! {
                                 impl<'de> validators_prelude::serde::Deserialize<'de> for #name {
                                     #[inline]
-                                    fn deserialize<__D>(deserializer: __D) -> ::core::result::Result<Self, __D::Error>
+                                    fn deserialize<#deserializer>(#deserializer_name: #deserializer) -> ::core::result::Result<Self, #deserializer::Error>
                                     where
-                                        __D: validators_prelude::serde::Deserializer<'de>, {
-                                        validators_prelude::serde::Deserialize::deserialize(deserializer).map(Self)
+                                        #deserializer: validators_prelude::serde::Deserializer<'de>, {
+                                        validators_prelude::serde::Deserialize::deserialize(#deserializer_name).map(Self)
                                     }
                                 }
                             });

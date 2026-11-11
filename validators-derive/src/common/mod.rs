@@ -9,6 +9,10 @@ pub(crate) mod serde_options;
 #[allow(dead_code)]
 pub(crate) mod type_enum;
 
+#[cfg(any(feature = "serde", feature = "json"))]
+#[allow(dead_code)]
+pub(crate) mod ident_generator;
+
 #[cfg(any(
     feature = "test",
     feature = "domain",

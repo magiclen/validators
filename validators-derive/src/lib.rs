@@ -230,3 +230,183 @@ pub fn validator_derive(input: TokenStream) -> TokenStream {
 
     derive_input.0.into()
 }
+
+#[cfg(all(
+    test,
+    any(
+        feature = "number",
+        feature = "signed_integer",
+        feature = "unsigned_integer",
+        feature = "bit",
+        feature = "byte",
+        feature = "line",
+        feature = "text",
+        feature = "length",
+    )
+))]
+mod tests {
+    use super::derive_input_handler;
+
+    fn check_attribute(attribute: &str, data_type: &str, expected_error: Option<&str>) {
+        let input =
+            syn::parse_str(&format!("#[validator({attribute})] struct Value({data_type});"))
+                .unwrap();
+        let result = derive_input_handler(input);
+
+        if let Some(expected) = expected_error {
+            assert_eq!(expected, result.unwrap_err().to_string(), "{attribute}");
+        } else {
+            assert!(result.is_ok(), "{attribute}: {result:?}");
+        }
+    }
+
+    #[cfg(any(feature = "number", feature = "signed_integer", feature = "unsigned_integer"))]
+    #[test]
+    fn numeric_range_parameters() {
+        for (validator, data_type) in [
+            #[cfg(feature = "number")]
+            ("number", "f64"),
+            #[cfg(feature = "signed_integer")]
+            ("signed_integer", "i64"),
+            #[cfg(feature = "unsigned_integer")]
+            ("unsigned_integer", "u64"),
+        ] {
+            check_attribute(validator, data_type, None);
+            check_attribute(&format!("{validator}(range(Unlimited))"), data_type, None);
+
+            for direction in ["Inside", "Outside"] {
+                check_attribute(
+                    &format!("{validator}(range({direction}()))"),
+                    data_type,
+                    Some("expected at least one `min` or `max` bound"),
+                );
+
+                for flag in ["true", "false"] {
+                    for bounds in
+                        [format!("inclusive = {flag}"), format!("min = 0, inclusive = {flag}")]
+                    {
+                        check_attribute(
+                            &format!("{validator}(range({direction}({bounds})))"),
+                            data_type,
+                            Some("`inclusive` requires a `max` bound"),
+                        );
+                    }
+                }
+
+                for bounds in [
+                    "min = 0",
+                    "max = 1",
+                    "max = 1, inclusive = true",
+                    "max = 1, inclusive = false",
+                    "min = 0, max = 1, inclusive = false",
+                ] {
+                    check_attribute(
+                        &format!("{validator}(range({direction}({bounds})))"),
+                        data_type,
+                        None,
+                    );
+                }
+
+                #[cfg(feature = "full")]
+                for expression in ["(..)", " = ..", "(0..)", " = 0..", "(..1)", "(..=1)", "(0..=1)"]
+                {
+                    check_attribute(
+                        &format!("{validator}(range({direction}{expression}))"),
+                        data_type,
+                        if matches!(expression, "(..)" | " = ..") {
+                            Some("expected at least one `min` or `max` bound")
+                        } else {
+                            None
+                        },
+                    );
+                }
+            }
+        }
+    }
+
+    #[cfg(any(feature = "bit", feature = "byte"))]
+    #[test]
+    fn byte_unit_range_parameters() {
+        for (validator, data_type) in [
+            #[cfg(feature = "bit")]
+            ("bit", "validators_prelude::byte_unit::Bit"),
+            #[cfg(feature = "byte")]
+            ("byte", "validators_prelude::byte_unit::Byte"),
+        ] {
+            check_attribute(validator, data_type, None);
+            check_attribute(
+                &format!("{validator}(range())"),
+                data_type,
+                Some("expected at least one `min` or `max` bound"),
+            );
+
+            for flag in ["true", "false"] {
+                for bounds in
+                    [format!("inclusive = {flag}"), format!("min = 0, inclusive = {flag}")]
+                {
+                    check_attribute(
+                        &format!("{validator}(range({bounds}))"),
+                        data_type,
+                        Some("`inclusive` requires a `max` bound"),
+                    );
+                }
+            }
+
+            for bounds in [
+                "min = 0",
+                "max = 1",
+                "max = 1, inclusive = true",
+                "max = 1, inclusive = false",
+                "min = 0, max = 1, inclusive = false",
+            ] {
+                check_attribute(&format!("{validator}(range({bounds}))"), data_type, None);
+            }
+
+            #[cfg(feature = "full")]
+            for expression in ["(..)", " = ..", "(0..)", " = 0..", "(..1)", "(..=1)", "(0..=1)"] {
+                check_attribute(
+                    &format!("{validator}(range{expression})"),
+                    data_type,
+                    if matches!(expression, "(..)" | " = ..") {
+                        Some("expected at least one `min` or `max` bound")
+                    } else {
+                        None
+                    },
+                );
+            }
+        }
+    }
+
+    #[cfg(any(feature = "line", feature = "text"))]
+    #[test]
+    fn string_length_parameters() {
+        for validator in [
+            #[cfg(feature = "line")]
+            "line",
+            #[cfg(feature = "text")]
+            "text",
+        ] {
+            check_attribute(validator, "String", None);
+
+            for length in ["char_length", "byte_length"] {
+                check_attribute(
+                    &format!("{validator}({length}())"),
+                    "String",
+                    Some("expected at least one `min`, `max`, or `trimmed_min` length bound"),
+                );
+
+                for bounds in ["min = 0", "max = 0", "trimmed_min = 0", "min = 1, max = 3"] {
+                    check_attribute(&format!("{validator}({length}({bounds}))"), "String", None);
+                }
+            }
+        }
+    }
+
+    #[cfg(feature = "length")]
+    #[test]
+    fn collection_length_defaults() {
+        for attribute in ["length", "length()", "length(serde = false)", "length(min = 0)"] {
+            check_attribute(attribute, "Vec<u8>", None);
+        }
+    }
+}

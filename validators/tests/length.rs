@@ -12,6 +12,26 @@ pub struct NonEmptyVec(pub Vec<u8>);
 #[validator(length(min = 1, max = 100))]
 pub struct Set(pub BTreeSet<isize>);
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_shadowed_field_type() {
+    use validators::serde::{
+        Deserialize,
+        de::value::{Error, SeqDeserializer},
+    };
+
+    type __D = Vec<u8>;
+
+    #[derive(Validator)]
+    #[validator(length(min = 1))]
+    struct Values(__D);
+
+    let value =
+        Values::deserialize(SeqDeserializer::<_, Error>::new([1u8, 2].into_iter())).unwrap();
+
+    assert_eq!(vec![1, 2], value.0);
+}
+
 #[test]
 fn basic() {
     #[derive(Validator)]

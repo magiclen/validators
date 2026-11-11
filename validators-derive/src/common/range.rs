@@ -192,6 +192,13 @@ where
                         ));
                     }
                 }
+
+                if inclusive_is_set && max.is_none() {
+                    return Err(syn::Error::new_spanned(
+                        meta.path(),
+                        "`inclusive` requires a `max` bound",
+                    ));
+                }
             },
         }
 
@@ -204,6 +211,13 @@ where
     }
 
     fn check_bounds(self, tokens: &impl ToTokens) -> syn::Result<Self> {
+        if self.min.is_none() && self.max.is_none() {
+            return Err(syn::Error::new_spanned(
+                tokens,
+                "expected at least one `min` or `max` bound",
+            ));
+        }
+
         if self.min.is_some_and(|min| !min.is_finite())
             || self.max.is_some_and(|max| !max.is_finite())
         {

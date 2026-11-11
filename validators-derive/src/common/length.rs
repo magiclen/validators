@@ -90,6 +90,13 @@ impl Length {
             },
         }
 
+        if min.is_none() && trimmed_min.is_none() && max.is_none() {
+            return Err(syn::Error::new_spanned(
+                meta.path(),
+                "expected at least one `min`, `max`, or `trimmed_min` length bound",
+            ));
+        }
+
         if let Some(min) = min {
             if let Some(trimmed_min) = trimmed_min
                 && trimmed_min > min
