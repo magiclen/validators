@@ -1,5 +1,15 @@
 use syn::{DeriveInput, Meta};
 
+#[cfg(any(
+    feature = "base32",
+    feature = "base32_decoded",
+    feature = "base64",
+    feature = "base64_decoded",
+    feature = "base64_url",
+    feature = "base64_url_decoded"
+))]
+mod base_xx;
+
 #[cfg(feature = "base32")]
 pub(crate) mod base32;
 
