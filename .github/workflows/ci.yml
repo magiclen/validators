@@ -54,6 +54,7 @@ jobs:
           - --no-default-features --features byte --features derive --features test
           - --no-default-features --features domain --features derive --features test
           - --no-default-features --features email --features derive --features test
+          - --no-default-features --features hex_color --features derive --features test
           - --no-default-features --features hex_decoded --features derive --features test
           - --no-default-features --features host --features derive --features test
           - --no-default-features --features http_url --features derive --features test
@@ -112,6 +113,7 @@ jobs:
           - --no-default-features --features byte --features derive --features test
           - --no-default-features --features domain --features derive --features test
           - --no-default-features --features email --features derive --features test
+          - --no-default-features --features hex_color --features derive --features test
           - --no-default-features --features hex_decoded --features derive --features test
           - --no-default-features --features host --features derive --features test
           - --no-default-features --features http_url --features derive --features test

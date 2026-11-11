@@ -50,6 +50,11 @@ mod to_email_string;
 #[cfg(feature = "email")]
 pub use to_email_string::*;
 
+#[cfg(feature = "hex_color")]
+mod to_hex_color_string;
+#[cfg(feature = "hex_color")]
+pub use to_hex_color_string::*;
+
 #[cfg(feature = "json")]
 mod to_json_string;
 #[cfg(feature = "json")]

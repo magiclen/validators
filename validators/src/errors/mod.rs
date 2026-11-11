@@ -56,6 +56,11 @@ mod email;
 #[cfg(feature = "email")]
 pub use self::email::*;
 
+#[cfg(feature = "hex_color")]
+mod hex_color;
+#[cfg(feature = "hex_color")]
+pub use self::hex_color::*;
+
 #[cfg(feature = "hex_decoded")]
 mod hex_decoded;
 #[cfg(feature = "hex_decoded")]

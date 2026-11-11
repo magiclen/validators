@@ -1,11 +1,11 @@
-mod hex_decoded_attribute;
-
-use hex_decoded_attribute::HexDecodedAttribute;
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, Meta, Path};
 
 use super::ValidatorHandler;
-use crate::{common::type_enum::TypeEnum, panic};
+use crate::{
+    common::{attributes::hex_attribute::HexAttribute, type_enum::TypeEnum},
+    panic,
+};
 
 pub(crate) struct HexDecodedHandler;
 
@@ -17,7 +17,7 @@ const ITEM: Struct = Struct(TypeEnum::VecU8);
 
 impl ValidatorHandler for HexDecodedHandler {
     fn meta_handler(ast: DeriveInput, meta: Meta) -> syn::Result<proc_macro2::TokenStream> {
-        let type_attribute = HexDecodedAttribute::build_from_meta(&meta)?;
+        let type_attribute = HexAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data
             && let Fields::Unnamed(_) = &data.fields
@@ -26,16 +26,7 @@ impl ValidatorHandler for HexDecodedHandler {
             let name = ast.ident;
             let error_path: Path =
                 syn::parse2(quote! { validators_prelude::HexDecodedError }).unwrap();
-            let lower = type_attribute.case.lower().then(|| {
-                quote! {
-                    b'a'..=b'f' => Ok(digit - (b'a' - 10)),
-                }
-            });
-            let upper = type_attribute.case.upper().then(|| {
-                quote! {
-                    b'A'..=b'F' => Ok(digit - (b'A' - 10)),
-                }
-            });
+            let digit_decoder = type_attribute.digit_decoder(&error_path);
 
             let mut token_stream = proc_macro2::TokenStream::new();
 
@@ -50,15 +41,7 @@ impl ValidatorHandler for HexDecodedHandler {
                         Ok(())
                     }
 
-                    #[inline]
-                    fn v_decode_hex_digit(digit: u8) -> ::core::result::Result<u8, #error_path> {
-                        match digit {
-                            b'0'..=b'9' => Ok(digit - b'0'),
-                            #lower
-                            #upper
-                            _ => Err(#error_path),
-                        }
-                    }
+                    #digit_decoder
 
                     fn v_parse_u8_slice(v: &[u8]) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
                         Self::v_check_hex_length(v)?;

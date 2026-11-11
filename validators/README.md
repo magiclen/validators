@@ -275,6 +275,43 @@ assert!(EmailWithoutComment::parse_string("(john)joke@example.com").is_err());
 * Traits: `ValidateString`, `ToEmailString`
 * By default, `comment = Allow, ip = Allow, local = Allow, at_least_two_labels = Allow, non_ascii = Allow`
 
+#### hex_color
+
+This validator reads CSS hex colors in the forms `#RGB`, `#RGBA`, `#RRGGBB`, and `#RRGGBBAA`.
+The inner `u32` uses the order `0xRRGGBBAA`.
+Short forms repeat each digit, and an omitted alpha becomes `FF`.
+Leading and trailing whitespace is rejected.
+With the default alpha setting, the output has six digits for fully opaque colors and eight digits for other colors.
+Serde writes and reads the same hex color string in both human-readable and binary formats.
+
+```rust
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(hex_color(case(Lower), alpha(Must)))]
+pub struct HexColor(pub u32);
+
+let color = HexColor::parse_str("#abc8").unwrap();
+
+assert_eq!(0xAABBCC88, color.0);
+assert_eq!("#aabbcc88", color.to_hex_color_string());
+assert_eq!("#aabbccff", HexColor::parse_str("#abcf").unwrap().to_hex_color_string());
+```
+
+* Traits: `ValidateString`, `ToHexColorString`
+* By default, `case = Any`, which allows mixed case and writes uppercase letters.
+* Use `case(Upper)` or `case(Lower)` to require and write one letter case.
+* By default, `alpha = Allow`.
+
+| `alpha` | Accepted input | Output |
+|---|---|---|
+| `Must` | `#RGBA`, `#RRGGBBAA` | Eight digits, including an alpha of `FF` |
+| `Allow` | All four forms | Six digits for an alpha of `FF`, otherwise eight digits |
+| `Disallow` | `#RGB`, `#RRGGBB` | Six digits |
+
+`alpha(Must)` requires an explicit alpha, and `FF` is valid.
+Both `alpha(Must)` and `alpha = Must` are supported.
+
 #### hex_decoded
 
 This validator decodes a non-empty string of ASCII hex digits.

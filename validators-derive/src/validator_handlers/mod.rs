@@ -33,6 +33,9 @@ pub(crate) mod domain;
 #[cfg(feature = "email")]
 pub(crate) mod email;
 
+#[cfg(feature = "hex_color")]
+pub(crate) mod hex_color;
+
 #[cfg(feature = "hex_decoded")]
 pub(crate) mod hex_decoded;
 

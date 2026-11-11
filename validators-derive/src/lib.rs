@@ -107,6 +107,10 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
             Validator::email => {
                 return validator_handlers::email::EmailHandler::meta_handler(ast, meta);
             },
+            #[cfg(feature = "hex_color")]
+            Validator::hex_color => {
+                return validator_handlers::hex_color::HexColorHandler::meta_handler(ast, meta);
+            },
             #[cfg(feature = "hex_decoded")]
             Validator::hex_decoded => {
                 return validator_handlers::hex_decoded::HexDecodedHandler::meta_handler(ast, meta);

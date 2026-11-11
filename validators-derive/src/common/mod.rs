@@ -29,7 +29,13 @@ pub(crate) mod allow;
 ))]
 #[allow(dead_code)]
 pub(crate) mod boolean;
-#[cfg(any(feature = "test", feature = "hex_decoded", feature = "mac_address", feature = "uuid"))]
+#[cfg(any(
+    feature = "test",
+    feature = "hex_color",
+    feature = "hex_decoded",
+    feature = "mac_address",
+    feature = "uuid"
+))]
 #[allow(dead_code)]
 pub(crate) mod case_option;
 #[cfg(any(feature = "line", feature = "text"))]
@@ -79,6 +85,7 @@ pub(crate) mod separator_option;
     feature = "base64_url_decoded",
     feature = "domain",
     feature = "email",
+    feature = "hex_color",
     feature = "host",
     feature = "http_url",
     feature = "http_ftp_url",

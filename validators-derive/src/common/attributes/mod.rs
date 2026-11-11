@@ -15,6 +15,8 @@ pub(crate) mod base_xx_attribute;
     feature = "url"
 ))]
 pub(crate) mod basic_attribute;
+#[cfg(any(feature = "hex_color", feature = "hex_decoded"))]
+pub(crate) mod hex_attribute;
 #[cfg(any(feature = "http_url", feature = "http_ftp_url"))]
 pub(crate) mod http_xx_url_attribute;
 #[cfg(any(feature = "ip", feature = "ipv4", feature = "ipv6"))]

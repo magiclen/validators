@@ -34,6 +34,7 @@ impl_into_response! {
     ("byte", ByteError),
     ("domain", DomainError),
     ("email", EmailError),
+    ("hex_color", HexColorError),
     ("hex_decoded", HexDecodedError),
     ("host", HostError),
     ("http_url", HttpURLError),

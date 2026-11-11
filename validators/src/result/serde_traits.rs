@@ -602,6 +602,35 @@ impl<'de, T: ValidateString<Error = EmailError>> serde::Deserialize<'de> for Res
     }
 }
 
+#[cfg(feature = "hex_color")]
+impl<'de, T: ValidateString<Error = HexColorError>> serde::Deserialize<'de>
+    for Result<T, HexColorError>
+{
+    #[inline]
+    fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>, {
+        struct MyVisitor<T>(PhantomData<T>);
+
+        impl<'de, T: ValidateString<Error = HexColorError>> Visitor<'de> for MyVisitor<T> {
+            type Value = Result<T, HexColorError>;
+
+            fn expecting(&self, f: &mut Formatter<'_>) -> fmt::Result {
+                f.write_str("a CSS hexadecimal color string")
+            }
+
+            #[inline]
+            fn visit_str<E>(self, v: &str) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                Ok(Result::new(T::parse_str(v)))
+            }
+        }
+
+        deserializer.deserialize_str(MyVisitor(PhantomData))
+    }
+}
+
 #[cfg(feature = "hex_decoded")]
 impl<'de, T: ValidateString<Error = HexDecodedError> + ValidateBytes<Error = HexDecodedError>>
     serde::Deserialize<'de> for Result<T, HexDecodedError>

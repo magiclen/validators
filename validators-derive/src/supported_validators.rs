@@ -10,6 +10,7 @@
     feature = "byte",
     feature = "domain",
     feature = "email",
+    feature = "hex_color",
     feature = "hex_decoded",
     feature = "host",
     feature = "http_url",
@@ -64,6 +65,8 @@ pub(crate) enum Validator {
     domain,
     #[cfg(feature = "email")]
     email,
+    #[cfg(feature = "hex_color")]
+    hex_color,
     #[cfg(feature = "hex_decoded")]
     hex_decoded,
     #[cfg(feature = "host")]
@@ -138,6 +141,8 @@ impl Validator {
             "domain" => Some(Self::domain),
             #[cfg(feature = "email")]
             "email" => Some(Self::email),
+            #[cfg(feature = "hex_color")]
+            "hex_color" => Some(Self::hex_color),
             #[cfg(feature = "hex_decoded")]
             "hex_decoded" => Some(Self::hex_decoded),
             #[cfg(feature = "host")]

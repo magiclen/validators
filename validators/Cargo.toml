@@ -58,6 +58,7 @@ all-validators = [
     "byte",
     "domain",
     "email",
+    "hex_color",
     "hex_decoded",
     "host",
     "http_url",
@@ -92,6 +93,7 @@ boolean = ["validators-derive?/boolean"]
 byte = ["validators-derive?/byte", "byte-unit/byte"]
 domain = ["validators-derive?/domain", "std", "idna"]
 email = ["validators-derive?/email", "std", "idna"]
+hex_color = ["validators-derive?/hex_color"]
 hex_decoded = ["validators-derive?/hex_decoded"]
 host = ["validators-derive?/host", "std", "idna"]
 http_url = ["validators-derive?/http_url", "url", "str-utils"]
