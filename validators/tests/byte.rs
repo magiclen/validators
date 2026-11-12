@@ -25,8 +25,8 @@ fn deserialize_u64() {
     let result: ValidationResult<ByteSize, validators_prelude::ByteError> =
         Deserialize::deserialize(IntoDeserializer::<Error>::into_deserializer(1000u64)).unwrap();
 
-    assert_eq!(1000u64, size.0);
-    assert_eq!(1000u64, result.into_std_result().unwrap().0);
+    assert_eq!(1000u64, size.0.as_u64());
+    assert_eq!(1000u64, result.into_std_result().unwrap().0.as_u64());
 }
 
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {

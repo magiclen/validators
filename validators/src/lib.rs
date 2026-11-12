@@ -214,7 +214,7 @@ pub struct AtLeastOneBit(Bit);
 
 assert!(AtLeastOneBit::parse_string("1kb").is_ok());
 assert!(AtLeastOneBit::parse_string("0b").is_err());
-assert_eq!(1000u64, AtLeastOneBit::parse_string("1kb").unwrap().0);
+assert_eq!(1000u64, AtLeastOneBit::parse_string("1kb").unwrap().0.as_u64());
 # }
 ```
 
@@ -263,7 +263,7 @@ pub struct AtLeastOneByte(Byte);
 
 assert!(AtLeastOneByte::parse_string("1KB").is_ok());
 assert!(AtLeastOneByte::parse_string("0B").is_err());
-assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0);
+assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0.as_u64());
 # }
 ```
 
