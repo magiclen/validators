@@ -1,13 +1,15 @@
 mod domain_attribute;
 
+use std::fmt::Debug;
+
 use domain_attribute::DomainAttribute;
 use educe::Educe;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, Meta, Path};
+use syn::{Data, DeriveInput, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
-    common::{tri_allow::TriAllow, type_enum::TypeEnum},
+    common::{fields_match, tri_allow::TriAllow, type_enum::TypeEnum},
     panic,
 };
 
@@ -148,359 +150,42 @@ impl ValidatorHandler for DomainHandler {
                 meta_is_conflict = true;
             }
 
-            match type_attribute.ipv4 {
-                TriAllow::Allow => {
-                    if type_attribute.local == TriAllow::Allow
-                        && type_attribute.at_least_two_labels != TriAllow::Allow
-                    {
-                        match type_attribute.port {
-                            TriAllow::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 4 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
-                                        ));
-                                    }
+            // `is_local` (and `is_ipv4` when `ipv4` is allowed) is kept only when `local` is allowed and `at_least_two_labels` is checked.
+            let has_local_field = type_attribute.local == TriAllow::Allow
+                && type_attribute.at_least_two_labels != TriAllow::Allow;
+            let has_ipv4_field = has_local_field && type_attribute.ipv4 == TriAllow::Allow;
 
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
+            let (names, item): (Option<&[&str]>, &dyn Debug) =
+                match (has_ipv4_field, has_local_field, type_attribute.port) {
+                    (true, _, TriAllow::Allow) => (
+                        Some(&["domain", "is_ipv4", "is_local", "port"]),
+                        &ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
+                    ),
+                    (true, _, TriAllow::Must) => (
+                        Some(&["domain", "is_ipv4", "is_local", "port"]),
+                        &ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
+                    ),
+                    (true, _, TriAllow::Disallow) => {
+                        (Some(&["domain", "is_ipv4", "is_local"]), &ITEM_ALLOW_IPV4_ALLOW_LOCAL)
+                    },
+                    (false, true, TriAllow::Allow) => {
+                        (Some(&["domain", "is_local", "port"]), &ITEM_ALLOW_LOCAL_ALLOW_PORT)
+                    },
+                    (false, true, TriAllow::Must) => {
+                        (Some(&["domain", "is_local", "port"]), &ITEM_ALLOW_LOCAL_WITH_PORT)
+                    },
+                    (false, true, TriAllow::Disallow) => {
+                        (Some(&["domain", "is_local"]), &ITEM_ALLOW_LOCAL)
+                    },
+                    (false, false, TriAllow::Allow) => {
+                        (Some(&["domain", "port"]), &ITEM_ALLOW_PORT)
+                    },
+                    (false, false, TriAllow::Must) => (Some(&["domain", "port"]), &ITEM_WITH_PORT),
+                    (false, false, TriAllow::Disallow) => (None, &ITEM),
+                };
 
-                                        match ident_string.as_str() {
-                                            "domain" | "is_ipv4" | "is_local" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_IPV4_ALLOW_LOCAL_ALLOW_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Must => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 4 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "is_ipv4" | "is_local" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_IPV4_ALLOW_LOCAL_WITH_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Disallow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_IPV4_ALLOW_LOCAL,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "is_ipv4" | "is_local" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_IPV4_ALLOW_LOCAL,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_IPV4_ALLOW_LOCAL,
-                                    ));
-                                }
-                            },
-                        }
-                    } else {
-                        match type_attribute.port {
-                            TriAllow::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 2 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Must => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 2 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_WITH_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_WITH_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_WITH_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Disallow => {
-                                if let Fields::Unnamed(_) = &data.fields {
-                                    if data.fields.len() != 1 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM,
-                                        ));
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM,
-                                    ));
-                                }
-                            },
-                        }
-                    }
-                },
-                _ => {
-                    if type_attribute.local == TriAllow::Allow
-                        && type_attribute.at_least_two_labels != TriAllow::Allow
-                    {
-                        match type_attribute.port {
-                            TriAllow::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_LOCAL_ALLOW_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "is_local" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_LOCAL_ALLOW_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_LOCAL_ALLOW_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Must => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 3 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_LOCAL_WITH_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "is_local" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_LOCAL_WITH_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_LOCAL_WITH_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Disallow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 2 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_LOCAL,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "is_local" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_LOCAL,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_LOCAL,
-                                    ));
-                                }
-                            },
-                        }
-                    } else {
-                        match type_attribute.port {
-                            TriAllow::Allow => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 2 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_ALLOW_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Must => {
-                                if let Fields::Named(_) = &data.fields {
-                                    if data.fields.len() != 2 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_WITH_PORT,
-                                        ));
-                                    }
-
-                                    for field in data.fields.iter() {
-                                        let ident_string =
-                                            field.ident.as_ref().unwrap().to_string();
-
-                                        match ident_string.as_str() {
-                                            "domain" | "port" => (),
-                                            _ => {
-                                                return Err(panic::validator_for_specific_item(
-                                                    meta.path(),
-                                                    ITEM_WITH_PORT,
-                                                ));
-                                            },
-                                        }
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_WITH_PORT,
-                                    ));
-                                }
-                            },
-                            TriAllow::Disallow => {
-                                if let Fields::Unnamed(_) = &data.fields {
-                                    if data.fields.len() != 1 {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM,
-                                        ));
-                                    }
-                                } else {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM,
-                                    ));
-                                }
-                            },
-                        }
-                    }
-                },
+            if !fields_match(&data.fields, names) {
+                return Err(panic::validator_for_specific_item(meta.path(), item));
             }
 
             let mut token_stream = proc_macro2::TokenStream::new();

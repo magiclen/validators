@@ -1,11 +1,14 @@
+use std::fmt::Debug;
+
 use educe::Educe;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, Meta, Path};
+use syn::{Data, DeriveInput, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
     common::{
-        attributes::ip_xx_attribute::IpXXAttribute, tri_allow::TriAllow, type_enum::TypeEnum,
+        attributes::ip_xx_attribute::IpXXAttribute, fields_match, tri_allow::TriAllow,
+        type_enum::TypeEnum,
     },
     panic,
 };
@@ -50,74 +53,14 @@ impl ValidatorHandler for Ipv6Handler {
         let type_attribute = IpXXAttribute::build_from_meta(&meta)?;
 
         if let Data::Struct(data) = ast.data {
-            match type_attribute.port {
-                TriAllow::Allow => {
-                    if let Fields::Named(_) = &data.fields {
-                        if data.fields.len() != 2 {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_ALLOW_PORT,
-                            ));
-                        }
+            let (names, item): (Option<&[&str]>, &dyn Debug) = match type_attribute.port {
+                TriAllow::Allow => (Some(&["ipv6", "port"]), &ITEM_ALLOW_PORT),
+                TriAllow::Must => (Some(&["ipv6", "port"]), &ITEM_WITH_PORT),
+                TriAllow::Disallow => (None, &ITEM),
+            };
 
-                        for field in data.fields.iter() {
-                            let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                            match ident_string.as_str() {
-                                "ipv6" | "port" => (),
-                                _ => {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_PORT,
-                                    ));
-                                },
-                            }
-                        }
-                    } else {
-                        return Err(panic::validator_for_specific_item(
-                            meta.path(),
-                            ITEM_ALLOW_PORT,
-                        ));
-                    }
-                },
-                TriAllow::Must => {
-                    if let Fields::Named(_) = &data.fields {
-                        if data.fields.len() != 2 {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_WITH_PORT,
-                            ));
-                        }
-
-                        for field in data.fields.iter() {
-                            let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                            match ident_string.as_str() {
-                                "ipv6" | "port" => (),
-                                _ => {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_WITH_PORT,
-                                    ));
-                                },
-                            }
-                        }
-                    } else {
-                        return Err(panic::validator_for_specific_item(
-                            meta.path(),
-                            ITEM_WITH_PORT,
-                        ));
-                    }
-                },
-                TriAllow::Disallow => {
-                    if let Fields::Unnamed(_) = &data.fields {
-                        if data.fields.len() != 1 {
-                            return Err(panic::validator_for_specific_item(meta.path(), ITEM));
-                        }
-                    } else {
-                        return Err(panic::validator_for_specific_item(meta.path(), ITEM));
-                    }
-                },
+            if !fields_match(&data.fields, names) {
+                return Err(panic::validator_for_specific_item(meta.path(), item));
             }
 
             let mut token_stream = proc_macro2::TokenStream::new();

@@ -118,6 +118,31 @@ pub(crate) fn path_to_string(path: &Path) -> String {
     path.into_token_stream().to_string().replace(' ', "")
 }
 
+/// Check whether a struct has the fields that a validator expects.
+///
+/// `Some(names)` means named fields with exactly these names in any order, and `None` means one unnamed field.
+#[cfg(any(
+    feature = "domain",
+    feature = "email",
+    feature = "host",
+    feature = "ip",
+    feature = "ipv4",
+    feature = "ipv6"
+))]
+pub(crate) fn fields_match(fields: &syn::Fields, names: Option<&[&str]>) -> bool {
+    match names {
+        // Field names cannot repeat, so the same number of known names means the same names.
+        Some(names) => {
+            matches!(fields, syn::Fields::Named(_))
+                && fields.len() == names.len()
+                && fields.iter().all(|field| {
+                    field.ident.as_ref().is_some_and(|ident| names.iter().any(|name| ident == name))
+                })
+        },
+        None => matches!(fields, syn::Fields::Unnamed(_)) && fields.len() == 1,
+    }
+}
+
 /// Remove the invisible groups that `macro_rules!` puts around fragments such as `$v:expr`.
 #[inline]
 pub(crate) fn peel_expr_groups(mut expr: &Expr) -> &Expr {

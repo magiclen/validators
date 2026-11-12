@@ -1,13 +1,15 @@
 mod email_attribute;
 
+use std::fmt::Debug;
+
 use educe::Educe;
 use email_attribute::EmailAttribute;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, Meta, Path};
+use syn::{Data, DeriveInput, Meta, Path};
 
 use super::ValidatorHandler;
 use crate::{
-    common::{tri_allow::TriAllow, type_enum::TypeEnum},
+    common::{fields_match, tri_allow::TriAllow, type_enum::TypeEnum},
     panic,
 };
 
@@ -190,402 +192,43 @@ impl ValidatorHandler for EmailHandler {
                 meta_is_conflict = true;
             }
 
+            // `is_local` is kept only when `local` is allowed and `at_least_two_labels` is checked.
+            let has_local_field = type_attribute.local == TriAllow::Allow
+                && type_attribute.at_least_two_labels != TriAllow::Allow;
+
+            let item: &dyn Debug =
+                match (type_attribute.comment.allow(), type_attribute.ip, has_local_field) {
+                    (true, TriAllow::Allow, true) => &ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
+                    (true, TriAllow::Allow, false) => &ITEM_ALLOW_COMMENT_ALLOW_IP,
+                    (true, TriAllow::Must, true) => &ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
+                    (true, TriAllow::Must, false) => &ITEM_ALLOW_COMMENT_MUST_IP,
+                    (true, TriAllow::Disallow, true) => &ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
+                    (true, TriAllow::Disallow, false) => &ITEM_ALLOW_COMMENT,
+                    (false, TriAllow::Allow, true) => &ITEM_ALLOW_LOCAL_ALLOW_IP,
+                    (false, TriAllow::Allow, false) => &ITEM_ALLOW_IP,
+                    (false, TriAllow::Must, true) => &ITEM_ALLOW_LOCAL_MUST_IP,
+                    (false, TriAllow::Must, false) => &ITEM_MUST_IP,
+                    (false, TriAllow::Disallow, true) => &ITEM_ALLOW_LOCAL,
+                    (false, TriAllow::Disallow, false) => &ITEM,
+                };
+
+            let mut names = vec!["local_part", "need_quoted", "domain_part"];
+
             if type_attribute.comment.allow() {
-                match type_attribute.ip {
-                    TriAllow::Allow => {
-                        if type_attribute.local == TriAllow::Allow
-                            && type_attribute.at_least_two_labels != TriAllow::Allow
-                        {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 8 {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
-                                    ));
-                                }
+                names.extend([
+                    "comment_before_local_part",
+                    "comment_after_local_part",
+                    "comment_before_domain_part",
+                    "comment_after_domain_part",
+                ]);
+            }
 
-                                for field in data.fields.iter() {
-                                    let ident_string = field.ident.as_ref().unwrap().to_string();
+            if has_local_field {
+                names.push("is_local");
+            }
 
-                                    match ident_string.as_str() {
-                                        "local_part"
-                                        | "need_quoted"
-                                        | "domain_part"
-                                        | "comment_before_local_part"
-                                        | "comment_after_local_part"
-                                        | "comment_before_domain_part"
-                                        | "comment_after_domain_part"
-                                        | "is_local" => (),
-                                        _ => {
-                                            return Err(panic::validator_for_specific_item(
-                                                meta.path(),
-                                                ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
-                                            ));
-                                        },
-                                    }
-                                }
-                            } else {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_COMMENT_ALLOW_LOCAL_ALLOW_IP,
-                                ));
-                            }
-                        } else if let Fields::Named(_) = &data.fields {
-                            if data.fields.len() != 7 {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_COMMENT_ALLOW_IP,
-                                ));
-                            }
-
-                            for field in data.fields.iter() {
-                                let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                match ident_string.as_str() {
-                                    "local_part"
-                                    | "need_quoted"
-                                    | "domain_part"
-                                    | "comment_before_local_part"
-                                    | "comment_after_local_part"
-                                    | "comment_before_domain_part"
-                                    | "comment_after_domain_part" => (),
-                                    _ => {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_COMMENT_ALLOW_IP,
-                                        ));
-                                    },
-                                }
-                            }
-                        } else {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_ALLOW_COMMENT_ALLOW_IP,
-                            ));
-                        }
-                    },
-                    TriAllow::Must => {
-                        if type_attribute.local == TriAllow::Allow
-                            && type_attribute.at_least_two_labels != TriAllow::Allow
-                        {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 8 {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
-                                    ));
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                    match ident_string.as_str() {
-                                        "local_part"
-                                        | "need_quoted"
-                                        | "domain_part"
-                                        | "comment_before_local_part"
-                                        | "comment_after_local_part"
-                                        | "comment_before_domain_part"
-                                        | "comment_after_domain_part"
-                                        | "is_local" => (),
-                                        _ => {
-                                            return Err(panic::validator_for_specific_item(
-                                                meta.path(),
-                                                ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
-                                            ));
-                                        },
-                                    }
-                                }
-                            } else {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_COMMENT_ALLOW_LOCAL_MUST_IP,
-                                ));
-                            }
-                        } else if let Fields::Named(_) = &data.fields {
-                            if data.fields.len() != 7 {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_COMMENT_MUST_IP,
-                                ));
-                            }
-
-                            for field in data.fields.iter() {
-                                let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                match ident_string.as_str() {
-                                    "local_part"
-                                    | "need_quoted"
-                                    | "domain_part"
-                                    | "comment_before_local_part"
-                                    | "comment_after_local_part"
-                                    | "comment_before_domain_part"
-                                    | "comment_after_domain_part" => (),
-                                    _ => {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_COMMENT_MUST_IP,
-                                        ));
-                                    },
-                                }
-                            }
-                        } else {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_ALLOW_COMMENT_MUST_IP,
-                            ));
-                        }
-                    },
-                    TriAllow::Disallow => {
-                        if type_attribute.local == TriAllow::Allow
-                            && type_attribute.at_least_two_labels != TriAllow::Allow
-                        {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 8 {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
-                                    ));
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                    match ident_string.as_str() {
-                                        "local_part"
-                                        | "need_quoted"
-                                        | "domain_part"
-                                        | "comment_before_local_part"
-                                        | "comment_after_local_part"
-                                        | "comment_before_domain_part"
-                                        | "comment_after_domain_part"
-                                        | "is_local" => (),
-                                        _ => {
-                                            return Err(panic::validator_for_specific_item(
-                                                meta.path(),
-                                                ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
-                                            ));
-                                        },
-                                    }
-                                }
-                            } else {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_COMMENT_ALLOW_LOCAL,
-                                ));
-                            }
-                        } else if let Fields::Named(_) = &data.fields {
-                            if data.fields.len() != 7 {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_COMMENT,
-                                ));
-                            }
-
-                            for field in data.fields.iter() {
-                                let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                match ident_string.as_str() {
-                                    "local_part"
-                                    | "need_quoted"
-                                    | "domain_part"
-                                    | "comment_before_local_part"
-                                    | "comment_after_local_part"
-                                    | "comment_before_domain_part"
-                                    | "comment_after_domain_part" => (),
-                                    _ => {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_COMMENT,
-                                        ));
-                                    },
-                                }
-                            }
-                        } else {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_ALLOW_COMMENT,
-                            ));
-                        }
-                    },
-                }
-            } else {
-                match type_attribute.ip {
-                    TriAllow::Allow => {
-                        if type_attribute.local == TriAllow::Allow
-                            && type_attribute.at_least_two_labels != TriAllow::Allow
-                        {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 4 {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_LOCAL_ALLOW_IP,
-                                    ));
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                    match ident_string.as_str() {
-                                        "local_part" | "need_quoted" | "domain_part"
-                                        | "is_local" => (),
-                                        _ => {
-                                            return Err(panic::validator_for_specific_item(
-                                                meta.path(),
-                                                ITEM_ALLOW_LOCAL_ALLOW_IP,
-                                            ));
-                                        },
-                                    }
-                                }
-                            } else {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_LOCAL_ALLOW_IP,
-                                ));
-                            }
-                        } else if let Fields::Named(_) = &data.fields {
-                            if data.fields.len() != 3 {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_IP,
-                                ));
-                            }
-
-                            for field in data.fields.iter() {
-                                let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                match ident_string.as_str() {
-                                    "local_part" | "need_quoted" | "domain_part" => (),
-                                    _ => {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_ALLOW_IP,
-                                        ));
-                                    },
-                                }
-                            }
-                        } else {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_ALLOW_IP,
-                            ));
-                        }
-                    },
-                    TriAllow::Must => {
-                        if type_attribute.local == TriAllow::Allow
-                            && type_attribute.at_least_two_labels != TriAllow::Allow
-                        {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 4 {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_LOCAL_MUST_IP,
-                                    ));
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                    match ident_string.as_str() {
-                                        "local_part" | "need_quoted" | "domain_part"
-                                        | "is_local" => (),
-                                        _ => {
-                                            return Err(panic::validator_for_specific_item(
-                                                meta.path(),
-                                                ITEM_ALLOW_LOCAL_MUST_IP,
-                                            ));
-                                        },
-                                    }
-                                }
-                            } else {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_LOCAL_MUST_IP,
-                                ));
-                            }
-                        } else if let Fields::Named(_) = &data.fields {
-                            if data.fields.len() != 3 {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_MUST_IP,
-                                ));
-                            }
-
-                            for field in data.fields.iter() {
-                                let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                match ident_string.as_str() {
-                                    "local_part" | "need_quoted" | "domain_part" => (),
-                                    _ => {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM_MUST_IP,
-                                        ));
-                                    },
-                                }
-                            }
-                        } else {
-                            return Err(panic::validator_for_specific_item(
-                                meta.path(),
-                                ITEM_MUST_IP,
-                            ));
-                        }
-                    },
-                    TriAllow::Disallow => {
-                        if type_attribute.local == TriAllow::Allow
-                            && type_attribute.at_least_two_labels != TriAllow::Allow
-                        {
-                            if let Fields::Named(_) = &data.fields {
-                                if data.fields.len() != 4 {
-                                    return Err(panic::validator_for_specific_item(
-                                        meta.path(),
-                                        ITEM_ALLOW_LOCAL,
-                                    ));
-                                }
-
-                                for field in data.fields.iter() {
-                                    let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                    match ident_string.as_str() {
-                                        "local_part" | "need_quoted" | "domain_part"
-                                        | "is_local" => (),
-                                        _ => {
-                                            return Err(panic::validator_for_specific_item(
-                                                meta.path(),
-                                                ITEM_ALLOW_LOCAL,
-                                            ));
-                                        },
-                                    }
-                                }
-                            } else {
-                                return Err(panic::validator_for_specific_item(
-                                    meta.path(),
-                                    ITEM_ALLOW_LOCAL,
-                                ));
-                            }
-                        } else if let Fields::Named(_) = &data.fields {
-                            if data.fields.len() != 3 {
-                                return Err(panic::validator_for_specific_item(meta.path(), ITEM));
-                            }
-
-                            for field in data.fields.iter() {
-                                let ident_string = field.ident.as_ref().unwrap().to_string();
-
-                                match ident_string.as_str() {
-                                    "local_part" | "need_quoted" | "domain_part" => (),
-                                    _ => {
-                                        return Err(panic::validator_for_specific_item(
-                                            meta.path(),
-                                            ITEM,
-                                        ));
-                                    },
-                                }
-                            }
-                        } else {
-                            return Err(panic::validator_for_specific_item(meta.path(), ITEM));
-                        }
-                    },
-                }
+            if !fields_match(&data.fields, Some(&names)) {
+                return Err(panic::validator_for_specific_item(meta.path(), item));
             }
 
             let mut token_stream = proc_macro2::TokenStream::new();
