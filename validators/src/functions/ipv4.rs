@@ -1,5 +1,7 @@
-use core::str::FromStr;
-use std::net::{AddrParseError, Ipv4Addr};
+use core::{
+    net::{AddrParseError, Ipv4Addr},
+    str::FromStr,
+};
 
 /// Determine whether the input `Ipv4Addr` is local.
 ///

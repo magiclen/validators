@@ -1,4 +1,4 @@
-use std::net::IpAddr;
+use core::net::IpAddr;
 
 use crate::functions::{is_local_ipv4, is_local_ipv6};
 

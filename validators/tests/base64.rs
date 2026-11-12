@@ -114,6 +114,56 @@ fn deserialize_binary_string() {
     assert_eq!(input, wrapped.into_std_result().unwrap().0);
 }
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_number_like_string() {
+    use validators::{
+        Result,
+        errors::Base64Error,
+        serde::{self, Deserialize, de},
+    };
+
+    // Like CSV, this deserializer guesses the type of a value when asked for any type.
+    struct GuessingString<'a>(&'a str);
+
+    impl<'de> de::Deserializer<'de> for GuessingString<'de> {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            bool i8 i16 i32 i64 u8 u16 u32 u64 f32 f64 char string bytes byte_buf option
+            unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            match self.0.parse::<u64>() {
+                Ok(number) => visitor.visit_u64(number),
+                Err(_) => visitor.visit_borrowed_str(self.0),
+            }
+        }
+
+        fn deserialize_str<V: de::Visitor<'de>>(
+            self,
+            visitor: V,
+        ) -> core::result::Result<V::Value, Self::Error> {
+            visitor.visit_borrowed_str(self.0)
+        }
+    }
+
+    #[derive(Validator)]
+    #[validator(base64)]
+    struct Base64(String);
+
+    let input = "1234";
+    let base64 = Base64::deserialize(GuessingString(input)).unwrap();
+    let wrapped = Result::<Base64, Base64Error>::deserialize(GuessingString(input)).unwrap();
+
+    assert_eq!(input, base64.0);
+    assert_eq!(input, wrapped.into_std_result().unwrap().0);
+}
+
 #[test]
 fn basic() {
     macro_rules! test {

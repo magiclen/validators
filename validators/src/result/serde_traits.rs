@@ -257,11 +257,7 @@ impl<'de, T: ValidateString<Error = Base32Error> + ValidateBytes<Error = Base32E
             }
         }
 
-        if deserializer.is_human_readable() {
-            deserializer.deserialize_any(MyVisitor(PhantomData))
-        } else {
-            deserializer.deserialize_str(MyVisitor(PhantomData))
-        }
+        deserializer.deserialize_str(MyVisitor(PhantomData))
     }
 }
 
@@ -326,11 +322,7 @@ impl<'de, T: ValidateString<Error = Base64Error> + ValidateBytes<Error = Base64E
             }
         }
 
-        if deserializer.is_human_readable() {
-            deserializer.deserialize_any(MyVisitor(PhantomData))
-        } else {
-            deserializer.deserialize_str(MyVisitor(PhantomData))
-        }
+        deserializer.deserialize_str(MyVisitor(PhantomData))
     }
 }
 
@@ -395,11 +387,7 @@ impl<'de, T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base
             }
         }
 
-        if deserializer.is_human_readable() {
-            deserializer.deserialize_any(MyVisitor(PhantomData))
-        } else {
-            deserializer.deserialize_str(MyVisitor(PhantomData))
-        }
+        deserializer.deserialize_str(MyVisitor(PhantomData))
     }
 }
 

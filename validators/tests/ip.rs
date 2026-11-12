@@ -113,3 +113,20 @@ fn basic() {
         }
     }
 }
+
+#[test]
+fn bracket_errors() {
+    use std::net::IpAddr;
+
+    use validators::errors::IpError;
+
+    #[derive(Validator)]
+    #[validator(ip(port(Disallow)))]
+    struct IpWithoutPort(IpAddr);
+
+    assert!(matches!(IpWithoutPort::validate_str("[::1]:80"), Err(IpError::PortDisallow)));
+
+    for input in ["[::1", "[", "[::1]x"] {
+        assert!(matches!(IpWithoutPort::validate_str(input), Err(IpError::Invalid)), "{input}");
+    }
+}

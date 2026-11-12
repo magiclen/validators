@@ -19,6 +19,40 @@ fn without_length_bounds() {
     }
 }
 
+#[test]
+fn too_long_before_invalid_character() {
+    use validators::errors::LineError;
+
+    #[derive(Validator)]
+    #[validator(line(char_length(max = 3)))]
+    struct CharLength(String);
+
+    #[derive(Validator)]
+    #[validator(line(char_length(trimmed_min = 1, max = 3)))]
+    struct TrimmedCharLength(String);
+
+    #[derive(Validator)]
+    #[validator(line(byte_length(trimmed_min = 1, max = 3)))]
+    struct TrimmedByteLength(String);
+
+    assert_eq!("abc", CharLength::parse_str("abc").unwrap().0);
+    assert_eq!("abc", TrimmedCharLength::parse_str("abc").unwrap().0);
+    assert_eq!("abc", TrimmedByteLength::parse_str("abc").unwrap().0);
+
+    // The fourth character is after the limit, so it is not checked.
+    for input in ["abc\u{1}", "   \u{1}", "a  \u{1}"] {
+        assert!(matches!(CharLength::validate_str(input), Err(LineError::TooLong)), "{input:?}");
+        assert!(
+            matches!(TrimmedCharLength::validate_str(input), Err(LineError::TooLong)),
+            "{input:?}"
+        );
+        assert!(
+            matches!(TrimmedByteLength::validate_str(input), Err(LineError::TooLong)),
+            "{input:?}"
+        );
+    }
+}
+
 fn check_char_length(
     s: &str,
     min: Option<usize>,

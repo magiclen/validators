@@ -90,6 +90,7 @@ fn normalized_protocol() {
         Address::parse_str("w\ts://example.org/"),
         Err(HttpFtpURLError::ProtocolError)
     ));
-    assert!(matches!(Address::parse_str("ft\tp://"), Err(HttpFtpURLError::ProtocolError)));
+    assert!(matches!(Address::parse_str("ft\tp://"), Err(HttpFtpURLError::ParseError(_))));
+    assert!(matches!(Address::parse_str("f\ttp://a b"), Err(HttpFtpURLError::ParseError(_))));
     assert!(matches!(Address::parse_str("ftp://"), Err(HttpFtpURLError::ParseError(_))));
 }

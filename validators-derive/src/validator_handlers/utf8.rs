@@ -132,6 +132,7 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                         });
             }
 
+            // Check the length before the character, so a character after the limit returns `TooLong`.
             let handle_str = {
                 match max {
                     Some(max) => match min {
@@ -177,19 +178,19 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut temp_counter = 0;
 
                                                 while let Some(c) = chars.next() {
+                                                    let len = c.len_utf8();
+
+                                                    counter += len;
+
+                                                    if counter > #max {
+                                                        return Err(#error_path::TooLong);
+                                                    }
+
                                                     match c {
                                                         #invalid_char => {
                                                             return Err(#error_path::Invalid);
                                                         }
                                                         _ => {
-                                                            let len = c.len_utf8();
-
-                                                            counter += len;
-
-                                                            if counter > #max {
-                                                                return Err(#error_path::TooLong);
-                                                            }
-
                                                             if c.is_whitespace() {
                                                                 temp_counter += len;
                                                             } else {
@@ -254,17 +255,17 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut temp_counter = 0;
 
                                                 while let Some(c) = chars.next() {
+                                                    counter += 1;
+
+                                                    if counter > #max {
+                                                        return Err(#error_path::TooLong);
+                                                    }
+
                                                     match c {
                                                         #invalid_char => {
                                                             return Err(#error_path::Invalid);
                                                         }
                                                         _ => {
-                                                            counter += 1;
-
-                                                            if counter > #max {
-                                                                return Err(#error_path::TooLong);
-                                                            }
-
                                                             if c.is_whitespace() {
                                                                 temp_counter += 1;
                                                             } else {
@@ -306,22 +307,25 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     }
                                 } else {
                                     quote! {
-                                        let mut chars = s.chars().take((#max).saturating_add(1));
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        for c in s.chars() {
+                                            counter += 1;
+
+                                            if counter > #max {
+                                                return Err(#error_path::TooLong);
+                                            }
+
                                             match c {
                                                 #invalid_char => {
                                                     return Err(#error_path::Invalid);
                                                 }
-                                                _ => counter += 1,
+                                                _ => (),
                                             }
                                         }
 
                                         if counter < #min {
                                             Err(#error_path::TooShort)
-                                        } else if counter > #max {
-                                            Err(#error_path::TooLong)
                                         } else {
                                             Ok(())
                                         }
@@ -367,19 +371,19 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut temp_counter = 0;
 
                                                 while let Some(c) = chars.next() {
+                                                    let len = c.len_utf8();
+
+                                                    counter += len;
+
+                                                    if counter > #max {
+                                                        return Err(#error_path::TooLong);
+                                                    }
+
                                                     match c {
                                                         #invalid_char => {
                                                             return Err(#error_path::Invalid);
                                                         }
                                                         _ => {
-                                                            let len = c.len_utf8();
-
-                                                            counter += len;
-
-                                                            if counter > #max {
-                                                                return Err(#error_path::TooLong);
-                                                            }
-
                                                             if c.is_whitespace() {
                                                                 temp_counter += len;
                                                             } else {
@@ -442,17 +446,17 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut temp_counter = 0;
 
                                                 while let Some(c) = chars.next() {
+                                                    counter += 1;
+
+                                                    if counter > #max {
+                                                        return Err(#error_path::TooLong);
+                                                    }
+
                                                     match c {
                                                         #invalid_char => {
                                                             return Err(#error_path::Invalid);
                                                         }
                                                         _ => {
-                                                            counter += 1;
-
-                                                            if counter > #max {
-                                                                return Err(#error_path::TooLong);
-                                                            }
-
                                                             if c.is_whitespace() {
                                                                 temp_counter += 1;
                                                             } else {
@@ -492,23 +496,24 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     }
                                 } else {
                                     quote! {
-                                        let mut chars = s.chars().take((#max).saturating_add(1));
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        for c in s.chars() {
+                                            counter += 1;
+
+                                            if counter > #max {
+                                                return Err(#error_path::TooLong);
+                                            }
+
                                             match c {
                                                 #invalid_char => {
                                                     return Err(#error_path::Invalid);
                                                 }
-                                                _ => counter += 1,
+                                                _ => (),
                                             }
                                         }
 
-                                        if counter <= #max {
-                                            Ok(())
-                                        } else {
-                                            Err(#error_path::TooLong)
-                                        }
+                                        Ok(())
                                     }
                                 }
                             },

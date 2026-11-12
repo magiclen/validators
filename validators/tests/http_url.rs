@@ -88,6 +88,7 @@ fn normalized_protocol() {
     }
 
     assert!(matches!(Address::parse_str("f\ttp://example.org/"), Err(HttpURLError::ProtocolError)));
-    assert!(matches!(Address::parse_str("ht\ttps://"), Err(HttpURLError::ProtocolError)));
+    assert!(matches!(Address::parse_str("ht\ttps://"), Err(HttpURLError::ParseError(_))));
+    assert!(matches!(Address::parse_str("ht\ttps://a b"), Err(HttpURLError::ParseError(_))));
     assert!(matches!(Address::parse_str("https://"), Err(HttpURLError::ParseError(_))));
 }

@@ -1018,13 +1018,13 @@ impl ValidatorHandler for DomainHandler {
                     let serialize_domain = match type_attribute.port {
                         TriAllow::Allow => quote! {
                             if let Some(port) = self.port {
-                                serializer.collect_str(&format_args!("{}:{}", self.domain, port))
+                                serializer.collect_str(&::core::format_args!("{}:{}", self.domain, port))
                             } else {
                                 serializer.serialize_str(self.domain.as_str())
                             }
                         },
                         TriAllow::Must => quote! {
-                            serializer.collect_str(&format_args!("{}:{}", self.domain, self.port))
+                            serializer.collect_str(&::core::format_args!("{}:{}", self.domain, self.port))
                         },
                         TriAllow::Disallow if is_tuple => quote! {
                             serializer.serialize_str(self.0.as_str())

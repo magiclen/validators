@@ -53,7 +53,7 @@ impl TypeEnum {
             TypeEnum::Protocol => "validators::models::Protocol",
             TypeEnum::Bit => "byte_unit::Bit",
             TypeEnum::Byte => "byte_unit::Byte",
-            TypeEnum::Serde => "T: serde::se::Serialize + serde::de::Deserialize",
+            TypeEnum::Serde => "T: serde::ser::Serialize + serde::de::Deserialize",
             TypeEnum::Version => "semver::Version",
             TypeEnum::VersionReq => "semver::VersionReq",
             TypeEnum::Url => "url::Url",

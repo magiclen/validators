@@ -96,32 +96,26 @@ impl ValidatorHandler for HttpUrlHandler {
             token_stream.extend(quote! {
                         impl #name {
                             fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::url::Url, bool), #error_path> {
-                                let (url, is_https) = {
-                                    use validators_prelude::str_utils::StartsWithIgnoreAsciiCaseMultiple;
+                                // The URL parser ignores leading C0 control characters and spaces, and removes ASCII TAB, LF, and CR, so read the scheme in the same way.
+                                let mut scheme = [0u8; 6];
+                                let mut scheme_length = 0;
 
-                                    // The URL parser ignores leading C0 control characters and spaces, so do the same here.
-                                    let scheme_str = s.trim_start_matches(|c: char| c <= ' ');
+                                for e in s.bytes().skip_while(|&e| e <= b' ').filter(|&e| !::core::matches!(e, b'\t' | b'\n' | b'\r')).take(scheme.len()) {
+                                    scheme[scheme_length] = e.to_ascii_lowercase();
+                                    scheme_length += 1;
 
-                                    if let Some(index) = scheme_str.starts_with_ignore_ascii_case_with_lowercase_multiple(&["http:", "https:"]) {
-                                        let is_https = match index {
-                                            0 => false,
-                                            1 => true,
-                                            _ => unreachable!()
-                                        };
-
-                                        (validators_prelude::url::Url::parse(s)?, is_https)
-                                    } else {
-                                        // The URL parser also removes tabs and newlines inside the scheme.
-                                        let url = validators_prelude::url::Url::parse(s).map_err(|_| #error_path::ProtocolError)?;
-                                        let is_https = match url.scheme() {
-                                            "http" => false,
-                                            "https" => true,
-                                            _ => return Err(#error_path::ProtocolError),
-                                        };
-
-                                        (url, is_https)
+                                    if e == b':' {
+                                        break;
                                     }
+                                }
+
+                                let is_https = match &scheme[..scheme_length] {
+                                    b"http:" => false,
+                                    b"https:" => true,
+                                    _ => return Err(#error_path::ProtocolError),
                                 };
+
+                                let url = validators_prelude::url::Url::parse(s)?;
 
                                 #handle_local
 

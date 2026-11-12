@@ -27,6 +27,7 @@ jobs:
           - --features rocket --features test
           - --features axum --features test
           - --features full --features test
+          - --features byte-unit-u128 --features serde --features test
           - --no-default-features --features base32 --features derive --features test
           - --no-default-features --features base32_decoded --features derive --features test
           - --no-default-features --features base64 --features derive --features test

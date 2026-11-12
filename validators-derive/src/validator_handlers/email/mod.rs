@@ -747,7 +747,7 @@ impl ValidatorHandler for EmailHandler {
 
                                         let ip_str = &s[domain_part_length..closing_bracket_index];
 
-                                        match ::std::net::Ipv6Addr::from_str(ip_str) {
+                                        match ::core::net::Ipv6Addr::from_str(ip_str) {
                                             Ok(ip) => {
                                                 domain_part_length = closing_bracket_index + 1;
 
@@ -770,7 +770,7 @@ impl ValidatorHandler for EmailHandler {
                                                     as isize
                                                     - ip_str.len() as isize;
 
-                                                (::core::result::Result::Ok(::std::net::IpAddr::V6(ip)), #handle_local_ipv6)
+                                                (::core::result::Result::Ok(::core::net::IpAddr::V6(ip)), #handle_local_ipv6)
                                             }
                                             Err(_) => return Err(#error_path::Invalid),
                                         }
@@ -787,11 +787,11 @@ impl ValidatorHandler for EmailHandler {
 
                                     let ip_str = &s[domain_part_length..closing_bracket_index];
 
-                                    match ::std::net::Ipv4Addr::from_str(ip_str) {
+                                    match ::core::net::Ipv4Addr::from_str(ip_str) {
                                         Ok(ip) => {
                                             domain_part_length = closing_bracket_index + 1;
 
-                                            (::core::result::Result::Ok(::std::net::IpAddr::V4(ip)), #handle_local_ipv4)
+                                            (::core::result::Result::Ok(::core::net::IpAddr::V4(ip)), #handle_local_ipv4)
                                         }
                                         Err(_) => return Err(#error_path::Invalid),
                                     }
@@ -866,7 +866,7 @@ impl ValidatorHandler for EmailHandler {
                             }
 
                             // An IPv4 address must be written in brackets, such as `[127.0.0.1]`.
-                            if ascii_domain.parse::<::std::net::Ipv4Addr>().is_ok() {
+                            if ascii_domain.parse::<::core::net::Ipv4Addr>().is_ok() {
                                 return Err(#error_path::Invalid);
                             }
 
@@ -910,7 +910,7 @@ impl ValidatorHandler for EmailHandler {
 
                         // The limit includes the opening and closing parentheses.
                         for (index, byte) in s.bytes().take(max_len).enumerate().skip(1) {
-                            if matches!(byte, #invalid_byte) {
+                            if ::core::matches!(byte, #invalid_byte) {
                                 return Err(#error_path::Invalid);
                             }
 
@@ -1012,7 +1012,7 @@ impl ValidatorHandler for EmailHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, ::core::result::Result<::std::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, ::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
                         #parse_comment
 
                         let bytes = s.as_bytes();
@@ -1238,7 +1238,7 @@ impl ValidatorHandler for EmailHandler {
 
                         let mut domain_part_length_offset = 0isize;
 
-                        let (host, is_local): (::core::result::Result<::std::net::IpAddr, validators_prelude::Cow<'_, str>>, bool) = match bytes[domain_part_length] {
+                        let (host, is_local): (::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, bool) = match bytes[domain_part_length] {
                             b'(' => return Err(#error_path::Invalid),
                             b'[' => {
                                 #handle_ip
@@ -1328,9 +1328,9 @@ impl ValidatorHandler for EmailHandler {
                                         need_quoted,
                                         domain_part: {
                                             match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::std::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::std::net::IpAddr::V6(ip),
-                                                validators_prelude::Host::Domain(_) => unreachable!(),
+                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
+                                                validators_prelude::Host::Domain(_) => ::core::unreachable!(),
                                             }
                                         },
                                         comment_before_local_part: _comment_before_local_part,
@@ -1347,9 +1347,9 @@ impl ValidatorHandler for EmailHandler {
                                         need_quoted,
                                         domain_part: {
                                             match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::std::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::std::net::IpAddr::V6(ip),
-                                                _ => unreachable!(),
+                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
+                                                _ => ::core::unreachable!(),
                                             }
                                         },
                                         comment_before_local_part: _comment_before_local_part,
@@ -1371,7 +1371,7 @@ impl ValidatorHandler for EmailHandler {
                                         domain_part: {
                                             match domain_part {
                                                 validators_prelude::Host::Domain(domain) => domain,
-                                                _ => unreachable!(),
+                                                _ => ::core::unreachable!(),
                                             }
                                         },
                                         comment_before_local_part: _comment_before_local_part,
@@ -1389,7 +1389,7 @@ impl ValidatorHandler for EmailHandler {
                                         domain_part: {
                                             match domain_part {
                                                 validators_prelude::Host::Domain(domain) => domain,
-                                                _ => unreachable!(),
+                                                _ => ::core::unreachable!(),
                                             }
                                         },
                                         comment_before_local_part: _comment_before_local_part,
@@ -1435,9 +1435,9 @@ impl ValidatorHandler for EmailHandler {
                                         need_quoted,
                                         domain_part: {
                                             match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::std::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::std::net::IpAddr::V6(ip),
-                                                validators_prelude::Host::Domain(_) => unreachable!(),
+                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
+                                                validators_prelude::Host::Domain(_) => ::core::unreachable!(),
                                             }
                                         },
                                         is_local: _is_local,
@@ -1450,9 +1450,9 @@ impl ValidatorHandler for EmailHandler {
                                         need_quoted,
                                         domain_part: {
                                             match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::std::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::std::net::IpAddr::V6(ip),
-                                                _ => unreachable!(),
+                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
+                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
+                                                _ => ::core::unreachable!(),
                                             }
                                         },
                                     }
@@ -1470,7 +1470,7 @@ impl ValidatorHandler for EmailHandler {
                                         domain_part: {
                                             match domain_part {
                                                 validators_prelude::Host::Domain(domain) => domain,
-                                                _ => unreachable!(),
+                                                _ => ::core::unreachable!(),
                                             }
                                         },
                                         is_local: _is_local,
@@ -1484,7 +1484,7 @@ impl ValidatorHandler for EmailHandler {
                                         domain_part: {
                                             match domain_part {
                                                 validators_prelude::Host::Domain(domain) => domain,
-                                                _ => unreachable!(),
+                                                _ => ::core::unreachable!(),
                                             }
                                         },
                                     }
@@ -1509,8 +1509,8 @@ impl ValidatorHandler for EmailHandler {
             let parse = quote! {
                 let (local_part, need_quoted, domain_part, _comment_before_local_part, _comment_after_local_part, _comment_before_domain_part, _comment_after_domain_part, _is_local) = Self::v_parse_str(s)?;
                 let domain_part = match domain_part {
-                    ::core::result::Result::Ok(::std::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
-                    ::core::result::Result::Ok(::std::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
+                    ::core::result::Result::Ok(::core::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
+                    ::core::result::Result::Ok(::core::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
                     ::core::result::Result::Err(domain) => validators_prelude::Host::Domain(domain.into_owned()),
                 };
                 let local_part = validators_prelude::String::from(local_part);
@@ -1574,8 +1574,8 @@ impl ValidatorHandler for EmailHandler {
                                     let quote = if self.need_quoted { "\"" } else { "" };
 
                                     match &self.domain_part {
-                                        ::std::net::IpAddr::V4(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[{ip}]"),
-                                        ::std::net::IpAddr::V6(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[IPv6:{ip}]"),
+                                        ::core::net::IpAddr::V4(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[{ip}]"),
+                                        ::core::net::IpAddr::V6(ip) => validators_prelude::format!("{quote}{local_part}{quote}@[IPv6:{ip}]"),
                                     }
                                 }
                             }
@@ -1650,8 +1650,8 @@ impl ValidatorHandler for EmailHandler {
                                     use ::core::fmt::Write;
 
                                     match &self.domain_part {
-                                        validators_prelude::Host::IPv4(ip) => s.write_fmt(format_args!("[{ip}]")).unwrap(),
-                                        validators_prelude::Host::IPv6(ip) => s.write_fmt(format_args!("[IPv6:{ip}]")).unwrap(),
+                                        validators_prelude::Host::IPv4(ip) => s.write_fmt(::core::format_args!("[{ip}]")).unwrap(),
+                                        validators_prelude::Host::IPv6(ip) => s.write_fmt(::core::format_args!("[IPv6:{ip}]")).unwrap(),
                                         validators_prelude::Host::Domain(domain) => s.push_str(domain),
                                     }
 
@@ -1672,8 +1672,8 @@ impl ValidatorHandler for EmailHandler {
                                     use ::core::fmt::Write;
 
                                     match &self.domain_part {
-                                        ::std::net::IpAddr::V4(ip) => s.write_fmt(format_args!("[{ip}]")).unwrap(),
-                                        ::std::net::IpAddr::V6(ip) => s.write_fmt(format_args!("[IPv6:{ip}]")).unwrap(),
+                                        ::core::net::IpAddr::V4(ip) => s.write_fmt(::core::format_args!("[{ip}]")).unwrap(),
+                                        ::core::net::IpAddr::V6(ip) => s.write_fmt(::core::format_args!("[IPv6:{ip}]")).unwrap(),
                                     }
 
                                     #finish_s

@@ -1,6 +1,8 @@
 use alloc::string::String;
-use core::fmt::{self, Display, Formatter};
-use std::net::{Ipv4Addr, Ipv6Addr};
+use core::{
+    fmt::{self, Display, Formatter},
+    net::{Ipv4Addr, Ipv6Addr},
+};
 
 /// Used for the `email` and `host` validators to differentiate the host name type.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

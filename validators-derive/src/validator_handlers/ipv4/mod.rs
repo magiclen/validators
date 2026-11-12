@@ -180,7 +180,7 @@ impl ValidatorHandler for Ipv4Handler {
                     Some(colon_index) => {
                         let ip_str = &s[..colon_index];
 
-                        match ::std::net::Ipv4Addr::from_str(ip_str) {
+                        match ::core::net::Ipv4Addr::from_str(ip_str) {
                             Ok(ip) => {
                                 let port_str =
                                     &s[(colon_index + 1)..];
@@ -213,7 +213,7 @@ impl ValidatorHandler for Ipv4Handler {
                 }
             } else {
                 quote! {
-                    match ::std::net::Ipv4Addr::from_str(s) {
+                    match ::core::net::Ipv4Addr::from_str(s) {
                         Ok(ip) => {
                             let is_local = #handle_local_ipv4;
 
@@ -228,7 +228,7 @@ impl ValidatorHandler for Ipv4Handler {
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(::std::net::Ipv4Addr, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(::core::net::Ipv4Addr, Option<u16>, bool), #error_path> {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();

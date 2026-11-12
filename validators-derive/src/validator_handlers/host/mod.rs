@@ -305,13 +305,13 @@ impl ValidatorHandler for HostHandler {
                 quote! {
                     let ip_str = &s[1..last_index];
 
-                    match ::std::net::Ipv6Addr::from_str(ip_str) {
+                    match ::core::net::Ipv6Addr::from_str(ip_str) {
                         Ok(ip) => {
                             let is_local = #handle_local_ipv6;
 
                             #check_local
 
-                            (Ok(::std::net::IpAddr::V6(ip)), None, is_local)
+                            (Ok(::core::net::IpAddr::V6(ip)), None, is_local)
                         }
                         Err(_) => return Err(#error_path::Invalid),
                     }
@@ -320,7 +320,13 @@ impl ValidatorHandler for HostHandler {
 
             let handle_ipv6_with_port = if type_attribute.port.disallow() {
                 quote! {
-                    return Err(#error_path::PortDisallow);
+                    // Only an input in the `[...]:...` form seems to have a port.
+                    match bytes.iter().copied().rposition(|e| e == b':') {
+                        Some(colon_index) if colon_index > 2 && bytes[colon_index - 1] == b']' => {
+                            return Err(#error_path::PortDisallow);
+                        }
+                        _ => return Err(#error_path::Invalid),
+                    }
                 }
             } else {
                 quote! {
@@ -329,7 +335,7 @@ impl ValidatorHandler for HostHandler {
                             if colon_index > 2 && bytes[colon_index - 1] == b']' {
                                 let ip_str = &s[1..(colon_index - 1)];
 
-                                match ::std::net::Ipv6Addr::from_str(ip_str) {
+                                match ::core::net::Ipv6Addr::from_str(ip_str) {
                                     Ok(ip) => {
                                         let port_str = &s[(colon_index + 1)..];
 
@@ -344,7 +350,7 @@ impl ValidatorHandler for HostHandler {
 
                                                 #check_local
 
-                                                (Ok(::std::net::IpAddr::V6(ip)), Some(port), is_local)
+                                                (Ok(::core::net::IpAddr::V6(ip)), Some(port), is_local)
                                             }
                                             Err(_) => return Err(#error_path::Invalid),
                                         }
@@ -362,7 +368,13 @@ impl ValidatorHandler for HostHandler {
 
             let handle_ipv6_bracket = if type_attribute.at_least_two_labels.disallow() {
                 quote! {
-                    return Err(#error_path::AtLeastTwoLabelsDisallow);
+                    // An IP literal has more than one label, but only a valid one is reported as such.
+                    match bytes.iter().copied().position(|e| e == b']') {
+                        Some(closing_bracket_index) if ::core::net::Ipv6Addr::from_str(&s[1..closing_bracket_index]).is_ok() => {
+                            return Err(#error_path::AtLeastTwoLabelsDisallow);
+                        }
+                        _ => return Err(#error_path::Invalid),
+                    }
                 }
             } else {
                 quote! {
@@ -395,7 +407,7 @@ impl ValidatorHandler for HostHandler {
 
                         #check_local
 
-                        (Ok(::std::net::IpAddr::V6(ip)), None, is_local)
+                        (Ok(::core::net::IpAddr::V6(ip)), None, is_local)
                     }
                 }
             };
@@ -477,7 +489,7 @@ impl ValidatorHandler for HostHandler {
 
                         #check_local
 
-                        (Ok(::std::net::IpAddr::V4(ip)), port, is_local)
+                        (Ok(::core::net::IpAddr::V4(ip)), port, is_local)
                     }
                 }
             };
@@ -534,7 +546,7 @@ impl ValidatorHandler for HostHandler {
             token_stream.extend(quote! {
                 impl #name {
                     fn v_parse_str(s: &str) -> ::core::result::Result<
-                        (::core::result::Result<::std::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<u16>, bool),
+                        (::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<u16>, bool),
                         #error_path,
                     > {
                         use ::core::str::FromStr;
@@ -548,7 +560,7 @@ impl ValidatorHandler for HostHandler {
                         Ok(if bytes[0] == b'[' {
                             #handle_ipv6_bracket
                         } else {
-                            match ::std::net::Ipv6Addr::from_str(s) {
+                            match ::core::net::Ipv6Addr::from_str(s) {
                                 #handle_ipv6_non_bracket
                                 Err(_) => {
                                     let (domain_str, port_str) = match bytes.iter().copied().rposition(|e| e == b':') {
@@ -558,7 +570,7 @@ impl ValidatorHandler for HostHandler {
                                         }
                                     };
 
-                                    let host = match ::std::net::Ipv4Addr::from_str(domain_str) {
+                                    let host = match ::core::net::Ipv4Addr::from_str(domain_str) {
                                         Ok(ip) => Ok(ip),
                                         Err(_) => {
                                             let ascii_domain = validators_prelude::idna::uts46::Uts46::new()
@@ -574,7 +586,7 @@ impl ValidatorHandler for HostHandler {
                                                 return Err(#error_path::Invalid);
                                             }
 
-                                            ::std::net::Ipv4Addr::from_str(&ascii_domain).map_err(|_| ascii_domain)
+                                            ::core::net::Ipv4Addr::from_str(&ascii_domain).map_err(|_| ascii_domain)
                                         }
                                     };
 
@@ -657,8 +669,8 @@ impl ValidatorHandler for HostHandler {
                         let mut s = s.into();
                         let (host, _port, _is_local) = Self::v_parse_str(s.as_str())?;
                         let host = match host {
-                            Ok(::std::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
-                            Ok(::std::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
+                            Ok(::core::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
+                            Ok(::core::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
                             Err(validators_prelude::Cow::Borrowed(domain)) => {
                                 // The borrowed domain is always a prefix of the input.
                                 s.truncate(domain.len());
@@ -674,8 +686,8 @@ impl ValidatorHandler for HostHandler {
                     fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (host, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
                         let host = match host {
-                            Ok(::std::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
-                            Ok(::std::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
+                            Ok(::core::net::IpAddr::V4(ip)) => validators_prelude::Host::IPv4(ip),
+                            Ok(::core::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
                             Err(domain) => validators_prelude::Host::Domain(domain.into_owned()),
                         };
 

@@ -259,3 +259,30 @@ fn basic() {
         },
     }
 }
+
+#[test]
+fn bracket_errors() {
+    use validators::{errors::HostError, models::Host};
+
+    #[derive(Validator)]
+    #[validator(host(port(Disallow)))]
+    struct HostWithoutPort(Host);
+
+    #[derive(Validator)]
+    #[validator(host(local(Disallow), port(Disallow), at_least_two_labels(Disallow)))]
+    struct OneLabelHost(Host);
+
+    assert!(matches!(HostWithoutPort::validate_str("[::1]:80"), Err(HostError::PortDisallow)));
+    assert!(matches!(
+        OneLabelHost::validate_str("[::1]"),
+        Err(HostError::AtLeastTwoLabelsDisallow)
+    ));
+
+    for input in ["[::1", "[", "[::1]x"] {
+        assert!(matches!(HostWithoutPort::validate_str(input), Err(HostError::Invalid)), "{input}");
+    }
+
+    for input in ["[zzz]", "[::1", "["] {
+        assert!(matches!(OneLabelHost::validate_str(input), Err(HostError::Invalid)), "{input}");
+    }
+}

@@ -94,7 +94,7 @@ impl ValidatorHandler for HexColorHandler {
                             }
                         }
 
-                        if matches!(length, 3 | 6) {
+                        if ::core::matches!(length, 3 | 6) {
                             color = (color << 8) | 0xFF;
                         }
 

@@ -171,7 +171,13 @@ impl ValidatorHandler for Ipv6Handler {
 
             let handle_ipv6_with_port = if type_attribute.port.disallow() {
                 quote! {
-                    return Err(#error_path::PortDisallow);
+                    // Only an input in the `[...]:...` form seems to have a port.
+                    match bytes.iter().copied().rposition(|e| e == b':') {
+                        Some(colon_index) if colon_index > 2 && bytes[colon_index - 1] == b']' => {
+                            return Err(#error_path::PortDisallow);
+                        }
+                        _ => return Err(#error_path::Invalid),
+                    }
                 }
             } else {
                 quote! {
@@ -180,7 +186,7 @@ impl ValidatorHandler for Ipv6Handler {
                             if colon_index > 2 && bytes[colon_index - 1] == b']' {
                                 let ip_str = &s[1..(colon_index - 1)];
 
-                                match ::std::net::Ipv6Addr::from_str(ip_str) {
+                                match ::core::net::Ipv6Addr::from_str(ip_str) {
                                     Ok(ip) => {
                                         let port_str = &s[(colon_index + 1)..];
 
@@ -219,7 +225,7 @@ impl ValidatorHandler for Ipv6Handler {
                 quote! {
                     let ip_str = &s[1..last_index];
 
-                    match ::std::net::Ipv6Addr::from_str(ip_str) {
+                    match ::core::net::Ipv6Addr::from_str(ip_str) {
                         Ok(ip) => {
                             let is_local = #handle_local_ipv6;
 
@@ -252,7 +258,7 @@ impl ValidatorHandler for Ipv6Handler {
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(::std::net::Ipv6Addr, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(::core::net::Ipv6Addr, Option<u16>, bool), #error_path> {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();
@@ -270,7 +276,7 @@ impl ValidatorHandler for Ipv6Handler {
                                 #handle_ipv6_with_port
                             }
                         } else {
-                            match ::std::net::Ipv6Addr::from_str(s) {
+                            match ::core::net::Ipv6Addr::from_str(s) {
                                 #handle_ipv6_non_bracket
                                 Err(_) => return Err(#error_path::Invalid)
                             }

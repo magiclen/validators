@@ -148,3 +148,20 @@ fn local_ranges() {
         assert_eq!(expected, is_local_ipv6(ip.parse::<Ipv6Addr>().unwrap()), "{ip}");
     }
 }
+
+#[test]
+fn bracket_errors() {
+    use std::net::Ipv6Addr;
+
+    use validators::errors::Ipv6Error;
+
+    #[derive(Validator)]
+    #[validator(ipv6(port(Disallow)))]
+    struct Ipv6WithoutPort(Ipv6Addr);
+
+    assert!(matches!(Ipv6WithoutPort::validate_str("[::1]:80"), Err(Ipv6Error::PortDisallow)));
+
+    for input in ["[::1", "[", "[::1]x"] {
+        assert!(matches!(Ipv6WithoutPort::validate_str(input), Err(Ipv6Error::Invalid)), "{input}");
+    }
+}

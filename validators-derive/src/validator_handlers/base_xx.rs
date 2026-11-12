@@ -272,11 +272,8 @@ pub(super) fn encoded_handler(
                                         }
                                     }
 
-                                    if #deserializer_name.is_human_readable() {
-                                        #deserializer_name.deserialize_any(#visitor)
-                                    } else {
-                                        #deserializer_name.deserialize_str(#visitor)
-                                    }
+                                    // Ask for a string, so formats that guess types, such as CSV, do not read `1234` as a number.
+                                    #deserializer_name.deserialize_str(#visitor)
                                 }
                             }
                         });

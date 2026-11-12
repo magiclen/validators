@@ -41,6 +41,22 @@ The struct used as a validator should possess specific components corresponding 
 
 The `#[validator(validator_name)]` attribute cannot be applied to fields within any structs or enums. The decision to use a procedural macro for defining a validator (i.e., a struct) instead of offering built-in structs for each configuration is motivated by the aim to eliminate runtime overhead for configurable validations and to enhance compilation speed.
 
+Every validator accepts the `serde` parameter, and every validator except `length` accepts the `rocket` parameter.
+With the `serde` feature, a validator implements both `Serialize` and `Deserialize` by default.
+Use `serde = false` to implement neither, or `serde(Serialize)` or `serde(Deserialize)` to implement only one of them, for example when you write your own `Deserialize` implementation.
+The `rocket` parameter works in the same way with `FromFormField` and `FromParam`, such as `rocket = false` or `rocket(FromParam)`.
+
+```rust
+# #[cfg(all(feature = "derive", feature = "line"))]
+# {
+use validators::prelude::*;
+
+#[derive(Validator)]
+#[validator(line(serde = false, rocket = false))]
+pub struct Name(String);
+# }
+```
+
 An explicit `range(Inside(...))` or `range(Outside(...))` must specify at least one `min` or `max` bound.
 The same requirement applies to `range(...)` in the `bit` and `byte` validators.
 An explicit `inclusive = true` or `inclusive = false` requires `max`, because it controls whether the upper bound is included.
@@ -76,6 +92,8 @@ assert_eq!("GEZDGNBVGY3TQOI=", Base32WithPadding::parse_string("GEZDGNBVGY3TQOI=
 The decoded Base32, Base64, and Base64url validators accept one encoded value at a time.
 With Serde, human-readable formats (such as JSON) write the encoded string, with padding unless `padding = Disallow`.
 When reading, they also accept non-empty byte arrays (such as JSON arrays) as already decoded data.
+To read byte arrays, they let human-readable formats choose the value type, so formats that guess types from text, such as CSV, may read a value like `1234` as a number and reject it.
+In that case, read the field as a `String` and call `parse_string`.
 In non-human-readable formats (such as bincode or CBOR), they write the decoded bytes and ask for bytes when reading.
 
 ```rust
@@ -364,6 +382,7 @@ Each pair of digits becomes one byte.
 With Serde, human-readable formats (such as JSON) write a hex string in the letter case of `case`, and `case = Any` writes uppercase.
 Other formats write the bytes.
 Like `base64_decoded`, it can also read byte arrays as decoded data.
+For the same reason, formats such as CSV may reject an all-digit value like `1234`.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "hex_decoded"))]
@@ -671,6 +690,8 @@ assert!(SinglePercentage::parse_string("NaN").is_ok());
 With Serde, a phone number is written as an E.164 string, such as `+886912345678`.
 If the number has an extension, it is written in the RFC 3966 format instead, such as `tel:+1-650-253-0000;ext=4567`.
 A validator with two or more countries is written as a map from country to phone number, such as `{"TW":"+886912345678"}`.
+To read that map, it lets human-readable formats choose the value type, so formats that guess types from text, such as CSV, may read a value like `0912345678` as a number and reject it.
+In that case, read the field as a `String` and call `parse_string`.
 The carrier code is not kept.
 `validators::Result<_, PhoneError>` only reads phone number strings.
 
@@ -680,7 +701,7 @@ The carrier code is not kept.
 use std::collections::HashMap;
 
 use validators::prelude::*;
-use validators_prelude::phonenumber::{country::Id, PhoneNumber};
+use validators::phonenumber::{country::Id, PhoneNumber};
 
 #[derive(Validator)]
 #[validator(phone)]
@@ -724,7 +745,7 @@ The pattern is not anchored automatically, so use `^` and `$` to match the whole
 use std::sync::LazyLock;
 
 use validators::prelude::*;
-use validators_prelude::regex::Regex;
+use validators::regex::Regex;
 
 static RE_NON_ZERO_NUMBERS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new("^[1-9]+$").unwrap()
@@ -768,7 +789,7 @@ assert!(Poker::parse_string("0").is_err());
 # #[cfg(all(feature = "derive", feature = "semver"))]
 # {
 use validators::prelude::*;
-use validators_prelude::semver::Version;
+use validators::semver::Version;
 
 #[derive(Validator)]
 #[validator(semver)]
@@ -787,7 +808,7 @@ assert!(SemVer::parse_string("0.0.0-beta.1").is_ok());
 # #[cfg(all(feature = "derive", feature = "semver_req"))]
 # {
 use validators::prelude::*;
-use validators_prelude::semver::VersionReq;
+use validators::semver::VersionReq;
 
 #[derive(Validator)]
 #[validator(semver_req)]
@@ -884,7 +905,7 @@ assert!(Count::parse_u8(4).is_ok());
 # #[cfg(all(feature = "derive", feature = "url"))]
 # {
 use validators::prelude::*;
-use validators_prelude::url::Url;
+use validators::url::Url;
 
 #[derive(Validator)]
 #[validator(url)]

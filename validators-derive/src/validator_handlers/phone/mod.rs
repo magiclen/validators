@@ -255,7 +255,7 @@ impl ValidatorHandler for PhoneHandler {
                                     let mut #value_name = ::std::collections::HashMap::new();
 
                                     while let Some((country, s)) = #map_name.next_entry::<validators_prelude::phonenumber::country::Id, validators_prelude::String>()? {
-                                        if !matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*) {
+                                        if !::core::matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*) {
                                             return Err(#map_access::Error::custom(#error_path::Invalid));
                                         }
 

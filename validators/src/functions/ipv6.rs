@@ -1,4 +1,4 @@
-use std::net::{Ipv4Addr, Ipv6Addr};
+use core::net::{Ipv4Addr, Ipv6Addr};
 
 use crate::functions::is_local_ipv4;
 
@@ -16,7 +16,7 @@ pub const fn is_local_ipv6(addr: Ipv6Addr) -> bool {
 
     if (first & 0xFF00) == 0xFF00 {
         // is_multicast
-        first & 0x000F != 14 // 14 is `std::net::Ipv6MulticastScope::Global`
+        first & 0x000F != 14 // 14 is `core::net::Ipv6MulticastScope::Global`
     } else {
         match segments {
             [0, 0, 0, 0, 0, 0, 0, 0] | [0, 0, 0, 0, 0, 0, 0, 1] => {
