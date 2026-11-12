@@ -110,3 +110,24 @@ fn deserialize_binary_bool() {
     assert!(Validator::deserialize(BinaryBool(true)).unwrap().0);
     assert!(result.into_std_result().unwrap().0);
 }
+
+#[test]
+fn shadowed_prelude_names() {
+    #[allow(dead_code)]
+    enum Status {
+        Ok,
+        Err,
+        Some,
+        None,
+    }
+
+    // These variants shadow the prelude names in this function.
+    #[allow(unused_imports)]
+    use Status::*;
+
+    #[derive(Validator)]
+    #[validator(boolean)]
+    struct Shadowed(bool);
+
+    assert!(Shadowed::parse_str("true").unwrap().0);
+}

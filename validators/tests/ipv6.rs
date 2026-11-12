@@ -165,3 +165,38 @@ fn bracket_errors() {
         assert!(matches!(Ipv6WithoutPort::validate_str(input), Err(Ipv6Error::Invalid)), "{input}");
     }
 }
+
+#[test]
+fn uri_authority_string() {
+    use std::net::Ipv6Addr;
+
+    #[derive(Validator)]
+    #[validator(ipv6(port(Allow)))]
+    struct Ipv6AllowPort {
+        ipv6: Ipv6Addr,
+        port: Option<u16>,
+    }
+
+    for (input, expected) in [
+        ("::1", "[::1]"),
+        ("[::1]", "[::1]"),
+        ("[::1]:8080", "[::1]:8080"),
+        ("::ffff:c000:0280", "[::ffff:192.0.2.128]"),
+    ] {
+        let ipv6 = Ipv6AllowPort::parse_str(input).unwrap();
+
+        assert_eq!(expected, ipv6.to_uri_authority_string(), "{input}");
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&ipv6).unwrap();
+            let decoded: Ipv6AllowPort = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(serde_json::to_string(expected).unwrap(), json);
+            assert_eq!(ipv6.ipv6, decoded.ipv6);
+            assert_eq!(ipv6.port, decoded.port);
+        }
+    }
+}

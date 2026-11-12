@@ -138,3 +138,51 @@ fn local_ranges() {
         assert_eq!(expected, is_local_ipv4(ip), "{ip}");
     }
 }
+
+#[test]
+fn port_disallow_errors() {
+    use std::net::Ipv4Addr;
+
+    use validators::errors::Ipv4Error;
+
+    #[derive(Validator)]
+    #[validator(ipv4(port(Disallow)))]
+    struct Ipv4WithoutPort(Ipv4Addr);
+
+    assert!(matches!(Ipv4WithoutPort::validate_str("127.0.0.1:80"), Err(Ipv4Error::PortDisallow)));
+
+    // `host:port` has only one colon.
+    for input in ["::1", "127.0.0.1:80:90"] {
+        assert!(matches!(Ipv4WithoutPort::validate_str(input), Err(Ipv4Error::Invalid)), "{input}");
+    }
+}
+
+#[test]
+fn uri_authority_string() {
+    use std::net::Ipv4Addr;
+
+    #[derive(Validator)]
+    #[validator(ipv4(port(Allow)))]
+    struct Ipv4AllowPort {
+        ipv4: Ipv4Addr,
+        port: Option<u16>,
+    }
+
+    for (input, expected) in [("127.0.0.1", "127.0.0.1"), ("127.0.0.1:8080", "127.0.0.1:8080")] {
+        let ipv4 = Ipv4AllowPort::parse_str(input).unwrap();
+
+        assert_eq!(expected, ipv4.to_uri_authority_string(), "{input}");
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&ipv4).unwrap();
+            let decoded: Ipv4AllowPort = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(serde_json::to_string(expected).unwrap(), json);
+            assert_eq!(ipv4.ipv4, decoded.ipv4);
+            assert_eq!(ipv4.port, decoded.port);
+        }
+    }
+}

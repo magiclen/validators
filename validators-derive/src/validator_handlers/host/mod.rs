@@ -414,7 +414,12 @@ impl ValidatorHandler for HostHandler {
 
             let handle_domain_and_port = if type_attribute.port.disallow() {
                 quote! {
-                    Some(_) => {
+                    Some(colon_index) => {
+                        // `host:port` has only one colon, so an input with more colons is just invalid.
+                        if bytes[..colon_index].contains(&b':') {
+                            return Err(#error_path::Invalid);
+                        }
+
                         return Err(#error_path::PortDisallow);
                     }
                 }
@@ -883,6 +888,13 @@ impl ValidatorHandler for HostHandler {
                                     where
                                         E: validators_prelude::serde::de::Error, {
                                         <Self::Value as ValidateString>::parse_str(v).map_err(validators_prelude::serde::de::Error::custom)
+                                    }
+
+                                    #[inline]
+                                    fn visit_string<E>(self, v: validators_prelude::String) -> ::core::result::Result<Self::Value, E>
+                                    where
+                                        E: validators_prelude::serde::de::Error, {
+                                        <Self::Value as ValidateString>::parse_string(v).map_err(validators_prelude::serde::de::Error::custom)
                                     }
                                 }
 

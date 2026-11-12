@@ -94,9 +94,16 @@ fn empty_quoted_local_part() {
     }
 
     let comment = "x".repeat(60);
+    let quoted = "a ".repeat(31);
 
     assert!(AddressWithComments::validate_str(format!(r#"({comment})""@example.com"#)).is_ok());
-    assert!(AddressWithComments::validate_str(format!(r#"({comment})"a"@example.com"#)).is_err());
+    assert!(
+        AddressWithComments::validate_str(format!(r#"({comment})"{quoted}"@example.com"#)).is_ok()
+    );
+    assert!(
+        AddressWithComments::validate_str(format!(r#"({comment})"{quoted}a"@example.com"#))
+            .is_err()
+    );
 }
 
 #[test]
@@ -109,7 +116,7 @@ fn escaped_comments() {
 }
 
 #[test]
-fn normalized_domain_length() {
+fn normalized_domain_with_comments() {
     #[derive(Validator)]
     #[validator(email(comment(Disallow)))]
     struct Address {
@@ -126,12 +133,20 @@ fn normalized_domain_length() {
 
     assert_eq!(expected, normalized);
     assert!(AddressWithComments::validate_str(normalized).is_ok());
-    assert!(matches!(Address::validate_str(input), Err(EmailError::CommentDisallow)));
+    assert!(matches!(Address::validate_str(&input), Err(EmailError::CommentDisallow)));
 
+    // Comments do not count toward the 255-octet domain limit.
     let input = format!(r#""a b"@[IPv6:::ffff:ffff:ffff]({comment}x)"#);
 
-    assert!(matches!(AddressWithComments::parse_str(&input), Err(EmailError::Invalid)));
-    assert!(matches!(Address::validate_str(input), Err(EmailError::Invalid)));
+    assert!(AddressWithComments::validate_str(&input).is_ok());
+    assert!(matches!(Address::validate_str(input), Err(EmailError::CommentDisallow)));
+
+    let label = "b".repeat(63);
+    let domain = format!("{label}.{label}.{label}.{}.com", "c".repeat(53));
+    let comment = "x".repeat(10);
+
+    assert_eq!(249, domain.len());
+    assert!(AddressWithComments::validate_str(format!("a@({comment}){domain}({comment})")).is_ok());
 }
 
 #[test]
@@ -181,7 +196,7 @@ fn basic() {
             test("(note\x1b)alice@example.com", false);
             test("alice(note\x7f)@example.com", false);
             test("(no(te)alice@example.com", false);
-            test(&format!("{}(x)@example.com", "a".repeat(64)), false);
+            test(&format!("{}(x)@example.com", "a".repeat(65)), false);
             test(&format!("{}@example.com", "中".repeat(22)), false);
             test("this is\"not\\allowed@example.com", false);
             test("this\\ still\\\"not\\\\allowed@example.com", false);
@@ -343,6 +358,13 @@ fn basic() {
                 "(中文)simple@example.com",
                 Validator::V_COMMENT.allow()
                     && Validator::V_NON_ASCII.allow()
+                    && !Validator::V_IP.must()
+                    && !Validator::V_LOCAL.must()
+                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+            );
+            test(
+                &format!("(x){}(x)@example.com", "a".repeat(64)),
+                Validator::V_COMMENT.allow()
                     && !Validator::V_IP.must()
                     && !Validator::V_LOCAL.must()
                     && Validator::V_AT_LEAST_TWO_LABELS.allow(),

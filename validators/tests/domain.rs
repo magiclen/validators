@@ -534,3 +534,25 @@ fn basic() {
         },
     }
 }
+
+#[test]
+fn port_disallow_errors() {
+    use validators::errors::DomainError;
+
+    #[derive(Validator)]
+    #[validator(domain(port(Disallow)))]
+    struct DomainWithoutPort(String);
+
+    assert!(matches!(
+        DomainWithoutPort::validate_str("example.com:80"),
+        Err(DomainError::PortDisallow)
+    ));
+
+    // `host:port` has only one colon.
+    for input in ["::1", "example.com:80:90"] {
+        assert!(
+            matches!(DomainWithoutPort::validate_str(input), Err(DomainError::Invalid)),
+            "{input}"
+        );
+    }
+}

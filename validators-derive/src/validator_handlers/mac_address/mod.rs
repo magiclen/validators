@@ -288,7 +288,8 @@ impl ValidatorHandler for MacAddressHandler {
             } else {
                 let format_string = if type_attribute.case.upper() { "{:012X}" } else { "{:012x}" };
 
-                (quote! {}, quote! { self.0 }, format_string)
+                // A MAC address has 48 bits, so ignore the higher bits like the format with separators does.
+                (quote! {}, quote! { self.0 & 0xFFFF_FFFF_FFFF }, format_string)
             };
 
             token_stream.extend(quote! {

@@ -528,7 +528,12 @@ impl ValidatorHandler for DomainHandler {
 
             let handle_domain_and_port = if type_attribute.port.disallow() {
                 quote! {
-                    Some(_) => {
+                    Some(colon_index) => {
+                        // `host:port` has only one colon, so an input with more colons is just invalid.
+                        if bytes[..colon_index].contains(&b':') {
+                            return Err(#error_path::Invalid);
+                        }
+
                         return Err(#error_path::PortDisallow);
                     }
                 }

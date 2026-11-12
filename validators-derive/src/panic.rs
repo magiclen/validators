@@ -69,6 +69,19 @@ pub(crate) fn unsupported_validator(name: &Path) -> syn::Error {
 }
 
 #[inline]
+pub(crate) fn validator_feature_not_enabled(path: &Path) -> syn::Error {
+    let name = path_to_string(path);
+
+    syn::Error::new_spanned(
+        path,
+        format!(
+            "the `{name}` validator is not enabled, enable the `{name}` feature of the \
+             `validators` crate"
+        ),
+    )
+}
+
+#[inline]
 pub(crate) fn validator_only_one_at_a_time(node: impl ToTokens) -> syn::Error {
     syn::Error::new_spanned(node, "`validator` can be used only one at a time")
 }

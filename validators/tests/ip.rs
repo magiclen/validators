@@ -130,3 +130,56 @@ fn bracket_errors() {
         assert!(matches!(IpWithoutPort::validate_str(input), Err(IpError::Invalid)), "{input}");
     }
 }
+
+#[test]
+fn port_disallow_errors() {
+    use std::net::IpAddr;
+
+    use validators::errors::IpError;
+
+    #[derive(Validator)]
+    #[validator(ip(port(Disallow)))]
+    struct IpWithoutPort(IpAddr);
+
+    assert!(matches!(IpWithoutPort::validate_str("127.0.0.1:80"), Err(IpError::PortDisallow)));
+
+    // `host:port` has only one colon.
+    for input in ["1::2::3", "fe80::1%eth0", "127.0.0.1:80:90"] {
+        assert!(matches!(IpWithoutPort::validate_str(input), Err(IpError::Invalid)), "{input}");
+    }
+}
+
+#[test]
+fn uri_authority_string() {
+    use std::net::IpAddr;
+
+    #[derive(Validator)]
+    #[validator(ip(port(Allow)))]
+    struct IpAllowPort {
+        ip:   IpAddr,
+        port: Option<u16>,
+    }
+
+    for (input, expected) in [
+        ("127.0.0.1", "127.0.0.1"),
+        ("127.0.0.1:8080", "127.0.0.1:8080"),
+        ("::1", "[::1]"),
+        ("[::1]:8080", "[::1]:8080"),
+    ] {
+        let ip = IpAllowPort::parse_str(input).unwrap();
+
+        assert_eq!(expected, ip.to_uri_authority_string(), "{input}");
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&ip).unwrap();
+            let decoded: IpAllowPort = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(serde_json::to_string(expected).unwrap(), json);
+            assert_eq!(ip.ip, decoded.ip);
+            assert_eq!(ip.port, decoded.port);
+        }
+    }
+}

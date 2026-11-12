@@ -39,6 +39,9 @@ impl ValidatorHandler for HttpUrlHandler {
         if let Data::Struct(data) = ast.data
             && let Fields::Named(_) = &data.fields
             && data.fields.len() == 2
+            && data.fields.iter().all(|field| {
+                field.ident.as_ref().is_some_and(|ident| ident == "url" || ident == "is_https")
+            })
         {
             let mut token_stream = proc_macro2::TokenStream::new();
 

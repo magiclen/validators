@@ -286,3 +286,85 @@ fn bracket_errors() {
         assert!(matches!(OneLabelHost::validate_str(input), Err(HostError::Invalid)), "{input}");
     }
 }
+
+#[test]
+fn shadowed_prelude_names() {
+    use validators::models::Host;
+
+    #[allow(dead_code)]
+    enum Status {
+        Ok,
+        Err,
+        Some,
+        None,
+    }
+
+    // These variants shadow the prelude names in this function.
+    #[allow(unused_imports)]
+    use Status::*;
+
+    #[derive(Validator)]
+    #[validator(host(port(Allow)))]
+    struct Shadowed {
+        host: Host,
+        port: Option<u16>,
+    }
+
+    let host = Shadowed::parse_str("example.com:8080").unwrap();
+
+    assert_eq!(Host::Domain(String::from("example.com")), host.host);
+    assert_eq!(Option::Some(8080), host.port);
+}
+
+#[test]
+fn port_disallow_errors() {
+    use validators::{errors::HostError, models::Host};
+
+    #[derive(Validator)]
+    #[validator(host(port(Disallow)))]
+    struct HostWithoutPort(Host);
+
+    assert!(matches!(HostWithoutPort::validate_str("localhost:80"), Err(HostError::PortDisallow)));
+
+    // `host:port` has only one colon.
+    for input in ["1::2::3", "fe80::1%eth0", "localhost:80:90"] {
+        assert!(matches!(HostWithoutPort::validate_str(input), Err(HostError::Invalid)), "{input}");
+    }
+}
+
+#[test]
+fn uri_authority_string() {
+    use validators::models::Host;
+
+    #[derive(Validator)]
+    #[validator(host(port(Allow)))]
+    struct HostAllowPort {
+        host: Host,
+        port: Option<u16>,
+    }
+
+    for (input, expected) in [
+        ("example.com", "example.com"),
+        ("example.com:8080", "example.com:8080"),
+        ("中文.com", "xn--fiq228c.com"),
+        ("127.0.0.1:8080", "127.0.0.1:8080"),
+        ("::1", "[::1]"),
+        ("[::1]:8080", "[::1]:8080"),
+    ] {
+        let host = HostAllowPort::parse_str(input).unwrap();
+
+        assert_eq!(expected, host.to_uri_authority_string(), "{input}");
+
+        #[cfg(feature = "serde_json")]
+        {
+            use validators::serde_json;
+
+            let json = serde_json::to_string(&host).unwrap();
+            let decoded: HostAllowPort = serde_json::from_str(&json).unwrap();
+
+            assert_eq!(serde_json::to_string(expected).unwrap(), json);
+            assert_eq!(host.host, decoded.host);
+            assert_eq!(host.port, decoded.port);
+        }
+    }
+}

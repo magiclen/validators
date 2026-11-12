@@ -937,8 +937,7 @@ impl ValidatorHandler for EmailHandler {
                 }
             } else {
                 quote! {
-                    // Leave one byte for the local part.
-                    let (comment, local_part_length) = parse_comment(s, 63)?;
+                    let (comment, local_part_length) = parse_comment(s, length)?;
 
                     if local_part_length == length {
                         return Err(#error_path::Invalid);
@@ -954,7 +953,7 @@ impl ValidatorHandler for EmailHandler {
                 }
             } else {
                 quote! {
-                    let (comment, comment_len) = parse_comment(&s[local_part_length..], 64 - local_part_length)?;
+                    let (comment, comment_len) = parse_comment(&s[local_part_length..], length - local_part_length)?;
 
                     local_part_length += comment_len;
 
@@ -972,8 +971,7 @@ impl ValidatorHandler for EmailHandler {
                 }
             } else {
                 quote! {
-                    // Leave one byte for the domain.
-                    let (comment, domain_part_length) = parse_comment(s, 254)?;
+                    let (comment, domain_part_length) = parse_comment(s, length)?;
 
                     if domain_part_length == length {
                         return Err(#error_path::Invalid);
@@ -1029,11 +1027,14 @@ impl ValidatorHandler for EmailHandler {
                             (0, None::<&str>)
                         };
 
+                        // RFC 5321 limits the local part to 64 octets, and comments are not part of it.
+                        let local_part_start = local_part_length;
+
                         let (local_part, need_quoted) = if bytes[local_part_length] == b'"' {
                             // quoted
                             let mut p = local_part_length + 1;
 
-                            if p >= 64 || p == length {
+                            if p - local_part_start >= 64 || p == length {
                                 return Err(#error_path::Invalid);
                             }
 
@@ -1067,7 +1068,7 @@ impl ValidatorHandler for EmailHandler {
                             }
 
                             loop {
-                                if p == length || p >= 64 {
+                                if p == length || p - local_part_start >= 64 {
                                     return Err(#error_path::Invalid);
                                 }
 
@@ -1161,7 +1162,7 @@ impl ValidatorHandler for EmailHandler {
                             let mut last_dot = false;
 
                             loop {
-                                if p == length || p > 64 {
+                                if p == length || p - local_part_start > 64 {
                                     return Err(#error_path::Invalid);
                                 }
 
@@ -1225,9 +1226,6 @@ impl ValidatorHandler for EmailHandler {
                         let s = &s[(local_part_length + 1)..];
                         let bytes = s.as_bytes();
                         let length = bytes.len();
-                        if length > 255 {
-                            return Err(#error_path::Invalid);
-                        }
 
                         // comment 3
                         let (mut domain_part_length, comment_before_domain_part) = if bytes[0] == b'(' {
@@ -1236,6 +1234,7 @@ impl ValidatorHandler for EmailHandler {
                             (0, None::<&str>)
                         };
 
+                        let domain_part_start = domain_part_length;
                         let mut domain_part_length_offset = 0isize;
 
                         let (host, is_local): (::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, bool) = match bytes[domain_part_length] {
@@ -1250,7 +1249,8 @@ impl ValidatorHandler for EmailHandler {
 
                         #check_local
 
-                        if length as isize + domain_part_length_offset > 255 {
+                        // RFC 5321 limits the domain to 255 octets, and comments are not part of it.
+                        if (domain_part_length - domain_part_start) as isize + domain_part_length_offset > 255 {
                             return Err(#error_path::Invalid);
                         }
 

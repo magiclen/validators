@@ -19,6 +19,7 @@ default-features = false
 Certain validators do not require the use of the `std` library. However, if needed, you can explicitly enable the `std` feature.
 
 This library can support the Serde framework, the Rocket framework and the Axum framework by enabling the `serde`, `rocket` and `axum` features, respectively.
+The `json` validator needs Serde, so the `json` feature, which the default features include, also enables `serde`.
 
 The `full` feature lets range parameters use the Rust range syntax, such as `range(Inside(-5..=5))`.
 The `byte-unit-u128` feature lets the `bit` and `byte` validators handle values larger than `u64::MAX`.
@@ -66,6 +67,10 @@ To leave the range unrestricted, omit `range`, or use `range(Unlimited)` with `n
 For `line` and `text`, an explicit `char_length(...)` or `byte_length(...)` must specify at least one of `min`, `max`, or `trimmed_min`; zero is a valid bound.
 Omit these parameters to keep character validation without a length restriction.
 The collection `length` validator still defaults to unrestricted length when its bounds are omitted.
+
+The `number`, `domain`, and `email` validators reject contradictory options at compile time.
+These are `nan(Must)` with `range(Inside(...))`, `ipv4(Must)` with `at_least_two_labels(Disallow)`, and `ip(Must)` with `at_least_two_labels(Disallow)`, respectively.
+Add `conflict(Allow)` to compile such a combination anyway.
 
 #### base32
 
@@ -299,6 +304,8 @@ assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap(
 
 See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
 An empty local part must be quoted, such as `""@example.com`.
+The `non_ascii` option applies to the local part and comments.
+The domain part can always be an internationalized domain name, which is converted to Punycode, such as `xn--fiq228c.com`.
 
 ```rust
 # #[cfg(all(feature = "derive", feature = "email"))]
@@ -585,7 +592,7 @@ assert!(JSONBoolean::parse_bool(false).is_ok());
 # }
 ```
 
-* Traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnsignedInteger`, `ValidateNumber`, `ValidateBoolean`, `ValidateJsonValue`
+* Traits: `ValidateString`, `ValidateSignedInteger`, `ValidateUnsignedInteger`, `ValidateNumber`, `ValidateBoolean`, `ValidateJsonValue`, `ToJsonString`
 
 #### length
 
@@ -1192,8 +1199,6 @@ pub mod prelude {
         pub use crate::serde;
         #[cfg(feature = "serde_json")]
         pub use crate::serde_json;
-        #[cfg(feature = "str-utils")]
-        pub use crate::str_utils;
         #[cfg(feature = "test")]
         pub use crate::test::*;
         #[cfg(feature = "url")]

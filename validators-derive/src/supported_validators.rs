@@ -113,6 +113,50 @@ pub(crate) enum Validator {
     _Nothing,
 }
 
+/// Every validator name, including the ones whose features are not enabled.
+/// Each name is also the name of its feature.
+const VALIDATOR_NAMES: [&str; 33] = [
+    "base32",
+    "base32_decoded",
+    "base64",
+    "base64_decoded",
+    "base64_url",
+    "base64_url_decoded",
+    "bit",
+    "boolean",
+    "byte",
+    "domain",
+    "email",
+    "hex_color",
+    "hex_decoded",
+    "host",
+    "http_url",
+    "http_ftp_url",
+    "ip",
+    "ipv4",
+    "ipv6",
+    "json",
+    "length",
+    "line",
+    "mac_address",
+    "number",
+    "phone",
+    "regex",
+    "semver",
+    "semver_req",
+    "signed_integer",
+    "text",
+    "unsigned_integer",
+    "url",
+    "uuid",
+];
+
+/// Determine whether the path is the name of a validator, even if its feature is not enabled.
+#[inline]
+pub(crate) fn is_validator_name(path: &Path) -> bool {
+    path.get_ident().is_some_and(|ident| VALIDATOR_NAMES.iter().any(|name| ident == name))
+}
+
 impl Validator {
     #[inline]
     pub(crate) fn from_path(path: &Path) -> Option<Self> {

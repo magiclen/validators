@@ -225,7 +225,7 @@ impl<'de, T: ValidateString<Error = Base32Error> + ValidateBytes<Error = Base32E
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Base32Error")
+                f.write_str("a Base32 string or data")
             }
 
             #[inline]
@@ -269,7 +269,7 @@ impl<'de, T: ValidateString<Error = Base32DecodedError> + ValidateBytes<Error = 
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        deserialize_decoded_bytes(deserializer, "Base32DecodedError").map(Result::new)
+        deserialize_decoded_bytes(deserializer, "a Base32 string or data").map(Result::new)
     }
 }
 
@@ -290,7 +290,7 @@ impl<'de, T: ValidateString<Error = Base64Error> + ValidateBytes<Error = Base64E
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Base64Error")
+                f.write_str("a Base64 string or data")
             }
 
             #[inline]
@@ -334,7 +334,7 @@ impl<'de, T: ValidateString<Error = Base64DecodedError> + ValidateBytes<Error = 
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        deserialize_decoded_bytes(deserializer, "Base64DecodedError").map(Result::new)
+        deserialize_decoded_bytes(deserializer, "a Base64 string or data").map(Result::new)
     }
 }
 
@@ -355,7 +355,7 @@ impl<'de, T: ValidateString<Error = Base64UrlError> + ValidateBytes<Error = Base
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Base64UrlError")
+                f.write_str("a Base64-url string or data")
             }
 
             #[inline]
@@ -401,7 +401,7 @@ impl<
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        deserialize_decoded_bytes(deserializer, "Base64UrlDecodedError").map(Result::new)
+        deserialize_decoded_bytes(deserializer, "a Base64-url string or data").map(Result::new)
     }
 }
 
@@ -413,7 +413,12 @@ impl<'de, T: ValidateString<Error = BitError> + ValidateUnsignedInteger<Error = 
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        deserialize_byte_unit(deserializer, "BitError", BitError::TooSmall).map(Result::new)
+        deserialize_byte_unit(
+            deserializer,
+            "a string such as \"123\", \"123Kib\", \"50.84 Mb\", or a positive integer",
+            BitError::TooSmall,
+        )
+        .map(Result::new)
     }
 }
 
@@ -446,7 +451,10 @@ impl<
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("BooleanError")
+                f.write_str(
+                    "a boolean, a boolean string like \"true\", \"false\", \"0\", \"1\", \"on\", \
+                     \"off\", \"yes\", \"no\", or a number `0` or `1`",
+                )
             }
 
             fn visit_bool<E>(self, v: bool) -> core::result::Result<Self::Value, E>
@@ -521,7 +529,12 @@ impl<'de, T: ValidateString<Error = ByteError> + ValidateUnsignedInteger<Error =
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        deserialize_byte_unit(deserializer, "ByteError", ByteError::TooSmall).map(Result::new)
+        deserialize_byte_unit(
+            deserializer,
+            "a string such as \"123\", \"123KiB\", \"50.84 MB\", or a positive integer",
+            ByteError::TooSmall,
+        )
+        .map(Result::new)
     }
 }
 
@@ -540,7 +553,7 @@ impl<'de, T: ValidateString<Error = DomainError>> serde::Deserialize<'de>
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("DomainError")
+                f.write_str("a domain name")
             }
 
             #[inline]
@@ -575,7 +588,7 @@ impl<'de, T: ValidateString<Error = EmailError>> serde::Deserialize<'de> for Res
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("EmailError")
+                f.write_str("an email address")
             }
 
             #[inline]
@@ -627,7 +640,8 @@ impl<'de, T: ValidateString<Error = HexDecodedError> + ValidateBytes<Error = Hex
     fn deserialize<D>(deserializer: D) -> core::result::Result<Self, D::Error>
     where
         D: Deserializer<'de>, {
-        deserialize_decoded_bytes(deserializer, "HexDecodedError").map(Result::new)
+        deserialize_decoded_bytes(deserializer, "a hexadecimal string or decoded bytes")
+            .map(Result::new)
     }
 }
 
@@ -644,7 +658,7 @@ impl<'de, T: ValidateString<Error = HostError>> serde::Deserialize<'de> for Resu
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("HostError")
+                f.write_str("a domain name or an IP string")
             }
 
             #[inline]
@@ -652,6 +666,13 @@ impl<'de, T: ValidateString<Error = HostError>> serde::Deserialize<'de> for Resu
             where
                 E: DeError, {
                 Ok(Result::new(T::parse_str(v)))
+            }
+
+            #[inline]
+            fn visit_string<E>(self, v: String) -> core::result::Result<Self::Value, E>
+            where
+                E: DeError, {
+                Ok(Result::new(T::parse_string(v)))
             }
         }
 
@@ -674,7 +695,7 @@ impl<'de, T: ValidateString<Error = HttpURLError>> serde::Deserialize<'de>
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("HttpURLError")
+                f.write_str("an HTTP or HTTPS URL")
             }
 
             #[inline]
@@ -704,7 +725,7 @@ impl<'de, T: ValidateString<Error = HttpFtpURLError>> serde::Deserialize<'de>
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("HttpFtpURLError")
+                f.write_str("an HTTP, HTTPS, or FTP URL")
             }
 
             #[inline]
@@ -732,7 +753,7 @@ impl<'de, T: ValidateString<Error = IpError>> serde::Deserialize<'de> for Result
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("IpError")
+                f.write_str("an IP string")
             }
 
             #[inline]
@@ -760,7 +781,7 @@ impl<'de, T: ValidateString<Error = Ipv4Error>> serde::Deserialize<'de> for Resu
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Ipv4Error")
+                f.write_str("an IPv4 string")
             }
 
             #[inline]
@@ -788,7 +809,7 @@ impl<'de, T: ValidateString<Error = Ipv6Error>> serde::Deserialize<'de> for Resu
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("Ipv6Error")
+                f.write_str("an IPv6 string")
             }
 
             #[inline]
@@ -849,7 +870,7 @@ impl<'de, T: ValidateString<Error = LineError>> serde::Deserialize<'de> for Resu
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("LineError")
+                f.write_str("a line")
             }
 
             #[inline]
@@ -886,7 +907,7 @@ impl<'de, T: ValidateString<Error = MacAddressError>> serde::Deserialize<'de>
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("MacAddressError")
+                f.write_str("a MAC address string")
             }
 
             #[inline]
@@ -918,7 +939,7 @@ impl<'de, T: ValidateString<Error = NumberError> + ValidateNumber<Error = Number
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("NumberError")
+                f.write_str("a number")
             }
 
             #[inline]
@@ -995,7 +1016,7 @@ impl<'de, T: ValidateString<Error = PhoneError>> serde::Deserialize<'de> for Res
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("PhoneError")
+                f.write_str("a phone number")
             }
 
             #[inline]
@@ -1023,7 +1044,7 @@ impl<'de, T: ValidateString<Error = RegexError>> serde::Deserialize<'de> for Res
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("RegexError")
+                f.write_str("a string matched by a regular expression")
             }
 
             #[inline]
@@ -1060,7 +1081,7 @@ impl<'de, T: ValidateString<Error = SemverError>> serde::Deserialize<'de>
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("SemverError")
+                f.write_str("a semantic version or a version requirement")
             }
 
             #[inline]
@@ -1097,7 +1118,7 @@ impl<
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("SignedIntegerError")
+                f.write_str("a signed integer")
             }
 
             #[inline]
@@ -1185,7 +1206,7 @@ impl<'de, T: ValidateString<Error = TextError>> serde::Deserialize<'de> for Resu
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("TextError")
+                f.write_str("a text")
             }
 
             #[inline]
@@ -1230,7 +1251,7 @@ impl<
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("UnsignedIntegerError")
+                f.write_str("an unsigned integer")
             }
 
             #[inline]
@@ -1318,7 +1339,7 @@ impl<'de, T: ValidateString<Error = UrlError>> serde::Deserialize<'de> for Resul
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("UrlError")
+                f.write_str("a URL")
             }
 
             #[inline]
@@ -1346,7 +1367,7 @@ impl<'de, T: ValidateString<Error = UuidError>> serde::Deserialize<'de> for Resu
 
             #[inline]
             fn expecting(&self, f: &mut Formatter) -> fmt::Result {
-                f.write_str("UuidError")
+                f.write_str("a UUID string")
             }
 
             #[inline]
