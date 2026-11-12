@@ -904,15 +904,29 @@ impl ValidatorHandler for EmailHandler {
                     quote! { b'\x00'..=b'\x08' | b'\x0A'..=b'\x1F' | b'\x7F' }
                 };
 
+                let check_c1_control = if type_attribute.non_ascii.disallow() {
+                    quote! {}
+                } else {
+                    quote! {
+                        // 0xC2 followed by 0x80..=0x9F encodes a C1 control character (U+0080..=U+009F).
+                        if byte == 0xC2 && ::core::matches!(bytes.get(index + 1), Some(0x80..=0x9F)) {
+                            return Err(#error_path::Invalid);
+                        }
+                    }
+                };
+
                 quote! {
                     fn parse_comment(s: &str, max_len: usize) -> ::core::result::Result<(&str, usize), #error_path> {
+                        let bytes = s.as_bytes();
                         let mut escaped = false;
 
                         // The limit includes the opening and closing parentheses.
-                        for (index, byte) in s.bytes().take(max_len).enumerate().skip(1) {
+                        for (index, byte) in bytes.iter().copied().take(max_len).enumerate().skip(1) {
                             if ::core::matches!(byte, #invalid_byte) {
                                 return Err(#error_path::Invalid);
                             }
+
+                            #check_c1_control
 
                             if escaped {
                                 escaped = false;
@@ -1020,6 +1034,8 @@ impl ValidatorHandler for EmailHandler {
                             return Err(#error_path::Invalid);
                         }
 
+                        let input_length = length;
+
                         // comment 1
                         let (mut local_part_length, comment_before_local_part) = if bytes[0] == b'(' {
                             #handle_comment_1
@@ -1029,8 +1045,9 @@ impl ValidatorHandler for EmailHandler {
 
                         // RFC 5321 limits the local part to 64 octets, and comments are not part of it.
                         let local_part_start = local_part_length;
+                        let quoted = bytes[local_part_length] == b'"';
 
-                        let (local_part, need_quoted) = if bytes[local_part_length] == b'"' {
+                        let (local_part, need_quoted) = if quoted {
                             // quoted
                             let mut p = local_part_length + 1;
 
@@ -1262,6 +1279,14 @@ impl ValidatorHandler for EmailHandler {
                             if local_part.len() + quotes_length + 1 + domain.len() > 254 {
                                 return Err(#error_path::Invalid);
                             }
+                        }
+
+                        // The normalized address written by `to_email_string` must also fit, so that it can be read back.
+                        // Only the domain part can grow, and quotes that are not needed are removed.
+                        let removed_quotes_length = if quoted && !need_quoted { 2 } else { 0 };
+
+                        if input_length as isize + domain_part_length_offset - removed_quotes_length > 320 {
+                            return Err(#error_path::Invalid);
                         }
 
                         // comment 4

@@ -147,6 +147,22 @@ fn normalized_domain_with_comments() {
 
     assert_eq!(249, domain.len());
     assert!(AddressWithComments::validate_str(format!("a@({comment}){domain}({comment})")).is_ok());
+
+    // The normalized address must also fit in 320 bytes, so that it can be read back.
+    let input = format!("a@[IPv6:::ffff:ffff:ffff]({})", "x".repeat(293));
+
+    assert_eq!(320, input.len());
+    assert!(AddressWithComments::validate_str(input).is_err());
+
+    for input in [
+        format!("a@[IPv6:::ffff:ffff:ffff]({})", "x".repeat(287)),
+        format!(r#""a"@[IPv6:::ffff:ffff:ffff]({})"#, "x".repeat(287)),
+    ] {
+        let normalized = AddressWithComments::parse_str(input).unwrap().to_email_string();
+
+        assert_eq!(320, normalized.len());
+        assert!(AddressWithComments::validate_str(normalized).is_ok());
+    }
 }
 
 #[test]
@@ -195,6 +211,8 @@ fn basic() {
             test("alice@example.com(note\r)", false);
             test("(note\x1b)alice@example.com", false);
             test("alice(note\x7f)@example.com", false);
+            test("(note\u{85})alice@example.com", false);
+            test("alice@example.com(note\u{9f})", false);
             test("(no(te)alice@example.com", false);
             test(&format!("{}(x)@example.com", "a".repeat(65)), false);
             test(&format!("{}@example.com", "中".repeat(22)), false);
@@ -356,6 +374,14 @@ fn basic() {
             );
             test(
                 "(中文)simple@example.com",
+                Validator::V_COMMENT.allow()
+                    && Validator::V_NON_ASCII.allow()
+                    && !Validator::V_IP.must()
+                    && !Validator::V_LOCAL.must()
+                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+            );
+            test(
+                "(note\u{a0})simple@example.com",
                 Validator::V_COMMENT.allow()
                     && Validator::V_NON_ASCII.allow()
                     && !Validator::V_IP.must()
