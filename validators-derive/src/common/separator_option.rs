@@ -1,6 +1,6 @@
 use syn::{Expr, Lit, LitByte, Meta};
 
-use crate::common::path_to_string;
+use crate::common::{path_to_string, peel_expr_groups};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub(crate) enum SeparatorOption {
@@ -60,14 +60,14 @@ impl SeparatorOption {
                     if let Some(ident) = name_value.path.get_ident() {
                         match ident.to_string().as_str() {
                             "Must" => {
-                                if let Expr::Lit(lit) = &name_value.value
+                                if let Expr::Lit(lit) = peel_expr_groups(&name_value.value)
                                     && let Lit::Byte(lit) = &lit.lit
                                 {
                                     return Ok(Self::Must(Self::parse_separator(lit)?));
                                 }
                             },
                             "Allow" => {
-                                if let Expr::Lit(lit) = &name_value.value
+                                if let Expr::Lit(lit) = peel_expr_groups(&name_value.value)
                                     && let Lit::Byte(lit) = &lit.lit
                                 {
                                     return Ok(Self::Allow(Self::parse_separator(lit)?));

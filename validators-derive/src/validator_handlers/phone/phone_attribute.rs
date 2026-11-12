@@ -106,26 +106,34 @@ impl PhoneAttribute {
 
 fn meta_2_countries(countries: &mut Vec<Id>, meta: &Meta) -> syn::Result<()> {
     if let Meta::List(list) = meta {
-        let result =
-            list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_separated_nonempty)?;
+        let result = list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_terminated)?;
 
-        for ident in result {
-            let country = ident.to_string();
+        if !result.is_empty() {
+            for ident in result {
+                let country = ident.to_string();
 
-            let id = Id::from_str(country.as_str())
-                .map_err(|error| syn::Error::new_spanned(&ident, error))?;
+                let id = Id::from_str(country.as_str()).map_err(|_| {
+                    syn::Error::new_spanned(
+                        &ident,
+                        format!(
+                            "unknown country `{country}`, expected an ISO 3166-1 alpha-2 code \
+                             such as `TW` or `US`"
+                        ),
+                    )
+                })?;
 
-            if countries.contains(&id) {
-                return Err(syn::Error::new_spanned(
-                    &ident,
-                    format!("the country `{country}` of the phone validator is repeated"),
-                ));
+                if countries.contains(&id) {
+                    return Err(syn::Error::new_spanned(
+                        &ident,
+                        format!("the country `{country}` of the phone validator is repeated"),
+                    ));
+                }
+
+                countries.push(id);
             }
 
-            countries.push(id);
+            return Ok(());
         }
-
-        return Ok(());
     }
 
     let path = meta.path();

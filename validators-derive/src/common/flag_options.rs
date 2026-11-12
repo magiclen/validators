@@ -1,6 +1,6 @@
 use syn::{Expr, Ident, Lit, Meta, Token, punctuated::Punctuated};
 
-use crate::panic;
+use crate::{common::peel_expr_groups, panic};
 
 /// Parse a framework option pair like `serde(Serialize, Deserialize)` or `rocket(FromFormField, FromParam)` into two boolean flags.
 ///
@@ -24,7 +24,7 @@ pub(crate) fn meta_2_flags(
             }
         },
         Meta::NameValue(name_value) => {
-            if let Expr::Lit(lit) = &name_value.value
+            if let Expr::Lit(lit) = peel_expr_groups(&name_value.value)
                 && let Lit::Bool(lit) = &lit.lit
             {
                 let b = lit.value;
@@ -45,8 +45,14 @@ pub(crate) fn meta_2_flags(
             Err(syn::Error::new_spanned(&name_value.value, "expected a bool"))
         },
         Meta::List(list) => {
-            let result =
-                list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_separated_nonempty)?;
+            let result = list.parse_args_with(Punctuated::<Ident, Token![,]>::parse_terminated)?;
+
+            if result.is_empty() {
+                return Err(syn::Error::new_spanned(
+                    list,
+                    format!("expected {first_name}/{second_name}"),
+                ));
+            }
 
             let mut first = false;
             let mut second = false;

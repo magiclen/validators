@@ -279,6 +279,7 @@ pub fn validator_derive(input: TokenStream) -> TokenStream {
         feature = "line",
         feature = "text",
         feature = "length",
+        feature = "phone",
     )
 ))]
 mod tests {
@@ -445,5 +446,18 @@ mod tests {
         for attribute in ["length", "length()", "length(serde = false)", "length(min = 0)"] {
             check_attribute(attribute, "Vec<u8>", None);
         }
+    }
+
+    #[cfg(any(feature = "line", feature = "phone"))]
+    #[test]
+    fn trailing_commas() {
+        #[cfg(all(feature = "line", feature = "serde"))]
+        check_attribute("line(serde(Serialize, Deserialize,))", "String", None);
+
+        #[cfg(all(feature = "line", feature = "rocket"))]
+        check_attribute("line(rocket(FromFormField, FromParam,))", "String", None);
+
+        #[cfg(feature = "phone")]
+        check_attribute("phone(countries(TW, US,))", "HashMap<Id, PhoneNumber>", None);
     }
 }

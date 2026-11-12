@@ -111,9 +111,19 @@ pub(crate) mod rocket;
 pub(crate) mod test;
 
 use quote::ToTokens;
-use syn::Path;
+use syn::{Expr, Path};
 
 #[inline]
 pub(crate) fn path_to_string(path: &Path) -> String {
     path.into_token_stream().to_string().replace(' ', "")
+}
+
+/// Remove the invisible groups that `macro_rules!` puts around fragments such as `$v:expr`.
+#[inline]
+pub(crate) fn peel_expr_groups(mut expr: &Expr) -> &Expr {
+    while let Expr::Group(group) = expr {
+        expr = &group.expr;
+    }
+
+    expr
 }

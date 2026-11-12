@@ -1,6 +1,6 @@
 use syn::{Expr, Ident, Meta};
 
-use crate::common::path_to_string;
+use crate::common::{path_to_string, peel_expr_groups};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub(crate) enum CaseOption {
@@ -57,7 +57,7 @@ impl CaseOption {
 
         match meta {
             Meta::NameValue(name_value) => {
-                if let Expr::Path(path) = &name_value.value
+                if let Expr::Path(path) = peel_expr_groups(&name_value.value)
                     && let Some(ident) = path.path.get_ident()
                 {
                     return Self::from_ident(ident);
