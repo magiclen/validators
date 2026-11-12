@@ -28,14 +28,15 @@ jobs:
   no_std:
     runs-on: ubuntu-latest
     env:
-      FEATURES: derive,base32,base32_decoded,base64,base64_decoded,base64_url,base64_url_decoded,bit,boolean,byte,hex_color,hex_decoded,ip,ipv4,ipv6,json,length,line,mac_address,number,semver,semver_req,signed_integer,text,unsigned_integer,uuid
+      FEATURES: derive,base32,base32_decoded,base64,base64_decoded,base64_url,base64_url_decoded,bit,boolean,byte,domain,email,hex_color,hex_decoded,host,ip,ipv4,ipv6,json,length,line,mac_address,number,semver,semver_req,signed_integer,text,unsigned_integer,uuid
     steps:
       - uses: actions/checkout@v7
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: thumbv7em-none-eabi
-      - run: cargo build -p validators --target thumbv7em-none-eabi --no-default-features --features "$FEATURES"
-      - run: cargo build -p validators --target thumbv7em-none-eabi --no-default-features --features "$FEATURES,serde"
+      # The `no_std` example also builds the code that `#[derive(Validator)]` generates.
+      - run: cargo build -p validators --example no_std --target thumbv7em-none-eabi --no-default-features --features "$FEATURES"
+      - run: cargo build -p validators --example no_std --target thumbv7em-none-eabi --no-default-features --features "$FEATURES,serde"
 
   tests:
     strategy:

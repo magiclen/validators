@@ -17,6 +17,7 @@ default-features = false
 ```
 
 Certain validators do not require the use of the `std` library. However, if needed, you can explicitly enable the `std` feature.
+The `http_url`, `http_ftp_url`, `phone`, `regex`, and `url` validators, and the `rocket` and `axum` features, enable `std`.
 
 This library can support the Serde framework, the Rocket framework and the Axum framework by enabling the `serde`, `rocket` and `axum` features, respectively.
 The `json` validator needs Serde, so the `json` feature, which the default features include, also enables `serde`.

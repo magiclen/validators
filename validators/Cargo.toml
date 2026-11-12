@@ -91,11 +91,11 @@ base64_url_decoded = ["validators-derive?/base64_url_decoded", "data-encoding"]
 bit = ["validators-derive?/bit", "byte-unit/bit"]
 boolean = ["validators-derive?/boolean"]
 byte = ["validators-derive?/byte", "byte-unit/byte"]
-domain = ["validators-derive?/domain", "std", "idna"]
-email = ["validators-derive?/email", "std", "idna"]
+domain = ["validators-derive?/domain", "idna"]
+email = ["validators-derive?/email", "idna"]
 hex_color = ["validators-derive?/hex_color"]
 hex_decoded = ["validators-derive?/hex_decoded"]
-host = ["validators-derive?/host", "std", "idna"]
+host = ["validators-derive?/host", "idna"]
 http_url = ["validators-derive?/http_url", "url"]
 http_ftp_url = ["validators-derive?/http_ftp_url", "url"]
 ip = ["validators-derive?/ip"]
@@ -129,6 +129,41 @@ semver-dep = ["dep:semver-dep"]
 serde = ["validators-derive?/serde", "dep:serde", "byte-unit?/serde", "url-dep?/serde", "semver-dep?/serde"]
 rocket = ["validators-derive?/rocket", "dep:rocket", "std", "byte-unit?/rocket"]
 axum = ["serde", "std", "dep:axum"]
+
+[[example]]
+name = "no_std"
+crate-type = ["lib"]
+required-features = [
+    "derive",
+    "base32",
+    "base32_decoded",
+    "base64",
+    "base64_decoded",
+    "base64_url",
+    "base64_url_decoded",
+    "bit",
+    "boolean",
+    "byte",
+    "domain",
+    "email",
+    "hex_color",
+    "hex_decoded",
+    "host",
+    "ip",
+    "ipv4",
+    "ipv6",
+    "json",
+    "length",
+    "line",
+    "mac_address",
+    "number",
+    "semver",
+    "semver_req",
+    "signed_integer",
+    "text",
+    "unsigned_integer",
+    "uuid",
+]
 
 [package.metadata.docs.rs]
 all-features = true
