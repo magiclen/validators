@@ -1,11 +1,13 @@
 use core::{
     fmt::{self, Display, Formatter},
-    num::ParseIntError,
+    num::{IntErrorKind, ParseIntError},
 };
 
 /// Error from the `unsigned_integer` validator.
 #[derive(Debug, Clone)]
 pub enum UnsignedIntegerError {
+    /// The input is not an unsigned integer.
+    /// An integer that is too large for the type is reported as `TooLarge` instead.
     ParseIntError(ParseIntError),
     TooLarge,
     TooSmall,
@@ -15,7 +17,11 @@ pub enum UnsignedIntegerError {
 impl From<ParseIntError> for UnsignedIntegerError {
     #[inline]
     fn from(error: ParseIntError) -> Self {
-        Self::ParseIntError(error)
+        // An integer that is too large for the type is reported like a number out of the range.
+        match error.kind() {
+            IntErrorKind::PosOverflow => Self::TooLarge,
+            _ => Self::ParseIntError(error),
+        }
     }
 }
 

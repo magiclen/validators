@@ -29,6 +29,20 @@ fn deserialize_u64() {
     assert_eq!(1000u64, result.into_std_result().unwrap().0.as_u64());
 }
 
+#[test]
+fn too_large_errors() {
+    use validators::errors::ByteError;
+
+    #[derive(Validator)]
+    #[validator(byte)]
+    struct ByteSize(byte_unit::Byte);
+
+    // 10^27 bytes is too large with and without the `byte-unit-u128` feature.
+    assert!(matches!(ByteSize::parse_str("1000000000 EB"), Err(ByteError::TooLarge)));
+    assert!(matches!(ByteSize::parse_u128(u128::MAX), Err(ByteError::TooLarge)));
+    assert_eq!(1000u64, ByteSize::parse_str("1 KB").unwrap().0.as_u64());
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     if let RangeOption::Inside {
         max,

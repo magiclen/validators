@@ -52,6 +52,67 @@ fn range_macro_range_expression() {
     assert!(Integer::parse_i8(6).is_err());
 }
 
+#[test]
+fn overflow_errors() {
+    use validators::errors::SignedIntegerError;
+
+    #[derive(Validator)]
+    #[validator(signed_integer)]
+    struct Integer(i8);
+
+    // A string that does not fit in `i8` is reported like a number out of the range.
+    assert!(matches!(Integer::parse_str("128"), Err(SignedIntegerError::TooLarge)));
+    assert!(matches!(Integer::parse_str("-129"), Err(SignedIntegerError::TooSmall)));
+    assert!(matches!(Integer::parse_i64(-129), Err(SignedIntegerError::TooSmall)));
+    assert_eq!(-128, Integer::parse_str("-128").unwrap().0);
+}
+
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_binary_i32() {
+    use validators::{
+        Result as ValidationResult,
+        serde::{self, Deserialize, de},
+    };
+
+    struct BinaryI32(i32);
+
+    impl<'de> de::Deserializer<'de> for BinaryI32 {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            bool i8 i16 i64 u8 u16 u32 u64 f32 f64 char str string bytes byte_buf option
+            unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            _visitor: V,
+        ) -> Result<V::Value, Self::Error> {
+            Err(de::Error::custom("deserialize_any is not supported"))
+        }
+
+        fn deserialize_i32<V: de::Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+            visitor.visit_i32(self.0)
+        }
+
+        fn is_human_readable(&self) -> bool {
+            false
+        }
+    }
+
+    #[derive(Validator)]
+    #[validator(signed_integer(range(Inside(min = -10, max = 10))))]
+    struct Integer(i32);
+
+    assert_eq!(-5, Integer::deserialize(BinaryI32(-5)).unwrap().0);
+
+    let result: ValidationResult<Integer, validators_prelude::SignedIntegerError> =
+        Deserialize::deserialize(BinaryI32(-5)).unwrap();
+
+    assert_eq!(-5, result.into_std_result().unwrap().0);
+}
+
 #[cfg(feature = "serde_json")]
 #[test]
 fn deserialize_positive_integer() {

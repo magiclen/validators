@@ -1212,7 +1212,19 @@ impl<
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else {
+            // Formats such as bincode do not support `deserialize_any`, so ask for the stored integer type.
+            match <T as ValidateSignedInteger>::__VALIDATORS_BITS {
+                8 => deserializer.deserialize_i8(MyVisitor(PhantomData)),
+                16 => deserializer.deserialize_i16(MyVisitor(PhantomData)),
+                32 => deserializer.deserialize_i32(MyVisitor(PhantomData)),
+                64 => deserializer.deserialize_i64(MyVisitor(PhantomData)),
+                128 => deserializer.deserialize_i128(MyVisitor(PhantomData)),
+                _ => deserializer.deserialize_any(MyVisitor(PhantomData)),
+            }
+        }
     }
 }
 
@@ -1345,7 +1357,19 @@ impl<
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else {
+            // Formats such as bincode do not support `deserialize_any`, so ask for the stored integer type.
+            match <T as ValidateUnsignedInteger>::__VALIDATORS_BITS {
+                8 => deserializer.deserialize_u8(MyVisitor(PhantomData)),
+                16 => deserializer.deserialize_u16(MyVisitor(PhantomData)),
+                32 => deserializer.deserialize_u32(MyVisitor(PhantomData)),
+                64 => deserializer.deserialize_u64(MyVisitor(PhantomData)),
+                128 => deserializer.deserialize_u128(MyVisitor(PhantomData)),
+                _ => deserializer.deserialize_any(MyVisitor(PhantomData)),
+            }
+        }
     }
 }
 

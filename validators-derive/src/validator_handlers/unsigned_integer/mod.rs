@@ -241,11 +241,23 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                         }
                     });
 
+            // `validators::Result` uses this to ask binary formats for the exact type.
+            // Serde writes `isize` and `usize` as 64-bit integers.
+            let bits: u32 = match unsigned_integer_type {
+                UnsignedIntegerType::U8 => 8,
+                UnsignedIntegerType::U16 => 16,
+                UnsignedIntegerType::U32 => 32,
+                UnsignedIntegerType::U64 | UnsignedIntegerType::Usize => 64,
+                UnsignedIntegerType::U128 => 128,
+            };
+
             token_stream.extend(match unsigned_integer_type {
                 UnsignedIntegerType::U128 => {
                     quote! {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
@@ -267,6 +279,8 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                     quote! {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
@@ -307,6 +321,8 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
 
+                            const __VALIDATORS_BITS: u32 = #bits;
+
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > u32::MAX as u128 {
@@ -345,6 +361,8 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                     quote! {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
@@ -385,6 +403,8 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
 
+                            const __VALIDATORS_BITS: u32 = #bits;
+
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > u8::MAX as u128 {
@@ -423,6 +443,8 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                     quote! {
                         impl ValidateUnsignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {

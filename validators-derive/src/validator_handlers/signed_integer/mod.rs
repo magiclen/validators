@@ -241,11 +241,23 @@ impl ValidatorHandler for SignedIntegerHandler {
                         }
                     });
 
+            // `validators::Result` uses this to ask binary formats for the exact type.
+            // Serde writes `isize` and `usize` as 64-bit integers.
+            let bits: u32 = match signed_integer_type {
+                SignedIntegerType::I8 => 8,
+                SignedIntegerType::I16 => 16,
+                SignedIntegerType::I32 => 32,
+                SignedIntegerType::I64 | SignedIntegerType::Isize => 64,
+                SignedIntegerType::I128 => 128,
+            };
+
             token_stream.extend(match signed_integer_type {
                 SignedIntegerType::I128 => {
                     quote! {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
@@ -267,6 +279,8 @@ impl ValidatorHandler for SignedIntegerHandler {
                     quote! {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
@@ -311,6 +325,8 @@ impl ValidatorHandler for SignedIntegerHandler {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
 
+                            const __VALIDATORS_BITS: u32 = #bits;
+
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i32::MAX as i128 {
@@ -353,6 +369,8 @@ impl ValidatorHandler for SignedIntegerHandler {
                     quote! {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
@@ -397,6 +415,8 @@ impl ValidatorHandler for SignedIntegerHandler {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
 
+                            const __VALIDATORS_BITS: u32 = #bits;
+
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i8::MAX as i128 {
@@ -439,6 +459,8 @@ impl ValidatorHandler for SignedIntegerHandler {
                     quote! {
                         impl ValidateSignedInteger for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_BITS: u32 = #bits;
 
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {

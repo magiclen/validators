@@ -1,10 +1,12 @@
 use core::fmt::{self, Display, Formatter};
 
-use byte_unit::ParseError;
+use byte_unit::{ParseError, ValueParseError};
 
 /// Error from the `byte` validator.
 #[derive(Debug, Clone)]
 pub enum ByteError {
+    /// The input cannot be parsed.
+    /// A parsed value that is too large to be stored is reported as `TooLarge` instead.
     ParseError(ParseError),
     TooLarge,
     TooSmall,
@@ -13,7 +15,11 @@ pub enum ByteError {
 impl From<ParseError> for ByteError {
     #[inline]
     fn from(error: ParseError) -> Self {
-        Self::ParseError(error)
+        match error {
+            // A value that cannot be stored is reported like a number that is too large.
+            ParseError::Value(ValueParseError::ExceededBounds(_)) => Self::TooLarge,
+            _ => Self::ParseError(error),
+        }
     }
 }
 

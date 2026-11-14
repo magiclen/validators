@@ -50,6 +50,72 @@ fn deserialize_single_letter_names() {
     assert_eq!(2, e.0);
 }
 
+#[cfg(feature = "serde")]
+#[test]
+fn deserialize_binary_u16() {
+    use validators::{
+        Result as ValidationResult,
+        serde::{self, Deserialize, de},
+    };
+
+    struct BinaryU16(u16);
+
+    impl<'de> de::Deserializer<'de> for BinaryU16 {
+        type Error = de::value::Error;
+
+        serde::forward_to_deserialize_any! {
+            bool i8 i16 i32 i64 u8 u32 u64 f32 f64 char str string bytes byte_buf option
+            unit unit_struct newtype_struct seq tuple tuple_struct map struct enum identifier ignored_any
+        }
+
+        fn deserialize_any<V: de::Visitor<'de>>(
+            self,
+            _visitor: V,
+        ) -> Result<V::Value, Self::Error> {
+            Err(de::Error::custom("deserialize_any is not supported"))
+        }
+
+        fn deserialize_u16<V: de::Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
+            visitor.visit_u16(self.0)
+        }
+
+        fn is_human_readable(&self) -> bool {
+            false
+        }
+    }
+
+    #[derive(Validator)]
+    #[validator(unsigned_integer(range(Inside(min = 1, max = 8080))))]
+    struct Port(u16);
+
+    assert_eq!(8080, Port::deserialize(BinaryU16(8080)).unwrap().0);
+
+    let result: ValidationResult<Port, validators_prelude::UnsignedIntegerError> =
+        Deserialize::deserialize(BinaryU16(8080)).unwrap();
+
+    assert_eq!(8080, result.into_std_result().unwrap().0);
+}
+
+#[test]
+fn too_large_errors() {
+    use validators::errors::UnsignedIntegerError;
+
+    #[derive(Validator)]
+    #[validator(unsigned_integer(range(Inside(max = 150))))]
+    struct Integer(u8);
+
+    // A string that does not fit in `u8` is reported like a number out of the range.
+    for input in ["200", "300"] {
+        assert!(
+            matches!(Integer::parse_str(input), Err(UnsignedIntegerError::TooLarge)),
+            "{input}"
+        );
+    }
+
+    assert!(matches!(Integer::parse_u64(300), Err(UnsignedIntegerError::TooLarge)));
+    assert_eq!(150, Integer::parse_str("150").unwrap().0);
+}
+
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {
     match range {
         RangeOption::Inside {

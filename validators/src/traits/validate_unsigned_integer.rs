@@ -2,6 +2,11 @@
 pub trait ValidateUnsignedInteger: Sized {
     type Error;
 
+    /// The bit width that serde uses for the inner integer (64 for `isize` and `usize`), or `0` if it is unknown.
+    /// `validators::Result` uses it to ask binary formats for the exact type.
+    #[doc(hidden)]
+    const __VALIDATORS_BITS: u32 = 0;
+
     fn parse_u128(u: u128) -> Result<Self, Self::Error>;
 
     fn validate_u128(u: u128) -> Result<(), Self::Error>;
