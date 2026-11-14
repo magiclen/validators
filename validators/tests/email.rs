@@ -22,6 +22,7 @@ fn quoted_without_comments() {
         let address = Address::parse_str(input).unwrap();
 
         assert_eq!(input, address.to_email_string());
+        assert_eq!(input, Address::parse_string(input.to_owned()).unwrap().to_email_string());
     }
 
     let address = Address::parse_str("a@[ipv6:::1]").unwrap();
@@ -39,6 +40,29 @@ struct AddressWithComments {
     comment_after_local_part:   Option<String>,
     comment_before_domain_part: Option<String>,
     comment_after_domain_part:  Option<String>,
+}
+
+#[test]
+fn owned_input() {
+    for input in [
+        "alice@example.com",
+        "alice@中文.com",
+        "alice@[127.0.0.1]",
+        "alice@[IPv6:::1]",
+        "alice(b)@(c)example.com(d)",
+        "(a)alice(b)@(c)example.com(d)",
+        "alice@(c)中文.com(d)",
+        "\"alice smith\"@example.com",
+        "\"\"@example.com",
+    ] {
+        let expected = AddressWithComments::parse_str(input).unwrap();
+        let address = AddressWithComments::parse_string(input.to_owned()).unwrap();
+
+        assert_eq!(expected.local_part, address.local_part);
+        assert_eq!(expected.need_quoted, address.need_quoted);
+        assert_eq!(expected.domain_part, address.domain_part);
+        assert_eq!(expected.to_email_string(), address.to_email_string());
+    }
 }
 
 #[test]

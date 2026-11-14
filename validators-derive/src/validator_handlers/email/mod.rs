@@ -1033,11 +1033,9 @@ impl ValidatorHandler for EmailHandler {
                     ::core::result::Result::Ok(::core::net::IpAddr::V6(ip)) => validators_prelude::Host::IPv6(ip),
                     ::core::result::Result::Err(domain) => validators_prelude::Host::Domain(domain.into_owned()),
                 };
-                let local_part = validators_prelude::String::from(local_part);
 
+                // Own the other fields before reusing the input buffer for the local part.
                 #own_comments
-
-                ::core::result::Result::Ok(#create_instance)
             };
 
             token_stream.extend(quote! {
@@ -1046,10 +1044,21 @@ impl ValidatorHandler for EmailHandler {
 
                     #[inline]
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                        let s = s.into();
-                        let s = s.as_str();
+                        let mut input = s.into();
+                        let s = input.as_str();
 
                         #parse
+
+                        let local_part = if ::core::ptr::eq(local_part.as_ptr(), s.as_ptr()) {
+                            let length = local_part.len();
+
+                            input.truncate(length);
+                            input
+                        } else {
+                            validators_prelude::String::from(local_part)
+                        };
+
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
@@ -1057,6 +1066,10 @@ impl ValidatorHandler for EmailHandler {
                         let s = s.as_ref();
 
                         #parse
+
+                        let local_part = validators_prelude::String::from(local_part);
+
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
