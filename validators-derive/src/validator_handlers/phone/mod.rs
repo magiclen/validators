@@ -69,12 +69,12 @@ impl ValidatorHandler for PhoneHandler {
                                 impl #name {
                                     #[inline]
                                     fn v_parse_str(s: &str) -> ::core::result::Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
-                                        let phonenumber = validators_prelude::phonenumber::parse(None, s)?;
+                                        let phonenumber = validators_prelude::phonenumber::parse(::core::option::Option::None, s)?;
 
                                         if phonenumber.is_valid() {
-                                            Ok(phonenumber)
+                                            ::core::result::Result::Ok(phonenumber)
                                         } else {
-                                            Err(#error_path::Invalid)
+                                            ::core::result::Result::Err(#error_path::Invalid)
                                         }
                                     }
                                 }
@@ -85,16 +85,16 @@ impl ValidatorHandler for PhoneHandler {
                                 impl #name {
                                     #[inline]
                                     fn v_parse_str(s: &str) -> ::core::result::Result<validators_prelude::phonenumber::PhoneNumber, #error_path> {
-                                        let phonenumber = validators_prelude::phonenumber::parse(Some(validators_prelude::phonenumber::country::Id::#country), s)?;
+                                        let phonenumber = validators_prelude::phonenumber::parse(::core::option::Option::Some(validators_prelude::phonenumber::country::Id::#country), s)?;
 
-                                        if let Some(id) = phonenumber.country().id() {
+                                        if let ::core::option::Option::Some(id) = phonenumber.country().id() {
                                             if id == validators_prelude::phonenumber::country::Id::#country && phonenumber.is_valid() {
-                                                Ok(phonenumber)
+                                                ::core::result::Result::Ok(phonenumber)
                                             } else {
-                                                Err(#error_path::Invalid)
+                                                ::core::result::Result::Err(#error_path::Invalid)
                                             }
                                         } else {
-                                            Err(#error_path::Invalid)
+                                            ::core::result::Result::Err(#error_path::Invalid)
                                         }
                                     }
                                 }
@@ -106,46 +106,46 @@ impl ValidatorHandler for PhoneHandler {
                                     #(
                                         let country = validators_prelude::phonenumber::country::Id::#countries;
 
-                                        match validators_prelude::phonenumber::parse(Some(country), s) {
-                                            Ok(phonenumber) => {
-                                                if phonenumber.country().id() == Some(country) && phonenumber.is_valid() {
+                                        match validators_prelude::phonenumber::parse(::core::option::Option::Some(country), s) {
+                                            ::core::result::Result::Ok(phonenumber) => {
+                                                if phonenumber.country().id() == ::core::option::Option::Some(country) && phonenumber.is_valid() {
                                                     #on_valid
                                                 }
 
-                                                failure = Some(#error_path::Invalid);
+                                                failure = ::core::option::Option::Some(#error_path::Invalid);
                                             }
-                                            Err(error) if failure.is_none() => failure = Some(error.into()),
-                                            Err(_) => (),
+                                            ::core::result::Result::Err(error) if failure.is_none() => failure = ::core::option::Option::Some(error.into()),
+                                            ::core::result::Result::Err(_) => (),
                                         }
                                     )*
                                 }
                             };
                             let collect_matches = check_countries(quote! { map.insert(country, phonenumber); });
-                            let find_match = check_countries(quote! { return Ok(()); });
+                            let find_match = check_countries(quote! { return ::core::result::Result::Ok(()); });
 
                             quote! {
                                 impl #name {
                                     #[inline]
                                     fn v_parse_str(s: &str) -> ::core::result::Result<::std::collections::HashMap<validators_prelude::phonenumber::country::Id, validators_prelude::phonenumber::PhoneNumber>, #error_path> {
                                         let mut map = ::std::collections::HashMap::with_capacity(2);
-                                        let mut failure = None;
+                                        let mut failure = ::core::option::Option::None;
 
                                         #collect_matches
 
                                         if map.is_empty() {
-                                            Err(failure.unwrap_or(#error_path::Invalid))
+                                            ::core::result::Result::Err(failure.unwrap_or(#error_path::Invalid))
                                         } else {
-                                            Ok(map)
+                                            ::core::result::Result::Ok(map)
                                         }
                                     }
 
                                     #[inline]
                                     fn v_validate_str(s: &str) -> ::core::result::Result<(), #error_path> {
-                                        let mut failure = None;
+                                        let mut failure = ::core::option::Option::None;
 
                                         #find_match
 
-                                        Err(failure.unwrap_or(#error_path::Invalid))
+                                        ::core::result::Result::Err(failure.unwrap_or(#error_path::Invalid))
                                     }
                                 }
                             }
@@ -158,7 +158,7 @@ impl ValidatorHandler for PhoneHandler {
                 quote! {
                     Self::v_parse_str(s.as_ref())?;
 
-                    Ok(())
+                    ::core::result::Result::Ok(())
                 }
             };
 
@@ -168,12 +168,12 @@ impl ValidatorHandler for PhoneHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
@@ -197,7 +197,7 @@ impl ValidatorHandler for PhoneHandler {
                                 <validators_prelude::phonenumber::country::Id as ::core::convert::AsRef<str>>::as_ref(*country)
                             });
 
-                            let mut map = serializer.serialize_map(Some(entries.len()))?;
+                            let mut map = serializer.serialize_map(::core::option::Option::Some(entries.len()))?;
 
                             for (country, phonenumber) in entries {
                                 map.serialize_entry(country, &validators_prelude::SerdePhoneNumber(phonenumber))?;
@@ -254,30 +254,30 @@ impl ValidatorHandler for PhoneHandler {
 
                                     let mut #value_name = ::std::collections::HashMap::new();
 
-                                    while let Some((country, s)) = #map_name.next_entry::<validators_prelude::phonenumber::country::Id, validators_prelude::String>()? {
+                                    while let ::core::option::Option::Some((country, s)) = #map_name.next_entry::<validators_prelude::phonenumber::country::Id, validators_prelude::String>()? {
                                         if !::core::matches!(country, #(validators_prelude::phonenumber::country::Id::#countries)|*) {
-                                            return Err(#map_access::Error::custom(#error_path::Invalid));
+                                            return ::core::result::Result::Err(#map_access::Error::custom(#error_path::Invalid));
                                         }
 
                                         let ::std::collections::hash_map::Entry::Vacant(entry) = #value_name.entry(country) else {
-                                            return Err(#map_access::Error::custom("duplicate phone number country"));
+                                            return ::core::result::Result::Err(#map_access::Error::custom("duplicate phone number country"));
                                         };
 
-                                        let phonenumber = validators_prelude::phonenumber::parse(Some(country), &s)
+                                        let phonenumber = validators_prelude::phonenumber::parse(::core::option::Option::Some(country), &s)
                                             .map_err(|error| #map_access::Error::custom(#error_path::from(error)))?;
 
-                                        if phonenumber.country().id() != Some(country) || !phonenumber.is_valid() {
-                                            return Err(#map_access::Error::custom(#error_path::Invalid));
+                                        if phonenumber.country().id() != ::core::option::Option::Some(country) || !phonenumber.is_valid() {
+                                            return ::core::result::Result::Err(#map_access::Error::custom(#error_path::Invalid));
                                         }
 
                                         entry.insert(phonenumber);
                                     }
 
                                     if #value_name.is_empty() {
-                                        return Err(#map_access::Error::custom(#error_path::Invalid));
+                                        return ::core::result::Result::Err(#map_access::Error::custom(#error_path::Invalid));
                                     }
 
-                                    Ok(#name(#value_name))
+                                    ::core::result::Result::Ok(#name(#value_name))
                                 }
                             },
                             quote! {

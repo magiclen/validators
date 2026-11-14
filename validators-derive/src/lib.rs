@@ -215,38 +215,6 @@ fn derive_input_handler(ast: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
     Err(panic::derive_attribute_not_set_up_yet(&ast))
 }
 
-/// Put the generated items in an anonymous constant that imports the prelude names used by the generated code.
-/// Then imports in the user's module, such as `use Status::*` where `Status` has an `Ok` variant, cannot shadow these names.
-fn protect_prelude_names(
-    type_name: &str,
-    token_stream: proc_macro2::TokenStream,
-) -> proc_macro2::TokenStream {
-    let imports = [
-        ("Option", quote! { ::core::option::Option }),
-        ("Some", quote! { ::core::option::Option::Some }),
-        ("None", quote! { ::core::option::Option::None }),
-        ("Ok", quote! { ::core::result::Result::Ok }),
-        ("Err", quote! { ::core::result::Result::Err }),
-    ]
-    .into_iter()
-    // An import with the same name as the type would hide the type, so skip it.
-    .filter(|(name, _)| *name != type_name)
-    .map(|(_, path)| {
-        quote! {
-            #[allow(unused_imports)]
-            use #path;
-        }
-    });
-
-    quote! {
-        const _: () = {
-            #(#imports)*
-
-            #token_stream
-        };
-    }
-}
-
 #[proc_macro_derive(Validator, attributes(validator))]
 pub fn validator_derive(input: TokenStream) -> TokenStream {
     struct MyDeriveInput(proc_macro2::TokenStream);
@@ -255,10 +223,13 @@ pub fn validator_derive(input: TokenStream) -> TokenStream {
         #[inline]
         fn parse(input: ParseStream) -> syn::Result<Self> {
             let ast = input.parse::<DeriveInput>()?;
-            let type_name = ast.ident.to_string();
             let token_stream = derive_input_handler(ast)?;
 
-            Ok(Self(protect_prelude_names(&type_name, token_stream)))
+            Ok(Self(quote! {
+                const _: () = {
+                    #token_stream
+                };
+            }))
         }
     }
 

@@ -44,6 +44,10 @@ fn bool_true() {
     assert!(Validator::parse_str("yes").unwrap().0);
     assert!(Validator::parse_str("on").unwrap().0);
     assert!(Validator::parse_str("1").unwrap().0);
+    assert!(Validator::parse_str("T").unwrap().0);
+    assert!(Validator::parse_str("TRUE").unwrap().0);
+    assert!(Validator::parse_str("Yes").unwrap().0);
+    assert!(Validator::parse_str("oN").unwrap().0);
 
     assert!(Validator::parse_char('t').unwrap().0);
     assert!(Validator::parse_char('y').unwrap().0);
@@ -61,6 +65,10 @@ fn bool_false() {
     assert!(!Validator::parse_str("no").unwrap().0);
     assert!(!Validator::parse_str("off").unwrap().0);
     assert!(!Validator::parse_str("0").unwrap().0);
+    assert!(!Validator::parse_str("F").unwrap().0);
+    assert!(!Validator::parse_str("False").unwrap().0);
+    assert!(!Validator::parse_str("No").unwrap().0);
+    assert!(!Validator::parse_str("oFF").unwrap().0);
 
     assert!(!Validator::parse_char('f').unwrap().0);
     assert!(!Validator::parse_char('n').unwrap().0);

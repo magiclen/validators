@@ -97,9 +97,9 @@ impl ValidatorHandler for NumberHandler {
                         if *equal {
                             quote! {
                                 match ::core::cmp::PartialOrd::partial_cmp(&f, &#min) {
-                                    Some(::core::cmp::Ordering::Equal) | None => (),
-                                    Some(::core::cmp::Ordering::Less) => return Err(#error_path::TooSmall),
-                                    Some(::core::cmp::Ordering::Greater) => return Err(#error_path::TooLarge),
+                                    ::core::option::Option::Some(::core::cmp::Ordering::Equal) | ::core::option::Option::None => (),
+                                    ::core::option::Option::Some(::core::cmp::Ordering::Less) => return ::core::result::Result::Err(#error_path::TooSmall),
+                                    ::core::option::Option::Some(::core::cmp::Ordering::Greater) => return ::core::result::Result::Err(#error_path::TooLarge),
                                 }
                             }
                         } else {
@@ -108,7 +108,7 @@ impl ValidatorHandler for NumberHandler {
                             if let Some(min) = min {
                                 token_stream.extend(quote! {
                                     if f < #min {
-                                        return Err(#error_path::TooSmall);
+                                        return ::core::result::Result::Err(#error_path::TooSmall);
                                     }
                                 });
                             }
@@ -117,13 +117,13 @@ impl ValidatorHandler for NumberHandler {
                                 token_stream.extend(if *inclusive {
                                     quote! {
                                         if f > #max {
-                                            return Err(#error_path::TooLarge);
+                                            return ::core::result::Result::Err(#error_path::TooLarge);
                                         }
                                     }
                                 } else {
                                     quote! {
                                         if f >= #max {
-                                            return Err(#error_path::TooLarge);
+                                            return ::core::result::Result::Err(#error_path::TooLarge);
                                         }
                                     }
                                 });
@@ -141,7 +141,7 @@ impl ValidatorHandler for NumberHandler {
                         if *equal {
                             quote! {
                                 if f == #min {
-                                    return Err(#error_path::Forbidden);
+                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                 }
                             }
                         } else {
@@ -151,13 +151,13 @@ impl ValidatorHandler for NumberHandler {
                                         if *inclusive {
                                             quote! {
                                                 if (#min..=#max).contains(&f){
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
                                                 if (#min..#max).contains(&f){
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         }
@@ -165,7 +165,7 @@ impl ValidatorHandler for NumberHandler {
                                     None => {
                                         quote! {
                                             if f >= #min {
-                                                return Err(#error_path::Forbidden);
+                                                return ::core::result::Result::Err(#error_path::Forbidden);
                                             }
                                         }
                                     },
@@ -175,13 +175,13 @@ impl ValidatorHandler for NumberHandler {
                                         if *inclusive {
                                             quote! {
                                                 if f <= #max {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
                                                 if f < #max {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         }
@@ -203,14 +203,14 @@ impl ValidatorHandler for NumberHandler {
                     TriAllow::Must => {
                         quote! {
                             if !f.is_nan() {
-                                return Err(#error_path::NaNMust);
+                                return ::core::result::Result::Err(#error_path::NaNMust);
                             }
                         }
                     },
                     TriAllow::Disallow => {
                         quote! {
                             if f.is_nan() {
-                                return Err(#error_path::NaNDisallow);
+                                return ::core::result::Result::Err(#error_path::NaNDisallow);
                             }
                         }
                     },
@@ -226,7 +226,7 @@ impl ValidatorHandler for NumberHandler {
 
                         Self::v_parse_f(f)?;
 
-                        Ok(f)
+                        ::core::result::Result::Ok(f)
                     }
 
                     fn v_parse_f(f: #data_type) -> ::core::result::Result<(), #error_path> {
@@ -234,7 +234,7 @@ impl ValidatorHandler for NumberHandler {
 
                         #handle_nan
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -245,19 +245,19 @@ impl ValidatorHandler for NumberHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });
@@ -272,14 +272,14 @@ impl ValidatorHandler for NumberHandler {
                             fn parse_f64(f: f64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_f(f)?;
 
-                                Ok(Self(f))
+                                ::core::result::Result::Ok(Self(f))
                             }
 
                             #[inline]
                             fn validate_f64(f: f64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_f(f)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -288,6 +288,8 @@ impl ValidatorHandler for NumberHandler {
                     quote! {
                         impl ValidateNumber for #name {
                             type Error = #error_path;
+
+                            const __VALIDATORS_IS_F32: bool = true;
 
                             #[inline]
                             fn parse_f64(f: f64) -> ::core::result::Result<Self, Self::Error> {
@@ -303,14 +305,14 @@ impl ValidatorHandler for NumberHandler {
                             fn parse_f32(f: f32) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_f(f)?;
 
-                                Ok(Self(f))
+                                ::core::result::Result::Ok(Self(f))
                             }
 
                             #[inline]
                             fn validate_f32(f: f32) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_f(f)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -339,6 +341,12 @@ impl ValidatorHandler for NumberHandler {
 
                 if type_attribute.serde_options.deserialize {
                     use std::fmt::Write;
+
+                    // Convert integers straight to the stored float type to avoid double rounding.
+                    let visit_float = match number_type {
+                        NumberType::F32 => quote! { visit_f32 },
+                        NumberType::F64 => quote! { visit_f64 },
+                    };
 
                     let deserialize_binary = match number_type {
                         NumberType::F32 => quote! { deserialize_f32 },
@@ -457,28 +465,28 @@ impl ValidatorHandler for NumberHandler {
                                             fn visit_i64<E>(self, v: i64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                self.visit_f64(v as f64)
+                                                self.#visit_float(v as #data_type)
                                             }
 
                                             #[inline]
                                             fn visit_u64<E>(self, v: u64) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                self.visit_f64(v as f64)
+                                                self.#visit_float(v as #data_type)
                                             }
 
                                             #[inline]
                                             fn visit_i128<E>(self, v: i128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                self.visit_f64(v as f64)
+                                                self.#visit_float(v as #data_type)
                                             }
 
                                             #[inline]
                                             fn visit_u128<E>(self, v: u128) -> ::core::result::Result<Self::Value, E>
                                             where
                                                 E: validators_prelude::serde::de::Error, {
-                                                self.visit_f64(v as f64)
+                                                self.#visit_float(v as #data_type)
                                             }
                                         }
 

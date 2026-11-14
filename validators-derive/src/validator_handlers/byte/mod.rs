@@ -65,8 +65,8 @@ impl ValidatorHandler for ByteHandler {
                 quote! {
                     match ::core::cmp::Ord::cmp(&v.as_u128(), &#min) {
                         ::core::cmp::Ordering::Equal => (),
-                        ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
-                        ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
+                        ::core::cmp::Ordering::Less => return ::core::result::Result::Err(#error_path::TooSmall),
+                        ::core::cmp::Ordering::Greater => return ::core::result::Result::Err(#error_path::TooLarge),
                     }
                 }
             } else {
@@ -75,7 +75,7 @@ impl ValidatorHandler for ByteHandler {
                 if let Some(min) = type_attribute.range.min {
                     token_stream.extend(quote! {
                         if v.as_u128() < #min {
-                            return Err(#error_path::TooSmall);
+                            return ::core::result::Result::Err(#error_path::TooSmall);
                         }
                     });
                 }
@@ -84,13 +84,13 @@ impl ValidatorHandler for ByteHandler {
                     token_stream.extend(if type_attribute.range.inclusive {
                         quote! {
                             if v.as_u128() > #max {
-                                return Err(#error_path::TooLarge);
+                                return ::core::result::Result::Err(#error_path::TooLarge);
                             }
                         }
                     } else {
                         quote! {
                             if v.as_u128() >= #max {
-                                return Err(#error_path::TooLarge);
+                                return ::core::result::Result::Err(#error_path::TooLarge);
                             }
                         }
                     });
@@ -108,13 +108,13 @@ impl ValidatorHandler for ByteHandler {
 
                                 Self::v_parse_v(v)?;
 
-                                Ok(v)
+                                ::core::result::Result::Ok(v)
                             }
 
                             fn v_parse_v(v: validators_prelude::byte_unit::Byte) -> ::core::result::Result<(), #error_path> {
                                 #handle_range
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });
@@ -125,19 +125,19 @@ impl ValidatorHandler for ByteHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });
@@ -152,7 +152,7 @@ impl ValidatorHandler for ByteHandler {
 
                                 Self::v_parse_v(v)?;
 
-                                Ok(Self(v))
+                                ::core::result::Result::Ok(Self(v))
                             }
 
                             #[inline]
@@ -161,7 +161,7 @@ impl ValidatorHandler for ByteHandler {
 
                                 Self::v_parse_v(v)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
 
                             #[inline]
@@ -170,7 +170,7 @@ impl ValidatorHandler for ByteHandler {
 
                                 Self::v_parse_v(v)?;
 
-                                Ok(Self(v))
+                                ::core::result::Result::Ok(Self(v))
                             }
 
                             #[inline]
@@ -179,7 +179,7 @@ impl ValidatorHandler for ByteHandler {
 
                                 Self::v_parse_v(v)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

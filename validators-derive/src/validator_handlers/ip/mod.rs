@@ -88,14 +88,14 @@ impl ValidatorHandler for IpHandler {
                     TriAllow::Must => {
                         quote! {
                             if !is_local {
-                                return Err(#error_path::LocalMust);
+                                return ::core::result::Result::Err(#error_path::LocalMust);
                             }
                         }
                     },
                     TriAllow::Disallow => {
                         quote! {
                             if is_local {
-                                return Err(#error_path::LocalDisallow);
+                                return ::core::result::Result::Err(#error_path::LocalDisallow);
                             }
                         }
                     },
@@ -114,21 +114,21 @@ impl ValidatorHandler for IpHandler {
 
             let handle_ipv6_without_port = if type_attribute.port.must() {
                 quote! {
-                    return Err(#error_path::PortMust);
+                    return ::core::result::Result::Err(#error_path::PortMust);
                 }
             } else {
                 quote! {
                     let ip_str = &s[1..last_index];
 
                     match ::core::net::Ipv6Addr::from_str(ip_str) {
-                        Ok(ip) => {
+                        ::core::result::Result::Ok(ip) => {
                             let is_local = #handle_local_ipv6;
 
                             #check_local
 
-                            (::core::net::IpAddr::V6(ip), None, is_local)
+                            (::core::net::IpAddr::V6(ip), ::core::option::Option::None, is_local)
                         }
-                        Err(_) => return Err(#error_path::Invalid),
+                        ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                     }
                 }
             };
@@ -137,64 +137,64 @@ impl ValidatorHandler for IpHandler {
                 quote! {
                     // Only an input in the `[...]:...` form seems to have a port.
                     match bytes.iter().copied().rposition(|e| e == b':') {
-                        Some(colon_index) if colon_index > 2 && bytes[colon_index - 1] == b']' => {
-                            return Err(#error_path::PortDisallow);
+                        ::core::option::Option::Some(colon_index) if colon_index > 2 && bytes[colon_index - 1] == b']' => {
+                            return ::core::result::Result::Err(#error_path::PortDisallow);
                         }
-                        _ => return Err(#error_path::Invalid),
+                        _ => return ::core::result::Result::Err(#error_path::Invalid),
                     }
                 }
             } else {
                 quote! {
                     match bytes.iter().copied().rposition(|e| e == b':') {
-                        Some(colon_index) => {
+                        ::core::option::Option::Some(colon_index) => {
                             if colon_index > 2 && bytes[colon_index - 1] == b']' {
                                 let ip_str = &s[1..(colon_index - 1)];
 
                                 match ::core::net::Ipv6Addr::from_str(ip_str) {
-                                    Ok(ip) => {
+                                    ::core::result::Result::Ok(ip) => {
                                         let port_str = &s[(colon_index + 1)..];
 
                                         // A port has only digits, but `parse` also accepts a leading `+`.
                                         if port_str.starts_with('+') {
-                                            return Err(#error_path::Invalid);
+                                            return ::core::result::Result::Err(#error_path::Invalid);
                                         }
 
                                         match port_str.parse::<u16>() {
-                                            Ok(port) => {
+                                            ::core::result::Result::Ok(port) => {
                                                 let is_local = #handle_local_ipv6;
 
                                                 #check_local
 
-                                                (::core::net::IpAddr::V6(ip), Some(port), is_local)
+                                                (::core::net::IpAddr::V6(ip), ::core::option::Option::Some(port), is_local)
                                             }
-                                            Err(_) => return Err(#error_path::Invalid),
+                                            ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                                         }
                                     }
-                                    Err(_) => return Err(#error_path::Invalid),
+                                    ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             } else {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
                         }
-                        None => return Err(#error_path::Invalid),
+                        ::core::option::Option::None => return ::core::result::Result::Err(#error_path::Invalid),
                     }
                 }
             };
 
             let handle_ipv6_non_bracket = if type_attribute.port.must() {
                 quote! {
-                    Ok(_) => {
-                        return Err(#error_path::PortMust);
+                    ::core::result::Result::Ok(_) => {
+                        return ::core::result::Result::Err(#error_path::PortMust);
                     }
                 }
             } else {
                 quote! {
-                    Ok(ip) => {
+                    ::core::result::Result::Ok(ip) => {
                         let is_local = #handle_local_ipv6;
 
                         #check_local
 
-                        (::core::net::IpAddr::V6(ip), None, is_local)
+                        (::core::net::IpAddr::V6(ip), ::core::option::Option::None, is_local)
                     }
                 }
             };
@@ -211,42 +211,42 @@ impl ValidatorHandler for IpHandler {
 
             let handle_ipv4_with_port = if type_attribute.port.disallow() {
                 quote! {
-                    Some(colon_index) => {
+                    ::core::option::Option::Some(colon_index) => {
                         // `host:port` has only one colon, so an input with more colons is just invalid.
                         if bytes[..colon_index].contains(&b':') {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
-                        return Err(#error_path::PortDisallow);
+                        return ::core::result::Result::Err(#error_path::PortDisallow);
                     }
                 }
             } else {
                 quote! {
-                    Some(colon_index) => {
+                    ::core::option::Option::Some(colon_index) => {
                         let ip_str = &s[..colon_index];
 
                         match ::core::net::Ipv4Addr::from_str(ip_str) {
-                            Ok(ip) => {
+                            ::core::result::Result::Ok(ip) => {
                                 let port_str =
                                     &s[(colon_index + 1)..];
 
                                 // A port has only digits, but `parse` also accepts a leading `+`.
                                 if port_str.starts_with('+') {
-                                    return Err(#error_path::Invalid);
+                                    return ::core::result::Result::Err(#error_path::Invalid);
                                 }
 
                                 match port_str.parse::<u16>() {
-                                    Ok(port) => {
+                                    ::core::result::Result::Ok(port) => {
                                         let is_local = #handle_local_ipv4;
 
                                         #check_local
 
-                                        (::core::net::IpAddr::V4(ip), Some(port), is_local)
+                                        (::core::net::IpAddr::V4(ip), ::core::option::Option::Some(port), is_local)
                                     }
-                                    Err(_) => return Err(#error_path::Invalid),
+                                    ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
-                            Err(_) => return Err(#error_path::Invalid),
+                            ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                         }
                     }
                 }
@@ -254,35 +254,35 @@ impl ValidatorHandler for IpHandler {
 
             let handle_ipv4_without_port = if type_attribute.port.must() {
                 quote! {
-                    return Err(#error_path::PortMust);
+                    return ::core::result::Result::Err(#error_path::PortMust);
                 }
             } else {
                 quote! {
                     match ::core::net::Ipv4Addr::from_str(s) {
-                        Ok(ip) => {
+                        ::core::result::Result::Ok(ip) => {
                             let is_local = #handle_local_ipv4;
 
                             #check_local
 
-                            (::core::net::IpAddr::V4(ip), None, is_local)
+                            (::core::net::IpAddr::V4(ip), ::core::option::Option::None, is_local)
                         }
-                        Err(_) => return Err(#error_path::Invalid),
+                        ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                     }
                 }
             };
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(::core::net::IpAddr, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(::core::net::IpAddr, ::core::option::Option<u16>, bool), #error_path> {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();
 
                         if bytes.is_empty() {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
-                        Ok(if bytes[0] == b'[' {
+                        ::core::result::Result::Ok(if bytes[0] == b'[' {
                             let last_index = bytes.len() - 1;
 
                             if bytes[last_index] == b']' {
@@ -293,10 +293,10 @@ impl ValidatorHandler for IpHandler {
                         } else {
                             match ::core::net::Ipv6Addr::from_str(s) {
                                 #handle_ipv6_non_bracket
-                                Err(_) => {
+                                ::core::result::Result::Err(_) => {
                                     match bytes.iter().copied().rposition(|e| e == b':') {
                                         #handle_ipv4_with_port
-                                        None => {
+                                        ::core::option::Option::None => {
                                             #handle_ipv4_without_port
                                         }
                                     }
@@ -341,21 +341,21 @@ impl ValidatorHandler for IpHandler {
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (ip, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
 
-                        Ok(#create_instance)
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (ip, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
 
-                        Ok(#create_instance)
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
                     fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(s.as_ref())?;
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -369,14 +369,14 @@ impl ValidatorHandler for IpHandler {
                                 match &self.ip {
                                     ::core::net::IpAddr::V4(ip) => {
                                         match self.port {
-                                            Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
-                                            None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
+                                            ::core::option::Option::Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
+                                            ::core::option::Option::None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                         }
                                     },
                                     ::core::net::IpAddr::V6(ip) => {
                                         match self.port {
-                                            Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
-                                            None => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
+                                            ::core::option::Option::Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]:{}", ip, port)),
+                                            ::core::option::Option::None => validators_prelude::Cow::Owned(validators_prelude::format!("[{}]", ip)),
                                         }
                                     },
                                 }

@@ -22,12 +22,12 @@ impl HexAttribute {
     pub(crate) fn digit_decoder(&self, error_path: &Path) -> proc_macro2::TokenStream {
         let lower = self.case.lower().then(|| {
             quote! {
-                b'a'..=b'f' => Ok(digit - (b'a' - 10)),
+                b'a'..=b'f' => ::core::result::Result::Ok(digit - (b'a' - 10)),
             }
         });
         let upper = self.case.upper().then(|| {
             quote! {
-                b'A'..=b'F' => Ok(digit - (b'A' - 10)),
+                b'A'..=b'F' => ::core::result::Result::Ok(digit - (b'A' - 10)),
             }
         });
 
@@ -35,10 +35,10 @@ impl HexAttribute {
             #[inline]
             fn v_decode_hex_digit(digit: u8) -> ::core::result::Result<u8, #error_path> {
                 match digit {
-                    b'0'..=b'9' => Ok(digit - b'0'),
+                    b'0'..=b'9' => ::core::result::Result::Ok(digit - b'0'),
                     #lower
                     #upper
-                    _ => Err(#error_path),
+                    _ => ::core::result::Result::Err(#error_path),
                 }
             }
         }

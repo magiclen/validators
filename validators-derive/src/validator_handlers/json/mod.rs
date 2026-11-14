@@ -40,17 +40,17 @@ impl ValidatorHandler for JsonHandler {
             token_stream.extend(quote! {
                         impl #name {
                             fn v_parse_str(s: &str) -> ::core::result::Result<#data_type, #error_path> {
-                                Ok(validators_prelude::serde_json::from_str(s)?)
+                                ::core::result::Result::Ok(validators_prelude::serde_json::from_str(s)?)
                             }
 
                             #[inline]
                             fn v_parse_i128(i: i128) -> ::core::result::Result<#data_type, #error_path> {
                                 match validators_prelude::serde_json::to_value(i) {
-                                    Ok(value) => Self::v_parse_json_value(value),
-                                    Err(_) => {
+                                    ::core::result::Result::Ok(value) => Self::v_parse_json_value(value),
+                                    ::core::result::Result::Err(_) => {
                                         let #deserializer_name = <i128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(i);
 
-                                        Ok(validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?)
+                                        ::core::result::Result::Ok(validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?)
                                     }
                                 }
                             }
@@ -59,17 +59,17 @@ impl ValidatorHandler for JsonHandler {
                             fn v_parse_i64(i: i64) -> ::core::result::Result<#data_type, #error_path> {
                                 let value = validators_prelude::serde_json::to_value(i)?;
 
-                                Ok(validators_prelude::serde_json::from_value(value)?)
+                                ::core::result::Result::Ok(validators_prelude::serde_json::from_value(value)?)
                             }
 
                             #[inline]
                             fn v_parse_u128(u: u128) -> ::core::result::Result<#data_type, #error_path> {
                                 match validators_prelude::serde_json::to_value(u) {
-                                    Ok(value) => Self::v_parse_json_value(value),
-                                    Err(_) => {
+                                    ::core::result::Result::Ok(value) => Self::v_parse_json_value(value),
+                                    ::core::result::Result::Err(_) => {
                                         let #deserializer_name = <u128 as validators_prelude::serde::de::IntoDeserializer<'_, validators_prelude::serde_json::Error>>::into_deserializer(u);
 
-                                        Ok(validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?)
+                                        ::core::result::Result::Ok(validators_prelude::serde::Deserialize::deserialize(#deserializer_name)?)
                                     }
                                 }
                             }
@@ -78,31 +78,31 @@ impl ValidatorHandler for JsonHandler {
                             fn v_parse_u64(u: u64) -> ::core::result::Result<#data_type, #error_path> {
                                 let value = validators_prelude::serde_json::to_value(u)?;
 
-                                Ok(validators_prelude::serde_json::from_value(value)?)
+                                ::core::result::Result::Ok(validators_prelude::serde_json::from_value(value)?)
                             }
 
                             #[inline]
                             fn v_parse_f64(f: f64) -> ::core::result::Result<#data_type, #error_path> {
                                 // `serde_json` turns NaN and infinity into `null`, so reject them here.
                                 if !f.is_finite() {
-                                    return Err(<validators_prelude::serde_json::Error as validators_prelude::serde::ser::Error>::custom("NaN and infinity cannot be represented in JSON").into());
+                                    return ::core::result::Result::Err(<validators_prelude::serde_json::Error as validators_prelude::serde::ser::Error>::custom("NaN and infinity cannot be represented in JSON").into());
                                 }
 
                                 let value = validators_prelude::serde_json::to_value(f)?;
 
-                                Ok(validators_prelude::serde_json::from_value(value)?)
+                                ::core::result::Result::Ok(validators_prelude::serde_json::from_value(value)?)
                             }
 
                             #[inline]
                             fn v_parse_bool(b: bool) -> ::core::result::Result<#data_type, #error_path> {
                                 let value = validators_prelude::serde_json::to_value(b)?;
 
-                                Ok(validators_prelude::serde_json::from_value(value)?)
+                                ::core::result::Result::Ok(validators_prelude::serde_json::from_value(value)?)
                             }
 
                             #[inline]
                             fn v_parse_json_value(v: validators_prelude::serde_json::Value) -> ::core::result::Result<#data_type, #error_path> {
-                                Ok(validators_prelude::serde_json::from_value(v)?)
+                                ::core::result::Result::Ok(validators_prelude::serde_json::from_value(v)?)
                             }
                         }
                     });
@@ -113,19 +113,19 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -134,26 +134,26 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_i128(i)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_i128(i)?))
                             }
 
                             #[inline]
                             fn parse_i64(i: i64) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_i64(i)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_i64(i)?))
                             }
 
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i128(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
 
                             #[inline]
                             fn validate_i64(i: i64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i64(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -162,26 +162,26 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_u128(u)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_u128(u)?))
                             }
 
                             #[inline]
                             fn parse_u64(u: u64) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_u64(u)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_u64(u)?))
                             }
 
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u128(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
 
                             #[inline]
                             fn validate_u64(u: u64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u64(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -190,14 +190,14 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn parse_f64(f: f64) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_f64(f)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_f64(f)?))
                             }
 
                             #[inline]
                             fn validate_f64(f: f64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_f64(f)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -206,14 +206,14 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn parse_bool(b: bool) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_bool(b)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_bool(b)?))
                             }
 
                             #[inline]
                             fn validate_bool(b: bool) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_bool(b)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -222,14 +222,14 @@ impl ValidatorHandler for JsonHandler {
 
                             #[inline]
                             fn parse_json_value(v: validators_prelude::serde_json::Value) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_json_value(v)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_json_value(v)?))
                             }
 
                             #[inline]
                             fn validate_json_value(v: validators_prelude::serde_json::Value) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_json_value(v)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

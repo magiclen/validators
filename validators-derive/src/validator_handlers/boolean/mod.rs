@@ -45,179 +45,49 @@ impl ValidatorHandler for BooleanHandler {
                             fn v_parse_str(s: &str) -> ::core::result::Result<bool, #error_path> {
                                 let bytes = s.as_bytes();
 
-                                let mut iter = bytes.iter().copied();
-
-                                if let Some(e) = iter.next() {
-                                    match e {
-                                        b'y' | b'Y' => {
-                                            if let Some(e) = iter.next() {
-                                                match e {
-                                                    b'e' | b'E' => {
-                                                        if let Some(e) = iter.next() {
-                                                            match e {
-                                                                b's' | b'S' => {
-                                                                    if iter.next().is_none() {
-                                                                        return Ok(true);
-                                                                    }
-                                                                }
-                                                                _ => (),
-                                                            }
-                                                        }
-                                                    }
-                                                    _ => (),
-                                                }
-                                            } else {
-                                                return Ok(true);
-                                            }
-                                        }
-                                        b't' | b'T' => {
-                                            if let Some(e) = iter.next() {
-                                                match e {
-                                                    b'r' | b'R' => {
-                                                        if let Some(e) = iter.next() {
-                                                            match e {
-                                                                b'u' | b'U' => {
-                                                                    if let Some(e) = iter.next() {
-                                                                        match e {
-                                                                            b'e' | b'E' => {
-                                                                                if iter.next().is_none() {
-                                                                                    return Ok(true);
-                                                                                }
-                                                                            }
-                                                                            _ => (),
-                                                                        }
-                                                                    }
-                                                                }
-                                                                _ => (),
-                                                            }
-                                                        }
-                                                    }
-                                                    _ => (),
-                                                }
-                                            } else {
-                                                return Ok(true);
-                                            }
-                                        }
-                                        b'1' => {
-                                            if iter.next().is_none() {
-                                                return Ok(true);
-                                            }
-                                        }
-                                        b'o' | b'O' => {
-                                            if let Some(e) = iter.next() {
-                                                match e {
-                                                    b'n' | b'N' => {
-                                                        if iter.next().is_none() {
-                                                            return Ok(true);
-                                                        }
-                                                    }
-                                                    b'f' | b'F' => {
-                                                        if let Some(e) = iter.next() {
-                                                            match e {
-                                                                b'f' | b'F' => {
-                                                                    if iter.next().is_none() {
-                                                                        return Ok(false);
-                                                                    }
-                                                                }
-                                                                _ => (),
-                                                            }
-                                                        }
-                                                    }
-                                                    _ => (),
-                                                }
-                                            }
-                                        }
-                                        b'n' | b'N' => {
-                                            if let Some(e) = iter.next() {
-                                                match e {
-                                                    b'o' | b'O' => {
-                                                        if iter.next().is_none() {
-                                                            return Ok(false);
-                                                        }
-                                                    }
-                                                    _ => (),
-                                                }
-                                            } else {
-                                                return Ok(false);
-                                            }
-                                        }
-                                        b'f' | b'F' => {
-                                            if let Some(e) = iter.next() {
-                                                match e {
-                                                    b'a' | b'A' => {
-                                                        if let Some(e) = iter.next() {
-                                                            match e {
-                                                                b'l' | b'L' => {
-                                                                    if let Some(e) = iter.next() {
-                                                                        match e {
-                                                                            b's' | b'S' => {
-                                                                                if let Some(e) = iter.next() {
-                                                                                    match e {
-                                                                                        b'e' | b'E' => {
-                                                                                            if iter.next().is_none() {
-                                                                                                return Ok(false);
-                                                                                            }
-                                                                                        }
-                                                                                        _ => (),
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                            _ => (),
-                                                                        }
-                                                                    }
-                                                                }
-                                                                _ => (),
-                                                            }
-                                                        }
-                                                    }
-                                                    _ => (),
-                                                }
-                                            } else {
-                                                return Ok(false);
-                                            }
-                                        }
-                                        b'0' => {
-                                            if iter.next().is_none() {
-                                                return Ok(false);
-                                            }
-                                        }
-                                        _ => (),
-                                    }
+                                match bytes.len() {
+                                    // A one-byte string is ASCII, so it can be checked as a character.
+                                    1 => Self::v_parse_char(bytes[0] as char),
+                                    2 if bytes.eq_ignore_ascii_case(b"on") => ::core::result::Result::Ok(true),
+                                    2 if bytes.eq_ignore_ascii_case(b"no") => ::core::result::Result::Ok(false),
+                                    3 if bytes.eq_ignore_ascii_case(b"yes") => ::core::result::Result::Ok(true),
+                                    3 if bytes.eq_ignore_ascii_case(b"off") => ::core::result::Result::Ok(false),
+                                    4 if bytes.eq_ignore_ascii_case(b"true") => ::core::result::Result::Ok(true),
+                                    5 if bytes.eq_ignore_ascii_case(b"false") => ::core::result::Result::Ok(false),
+                                    _ => ::core::result::Result::Err(#error_path),
                                 }
-
-                                Err(#error_path)
                             }
 
                             #[inline]
                             fn v_parse_char(c: char) -> ::core::result::Result<bool, #error_path> {
                                 match c {
-                                    't' | 'T' | '1' | 'y' | 'Y' => Ok(true),
-                                    'f' | 'F' | '0' | 'n' | 'N' => Ok(false),
-                                    _ => Err(#error_path),
+                                    't' | 'T' | '1' | 'y' | 'Y' => ::core::result::Result::Ok(true),
+                                    'f' | 'F' | '0' | 'n' | 'N' => ::core::result::Result::Ok(false),
+                                    _ => ::core::result::Result::Err(#error_path),
                                 }
                             }
 
                             #[inline]
                             fn v_parse_i128(i: i128) -> ::core::result::Result<bool, #error_path> {
                                 match i {
-                                    1 => Ok(true),
-                                    0 => Ok(false),
-                                    _ => Err(#error_path),
+                                    1 => ::core::result::Result::Ok(true),
+                                    0 => ::core::result::Result::Ok(false),
+                                    _ => ::core::result::Result::Err(#error_path),
                                 }
                             }
 
                             #[inline]
                             fn v_parse_u128(u: u128) -> ::core::result::Result<bool, #error_path> {
                                 match u {
-                                    1 => Ok(true),
-                                    0 => Ok(false),
-                                    _ => Err(#error_path),
+                                    1 => ::core::result::Result::Ok(true),
+                                    0 => ::core::result::Result::Ok(false),
+                                    _ => ::core::result::Result::Err(#error_path),
                                 }
                             }
 
                             #[inline]
                             fn v_parse_bool(b: bool) -> ::core::result::Result<bool, #error_path> {
-                                Ok(b)
+                                ::core::result::Result::Ok(b)
                             }
                         }
                     });
@@ -228,19 +98,19 @@ impl ValidatorHandler for BooleanHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -249,14 +119,14 @@ impl ValidatorHandler for BooleanHandler {
 
                             #[inline]
                             fn parse_char(c: char) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_char(c)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_char(c)?))
                             }
 
                             #[inline]
                             fn validate_char(c: char) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_char(c)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -265,14 +135,14 @@ impl ValidatorHandler for BooleanHandler {
 
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_i128(i)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_i128(i)?))
                             }
 
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i128(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -281,14 +151,14 @@ impl ValidatorHandler for BooleanHandler {
 
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_u128(u)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_u128(u)?))
                             }
 
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u128(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
 
@@ -297,14 +167,14 @@ impl ValidatorHandler for BooleanHandler {
 
                             #[inline]
                             fn parse_bool(b: bool) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_bool(b)?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_bool(b)?))
                             }
 
                             #[inline]
                             fn validate_bool(b: bool) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_bool(b)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

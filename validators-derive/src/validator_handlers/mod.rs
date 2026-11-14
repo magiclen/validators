@@ -52,6 +52,9 @@ pub(crate) mod hex_decoded;
 #[cfg(feature = "host")]
 pub(crate) mod host;
 
+#[cfg(any(feature = "http_url", feature = "http_ftp_url"))]
+mod http_xx_url;
+
 #[cfg(feature = "http_url")]
 pub(crate) mod http_url;
 

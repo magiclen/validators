@@ -44,12 +44,12 @@ impl ValidatorHandler for LengthHandler {
                     match type_attribute.min {
                         Some(min) => {
                             quote! {
-                                Some(#min)
+                                ::core::option::Option::Some(#min)
                             }
                         },
                         None => {
                             quote! {
-                                None
+                                ::core::option::Option::None
                             }
                         },
                     }
@@ -59,12 +59,12 @@ impl ValidatorHandler for LengthHandler {
                     match type_attribute.max {
                         Some(max) => {
                             quote! {
-                                Some(#max)
+                                ::core::option::Option::Some(#max)
                             }
                         },
                         None => {
                             quote! {
-                                None
+                                ::core::option::Option::None
                             }
                         },
                     }
@@ -72,8 +72,8 @@ impl ValidatorHandler for LengthHandler {
 
                 token_stream.extend(quote! {
                     impl #name {
-                        pub(crate) const V_LENGTH_MIN: Option<usize> = #min_expr;
-                        pub(crate) const V_LENGTH_MAX: Option<usize> = #max_expr;
+                        pub(crate) const V_LENGTH_MIN: ::core::option::Option<usize> = #min_expr;
+                        pub(crate) const V_LENGTH_MAX: ::core::option::Option<usize> = #max_expr;
                     }
                 });
             }
@@ -88,8 +88,8 @@ impl ValidatorHandler for LengthHandler {
 
                                     match ::core::cmp::Ord::cmp(&length, &#min) {
                                         ::core::cmp::Ordering::Equal => (),
-                                        ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
-                                        ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
+                                        ::core::cmp::Ordering::Less => return ::core::result::Result::Err(#error_path::TooSmall),
+                                        ::core::cmp::Ordering::Greater => return ::core::result::Result::Err(#error_path::TooLarge),
                                     }
                                 }
                             } else {
@@ -97,11 +97,11 @@ impl ValidatorHandler for LengthHandler {
                                     let length = CollectionLength::len(v);
 
                                     if length < #min {
-                                        return Err(#error_path::TooSmall);
+                                        return ::core::result::Result::Err(#error_path::TooSmall);
                                     }
 
                                     if length > #max {
-                                        return Err(#error_path::TooLarge);
+                                        return ::core::result::Result::Err(#error_path::TooLarge);
                                     }
                                 }
                             }
@@ -110,7 +110,7 @@ impl ValidatorHandler for LengthHandler {
                                 let length = CollectionLength::len(v);
 
                                 if length < #min {
-                                    return Err(#error_path::TooSmall);
+                                    return ::core::result::Result::Err(#error_path::TooSmall);
                                 }
                             }
                         }
@@ -121,7 +121,7 @@ impl ValidatorHandler for LengthHandler {
                                 let length = CollectionLength::len(v);
 
                                 if length > #max {
-                                    return Err(#error_path::TooLarge);
+                                    return ::core::result::Result::Err(#error_path::TooLarge);
                                 }
                             }
                         },
@@ -139,7 +139,7 @@ impl ValidatorHandler for LengthHandler {
                     fn v_parse_v(v: &#data_type) -> ::core::result::Result<(), #error_path> {
                         #handle_range
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -152,7 +152,7 @@ impl ValidatorHandler for LengthHandler {
                     fn parse_collection(v: #data_type) -> ::core::result::Result<Self, Self::Error> {
                         Self::v_parse_v(&v)?;
 
-                        Ok(Self(v))
+                        ::core::result::Result::Ok(Self(v))
                     }
 
                     #[allow(clippy::ptr_arg)]
@@ -160,7 +160,7 @@ impl ValidatorHandler for LengthHandler {
                     fn validate_collection(v: &#data_type) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_v(v)?;
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -191,7 +191,7 @@ impl ValidatorHandler for LengthHandler {
 
                                         Self::v_parse_v(&v).map_err(validators_prelude::serde::de::Error::custom)?;
 
-                                        Ok(Self(v))
+                                        ::core::result::Result::Ok(Self(v))
                                     }
                                 }
                             });

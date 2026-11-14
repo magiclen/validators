@@ -10,7 +10,7 @@ use core::marker::PhantomData;
 ///
 /// * This struct uses the `FromParam` trait to implement the `FromFormField` trait (only impl the `from_value` method), allowing it to serve as the error type for subsequent checks.
 /// * This struct implements the `Deserialize` trait, allowing it to serve as the error type for subsequent checks.
-///   * When `E` is `NumberError`, `SignedIntegerError`, `UnsignedIntegerError` or `JsonError`, deserialization needs a self-describing format such as JSON, so formats such as bincode or postcard are not supported.
+///   * When `E` is `SignedIntegerError`, `UnsignedIntegerError` or `JsonError`, deserialization needs a self-describing format such as JSON, so formats such as bincode or postcard are not supported.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Result<T, E, K = ()>(core::result::Result<T, E>, PhantomData<K>);
 

@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use syn::{Expr, ExprLit, Lit, LitFloat, LitInt, Meta, UnOp};
 
-use crate::common::path_to_string;
+use crate::common::{path_to_string, peel_expr_groups};
 
 pub(crate) fn expr_lit_2_number<T: FromStr>(lit: &ExprLit) -> syn::Result<T>
 where
@@ -23,11 +23,11 @@ where
 pub(crate) fn expr_2_number<T: FromStr>(expr: &Expr) -> syn::Result<T>
 where
     T::Err: Display, {
-    match expr {
+    match peel_expr_groups(expr) {
         Expr::Lit(lit) => return expr_lit_2_number(lit),
         Expr::Unary(unary) => {
             if let UnOp::Neg(_) = unary.op
-                && let Expr::Lit(lit) = unary.expr.as_ref()
+                && let Expr::Lit(lit) = peel_expr_groups(&unary.expr)
             {
                 match &lit.lit {
                     Lit::Int(lit) => {
@@ -48,12 +48,6 @@ where
                     },
                     _ => (),
                 }
-            }
-        },
-        Expr::Group(group) => {
-            // should not use this, but macro rules will end up here...
-            if let Expr::Lit(lit) = group.expr.as_ref() {
-                return expr_lit_2_number(lit);
             }
         },
         _ => (),

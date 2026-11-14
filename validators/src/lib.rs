@@ -300,6 +300,8 @@ assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap(
 
 * Traits: `ValidateString`, `QualifyDomain`, `ToUriAuthorityString`
 * By default, `ipv4 = Allow, local = Allow, port = Allow, at_least_two_labels = Allow`
+* With `local(Allow)` and `at_least_two_labels(Must)` or `at_least_two_labels(Disallow)`, the struct needs named fields with an extra `is_local: bool` field.
+* In that case, it also needs an `is_ipv4: bool` field when `ipv4` is `Allow`.
 
 #### email
 
@@ -342,6 +344,7 @@ assert!(EmailWithoutComment::parse_string("(john)joke@example.com").is_err());
 
 * Traits: `ValidateString`, `ToEmailString`
 * By default, `comment = Allow, ip = Allow, local = Allow, at_least_two_labels = Allow, non_ascii = Allow`
+* With `local(Allow)` and `at_least_two_labels(Must)` or `at_least_two_labels(Disallow)`, the struct also needs an `is_local: bool` field.
 
 #### hex_color
 
@@ -436,6 +439,7 @@ assert!(HostMustAtLeastTwoLabelsAllowPort::parse_string("example").is_err());
 
 * Traits: `ValidateString`, `ToUriAuthorityString`
 * By default, `local = Allow, port = Allow, at_least_two_labels = Allow`
+* With `local(Allow)` and `at_least_two_labels(Must)` or `at_least_two_labels(Disallow)`, the struct needs named fields with an extra `is_local: bool` field, as in the example above.
 
 #### http_url
 

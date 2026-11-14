@@ -45,10 +45,10 @@ impl ValidatorHandler for RegexHandler {
                     #[inline]
                     fn v_parse_str(s: &str) -> ::core::result::Result<(), #error_path> {
                         if !(#re).is_match(s) {
-                            return Err(#error_path);
+                            return ::core::result::Result::Err(#error_path);
                         }
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -63,7 +63,7 @@ impl ValidatorHandler for RegexHandler {
 
                                 Self::v_parse_str(s.as_str())?;
 
-                                Ok(Self(s))
+                                ::core::result::Result::Ok(Self(s))
                             }
 
                             #[inline]
@@ -72,14 +72,14 @@ impl ValidatorHandler for RegexHandler {
 
                                 Self::v_parse_str(s)?;
 
-                                Ok(Self(validators_prelude::String::from(s)))
+                                ::core::result::Result::Ok(Self(validators_prelude::String::from(s)))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

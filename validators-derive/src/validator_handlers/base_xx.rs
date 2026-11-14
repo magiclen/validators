@@ -171,7 +171,7 @@ pub(super) fn encoded_handler(
 
                             Self::v_parse_str(s.as_str())?;
 
-                            Ok(Self(s))
+                            ::core::result::Result::Ok(Self(s))
                         }
 
                         #[inline]
@@ -180,7 +180,7 @@ pub(super) fn encoded_handler(
 
                             Self::v_parse_str(s)?;
 
-                            Ok(Self(validators_prelude::String::from(s)))
+                            ::core::result::Result::Ok(Self(validators_prelude::String::from(s)))
                         }
 
                         #[inline]
@@ -343,7 +343,7 @@ pub(super) fn decoded_handler(
             let last_block_start = (v.len() - 1) / #block_len * #block_len;
 
             if v[..last_block_start].contains(&b'=') {
-                return Err(#error_path::Decode);
+                return ::core::result::Result::Err(#error_path::Decode);
             }
 
             #padded.decode(v).map_err(|_| #error_path::Decode)
@@ -354,7 +354,7 @@ pub(super) fn decoded_handler(
 
         let decode = match type_attribute.padding {
             TriAllow::Allow => quote! {
-                if v.last() == Some(&b'=') {
+                if v.last() == ::core::option::Option::Some(&b'=') {
                     #decode_padded
                 } else {
                     #decode_unpadded
@@ -373,7 +373,7 @@ pub(super) fn decoded_handler(
 
                         fn v_parse_u8_slice(v: &[u8]) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
                             if v.is_empty() {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             // The decoder only reports `Decode`, so ask the validator for a more specific error.
@@ -402,19 +402,19 @@ pub(super) fn decoded_handler(
 
                         #[inline]
                         fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                            Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                            ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                         }
 
                         #[inline]
                         fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                            Ok(Self(Self::v_parse_str(s.as_ref())?))
+                            ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                         }
 
                         #[inline]
                         fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                             Self::v_validate_str(s.as_ref())?;
 
-                            Ok(())
+                            ::core::result::Result::Ok(())
                         }
                     }
 
@@ -423,27 +423,27 @@ pub(super) fn decoded_handler(
 
                         #[inline]
                         fn parse_vec_u8<V: Into<validators_prelude::Vec<u8>>>(v: V) -> ::core::result::Result<Self, Self::Error> {
-                            Ok(Self(Self::v_parse_u8_slice(v.into().as_slice())?))
+                            ::core::result::Result::Ok(Self(Self::v_parse_u8_slice(v.into().as_slice())?))
                         }
 
                         #[inline]
                         fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<Self, Self::Error> {
-                            Ok(Self(Self::v_parse_u8_slice(v.as_ref())?))
+                            ::core::result::Result::Ok(Self(Self::v_parse_u8_slice(v.as_ref())?))
                         }
 
                         #[inline]
                         fn validate_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<(), Self::Error> {
                             Self::v_validate_u8_slice(v.as_ref())?;
 
-                            Ok(())
+                            ::core::result::Result::Ok(())
                         }
                         #[inline]
                         fn parse_decoded_vec_u8(v: validators_prelude::Vec<u8>) -> ::core::result::Result<Self, Self::Error> {
                             if v.is_empty() {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
-                            Ok(Self(v))
+                            ::core::result::Result::Ok(Self(v))
                         }
                     }
 

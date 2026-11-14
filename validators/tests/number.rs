@@ -2,6 +2,22 @@
 
 use validators::prelude::{validators_prelude::RangeOption, *};
 
+#[test]
+fn range_macro_expression() {
+    macro_rules! number {
+        ($min:expr) => {
+            #[derive(Validator)]
+            #[validator(number(range(Inside(min = $min))))]
+            struct Number(f32);
+        };
+    }
+
+    number!(-0.5);
+
+    assert_eq!(-0.5, Number::parse_f32(-0.5).unwrap().0);
+    assert_eq!(0.5, Number::parse_str("0.5").unwrap().0);
+}
+
 #[cfg(feature = "serde_json")]
 #[test]
 fn deserialize_integers() {
@@ -19,6 +35,40 @@ fn deserialize_integers() {
         assert_eq!(expected, number.0);
         assert_eq!(expected, result.into_std_result().unwrap().0);
     }
+}
+
+#[cfg(feature = "serde_json")]
+#[test]
+fn deserialize_f32_integers() {
+    use validators::{Result as ValidationResult, serde_json};
+
+    #[derive(Validator)]
+    #[validator(number)]
+    struct Number(f32);
+
+    for (input, expected) in
+        [("18014399583223809", 0x5A80_0001), ("-18014399583223809", 0xDA80_0001)]
+    {
+        let number: Number = serde_json::from_str(input).unwrap();
+        let result: ValidationResult<Number, validators_prelude::NumberError> =
+            serde_json::from_str(input).unwrap();
+
+        assert_eq!(expected, number.0.to_bits());
+        assert_eq!(expected, result.into_std_result().unwrap().0.to_bits());
+        assert_eq!(expected, Number::parse_str(input).unwrap().0.to_bits());
+    }
+
+    #[derive(Validator)]
+    #[validator(number(range(Inside(min = 18014400656965632))))]
+    struct AtLeastMinimum(f32);
+
+    let input = "18014399583223809";
+    let number: AtLeastMinimum = serde_json::from_str(input).unwrap();
+    let result: ValidationResult<AtLeastMinimum, validators_prelude::NumberError> =
+        serde_json::from_str(input).unwrap();
+
+    assert_eq!(0x5A80_0001, number.0.to_bits());
+    assert_eq!(0x5A80_0001, result.into_std_result().unwrap().0.to_bits());
 }
 
 #[cfg(feature = "serde_json")]
@@ -48,7 +98,10 @@ fn serde_roundtrip_non_finite() {
 #[cfg(feature = "serde")]
 #[test]
 fn deserialize_binary_f32() {
-    use validators::serde::{self, Deserialize, de};
+    use validators::{
+        Result as ValidationResult,
+        serde::{self, Deserialize, de},
+    };
 
     struct BinaryF32(f32);
 
@@ -81,6 +134,11 @@ fn deserialize_binary_f32() {
     struct Number(f32);
 
     assert_eq!(0.5, Number::deserialize(BinaryF32(0.5)).unwrap().0);
+
+    let result: ValidationResult<Number, validators_prelude::NumberError> =
+        Deserialize::deserialize(BinaryF32(0.5)).unwrap();
+
+    assert_eq!(0.5, result.into_std_result().unwrap().0);
 }
 
 fn check_range<T: PartialOrd>(v: T, range: RangeOption<T>) -> bool {

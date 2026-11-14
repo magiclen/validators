@@ -88,14 +88,14 @@ impl ValidatorHandler for Ipv4Handler {
                     TriAllow::Must => {
                         quote! {
                             if !is_local {
-                                return Err(#error_path::LocalMust);
+                                return ::core::result::Result::Err(#error_path::LocalMust);
                             }
                         }
                     },
                     TriAllow::Disallow => {
                         quote! {
                             if is_local {
-                                return Err(#error_path::LocalDisallow);
+                                return ::core::result::Result::Err(#error_path::LocalDisallow);
                             }
                         }
                     },
@@ -114,42 +114,42 @@ impl ValidatorHandler for Ipv4Handler {
 
             let handle_ipv4_with_port = if type_attribute.port.disallow() {
                 quote! {
-                    Some(colon_index) => {
+                    ::core::option::Option::Some(colon_index) => {
                         // `host:port` has only one colon, so an input with more colons is just invalid.
                         if bytes[..colon_index].contains(&b':') {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
-                        return Err(#error_path::PortDisallow);
+                        return ::core::result::Result::Err(#error_path::PortDisallow);
                     }
                 }
             } else {
                 quote! {
-                    Some(colon_index) => {
+                    ::core::option::Option::Some(colon_index) => {
                         let ip_str = &s[..colon_index];
 
                         match ::core::net::Ipv4Addr::from_str(ip_str) {
-                            Ok(ip) => {
+                            ::core::result::Result::Ok(ip) => {
                                 let port_str =
                                     &s[(colon_index + 1)..];
 
                                 // A port has only digits, but `parse` also accepts a leading `+`.
                                 if port_str.starts_with('+') {
-                                    return Err(#error_path::Invalid);
+                                    return ::core::result::Result::Err(#error_path::Invalid);
                                 }
 
                                 match port_str.parse::<u16>() {
-                                    Ok(port) => {
+                                    ::core::result::Result::Ok(port) => {
                                         let is_local = #handle_local_ipv4;
 
                                         #check_local
 
-                                        (ip, Some(port), is_local)
+                                        (ip, ::core::option::Option::Some(port), is_local)
                                     }
-                                    Err(_) => return Err(#error_path::Invalid),
+                                    ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
-                            Err(_) => return Err(#error_path::Invalid),
+                            ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                         }
                     }
                 }
@@ -157,37 +157,37 @@ impl ValidatorHandler for Ipv4Handler {
 
             let handle_ipv4_without_port = if type_attribute.port.must() {
                 quote! {
-                    return Err(#error_path::PortMust);
+                    return ::core::result::Result::Err(#error_path::PortMust);
                 }
             } else {
                 quote! {
                     match ::core::net::Ipv4Addr::from_str(s) {
-                        Ok(ip) => {
+                        ::core::result::Result::Ok(ip) => {
                             let is_local = #handle_local_ipv4;
 
                             #check_local
 
-                            (ip, None, is_local)
+                            (ip, ::core::option::Option::None, is_local)
                         }
-                        Err(_) => return Err(#error_path::Invalid),
+                        ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                     }
                 }
             };
 
             token_stream.extend(quote! {
                 impl #name {
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(::core::net::Ipv4Addr, Option<u16>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(::core::net::Ipv4Addr, ::core::option::Option<u16>, bool), #error_path> {
                         use ::core::str::FromStr;
 
                         let bytes = s.as_bytes();
 
                         if bytes.is_empty() {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
-                        Ok(match bytes.iter().copied().rposition(|e| e == b':') {
+                        ::core::result::Result::Ok(match bytes.iter().copied().rposition(|e| e == b':') {
                             #handle_ipv4_with_port
-                            None => {
+                            ::core::option::Option::None => {
                                 #handle_ipv4_without_port
                             }
                         })
@@ -229,21 +229,21 @@ impl ValidatorHandler for Ipv4Handler {
                     fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (ipv4, _port, _is_local) = Self::v_parse_str(s.into().as_str())?;
 
-                        Ok(#create_instance)
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
                         let (ipv4, _port, _is_local) = Self::v_parse_str(s.as_ref())?;
 
-                        Ok(#create_instance)
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
                     fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(s.as_ref())?;
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -257,8 +257,8 @@ impl ValidatorHandler for Ipv4Handler {
                                 let ip = self.ipv4;
 
                                 match self.port {
-                                    Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
-                                    None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
+                                    ::core::option::Option::Some(port) => validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", ip, port)),
+                                    ::core::option::Option::None => validators_prelude::Cow::Owned(validators_prelude::format!("{}", ip)),
                                 }
                             }
                         }

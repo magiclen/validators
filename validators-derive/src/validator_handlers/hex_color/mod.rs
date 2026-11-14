@@ -80,7 +80,7 @@ impl ValidatorHandler for HexColorHandler {
                         let short = match length {
                             #short_lengths => true,
                             #long_lengths => false,
-                            _ => return Err(#error_path),
+                            _ => return ::core::result::Result::Err(#error_path),
                         };
                         let mut color = 0u32;
 
@@ -98,7 +98,7 @@ impl ValidatorHandler for HexColorHandler {
                             color = (color << 8) | 0xFF;
                         }
 
-                        Ok(color)
+                        ::core::result::Result::Ok(color)
                     }
                 }
 

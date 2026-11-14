@@ -7,7 +7,7 @@ pub(crate) fn impl_from_form_field(token_stream: &mut proc_macro2::TokenStream, 
         impl<'r> validators_prelude::rocket::form::FromFormField<'r> for #name {
             #[inline]
             fn from_value(v: validators_prelude::rocket::form::ValueField<'r>) -> validators_prelude::rocket::form::Result<'r, Self> {
-                Ok(<Self as ValidateString>::parse_str(v.value).map_err(validators_prelude::rocket::form::Error::custom)?)
+                ::core::result::Result::Ok(<Self as ValidateString>::parse_str(v.value).map_err(validators_prelude::rocket::form::Error::custom)?)
             }
         }
     });

@@ -258,12 +258,12 @@ impl ValidatorHandler for EmailHandler {
 
             let handle_unrecognized_first_byte_quoted = if type_attribute.non_ascii.disallow() {
                 quote! {
-                    return Err(#error_path::Invalid);
+                    return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
                 quote! {
                     if e < 128 {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     } else {
                         (false ,false, false)
                     }
@@ -276,24 +276,24 @@ impl ValidatorHandler for EmailHandler {
 
             let handle_unrecognized_first_byte_unquoted = if type_attribute.non_ascii.disallow() {
                 quote! {
-                    return Err(#error_path::Invalid);
+                    return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
                 quote! {
                     if e < 128 {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
                 }
             };
 
             let handle_unrecognized_byte_quoted = if type_attribute.non_ascii.disallow() {
                 quote! {
-                    return Err(#error_path::Invalid);
+                    return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
                 quote! {
                     if e < 128 {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     } else {
                         last_dot = false;
                         escaping = false;
@@ -303,12 +303,12 @@ impl ValidatorHandler for EmailHandler {
 
             let handle_unrecognized_byte_unquoted = if type_attribute.non_ascii.disallow() {
                 quote! {
-                    return Err(#error_path::Invalid);
+                    return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
                 quote! {
                     if e < 128 {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     } else {
                         last_dot = false;
                     }
@@ -321,14 +321,14 @@ impl ValidatorHandler for EmailHandler {
                     TriAllow::Must => {
                         quote! {
                             if !is_local {
-                                return Err(#error_path::LocalMust);
+                                return ::core::result::Result::Err(#error_path::LocalMust);
                             }
                         }
                     },
                     TriAllow::Disallow => {
                         quote! {
                             if is_local {
-                                return Err(#error_path::LocalDisallow);
+                                return ::core::result::Result::Err(#error_path::LocalDisallow);
                             }
                         }
                     },
@@ -337,11 +337,11 @@ impl ValidatorHandler for EmailHandler {
 
             let handle_ip = if type_attribute.ip.disallow() {
                 quote! {
-                    return Err(#error_path::IPDisallow);
+                    return ::core::result::Result::Err(#error_path::IPDisallow);
                 }
             } else if type_attribute.at_least_two_labels.disallow() {
                 quote! {
-                    return Err(#error_path::AtLeastTwoLabelsDisallow);
+                    return ::core::result::Result::Err(#error_path::AtLeastTwoLabelsDisallow);
                 }
             } else {
                 let handle_local_ipv6 = if type_attribute.at_least_two_labels == TriAllow::Allow
@@ -385,13 +385,13 @@ impl ValidatorHandler for EmailHandler {
                                     .copied()
                                     .position(|e| e == b']')
                                 {
-                                    Some(mut closing_bracket_index) => {
+                                    ::core::option::Option::Some(mut closing_bracket_index) => {
                                         closing_bracket_index += domain_part_length;
 
                                         let ip_str = &s[domain_part_length..closing_bracket_index];
 
                                         match ::core::net::Ipv6Addr::from_str(ip_str) {
-                                            Ok(ip) => {
+                                            ::core::result::Result::Ok(ip) => {
                                                 domain_part_length = closing_bracket_index + 1;
 
                                                 struct LengthCounter(usize);
@@ -400,7 +400,7 @@ impl ValidatorHandler for EmailHandler {
                                                     fn write_str(&mut self, s: &str) -> ::core::fmt::Result {
                                                         self.0 += s.len();
 
-                                                        Ok(())
+                                                        ::core::result::Result::Ok(())
                                                     }
                                                 }
 
@@ -415,42 +415,42 @@ impl ValidatorHandler for EmailHandler {
 
                                                 (::core::result::Result::Ok(::core::net::IpAddr::V6(ip)), #handle_local_ipv6)
                                             }
-                                            Err(_) => return Err(#error_path::Invalid),
+                                            ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                                         }
                                     }
-                                    None => return Err(#error_path::Invalid),
+                                    ::core::option::Option::None => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             } else {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
                         } else {
                             match bytes[domain_part_length..].iter().copied().position(|e| e == b']') {
-                                Some(mut closing_bracket_index) => {
+                                ::core::option::Option::Some(mut closing_bracket_index) => {
                                     closing_bracket_index += domain_part_length;
 
                                     let ip_str = &s[domain_part_length..closing_bracket_index];
 
                                     match ::core::net::Ipv4Addr::from_str(ip_str) {
-                                        Ok(ip) => {
+                                        ::core::result::Result::Ok(ip) => {
                                             domain_part_length = closing_bracket_index + 1;
 
                                             (::core::result::Result::Ok(::core::net::IpAddr::V4(ip)), #handle_local_ipv4)
                                         }
-                                        Err(_) => return Err(#error_path::Invalid),
+                                        ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                                     }
                                 }
-                                None => return Err(#error_path::Invalid),
+                                ::core::option::Option::None => return ::core::result::Result::Err(#error_path::Invalid),
                             }
                         }
                     } else {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
                 }
             };
 
             let handle_domain = if type_attribute.ip.must() {
                 quote! {
-                    return Err(#error_path::IPMust);
+                    return ::core::result::Result::Err(#error_path::IPMust);
                 }
             } else {
                 let handle_local_domain = if type_attribute.at_least_two_labels == TriAllow::Allow
@@ -471,7 +471,7 @@ impl ValidatorHandler for EmailHandler {
                         TriAllow::Must => {
                             quote! {
                                 if !is_local && !validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
-                                    return Err(#error_path::AtLeastTwoLabelsMust);
+                                    return ::core::result::Result::Err(#error_path::AtLeastTwoLabelsMust);
                                 }
                             }
                         },
@@ -479,7 +479,7 @@ impl ValidatorHandler for EmailHandler {
                             // Local names are not exempt here, because subdomains such as `foo.localhost` have two labels.
                             quote! {
                                 if validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
-                                    return Err(#error_path::AtLeastTwoLabelsDisallow);
+                                    return ::core::result::Result::Err(#error_path::AtLeastTwoLabelsDisallow);
                                 }
                             }
                         },
@@ -489,11 +489,11 @@ impl ValidatorHandler for EmailHandler {
                 quote! {
                     let domain_str = {
                         match bytes[domain_part_length..].iter().copied().position(|e| e == b'(') {
-                            Some(mut open_parenthesis_index) => {
+                            ::core::option::Option::Some(mut open_parenthesis_index) => {
                                 open_parenthesis_index += domain_part_length;
                                 &s[domain_part_length..open_parenthesis_index]
                             }
-                            None => &s[domain_part_length..],
+                            ::core::option::Option::None => &s[domain_part_length..],
                         }
                     };
 
@@ -503,14 +503,14 @@ impl ValidatorHandler for EmailHandler {
                         validators_prelude::idna::uts46::Hyphens::CheckFirstLast,
                         validators_prelude::idna::uts46::DnsLength::VerifyAllowRootDot,
                     ) {
-                        Ok(ascii_domain) => {
+                        ::core::result::Result::Ok(ascii_domain) => {
                             if ascii_domain.ends_with('.') {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             // An IPv4 address must be written in brackets, such as `[127.0.0.1]`.
                             if ascii_domain.parse::<::core::net::Ipv4Addr>().is_ok() {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             domain_part_length += domain_str.len();
@@ -525,7 +525,7 @@ impl ValidatorHandler for EmailHandler {
 
                             (::core::result::Result::Err(ascii_domain), is_local)
                         }
-                        Err(_) => return Err(#error_path::Invalid),
+                        ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                     }
                 }
             };
@@ -552,8 +552,8 @@ impl ValidatorHandler for EmailHandler {
                 } else {
                     quote! {
                         // 0xC2 followed by 0x80..=0x9F encodes a C1 control character (U+0080..=U+009F).
-                        if byte == 0xC2 && ::core::matches!(bytes.get(index + 1), Some(0x80..=0x9F)) {
-                            return Err(#error_path::Invalid);
+                        if byte == 0xC2 && ::core::matches!(bytes.get(index + 1), ::core::option::Option::Some(0x80..=0x9F)) {
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
                     }
                 };
@@ -566,7 +566,7 @@ impl ValidatorHandler for EmailHandler {
                         // The limit includes the opening and closing parentheses.
                         for (index, byte) in bytes.iter().copied().take(max_len).enumerate().skip(1) {
                             if ::core::matches!(byte, #invalid_byte) {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             #check_c1_control
@@ -576,37 +576,37 @@ impl ValidatorHandler for EmailHandler {
                             } else {
                                 match byte {
                                     b'\\' => escaped = true,
-                                    b'(' => return Err(#error_path::Invalid),
-                                    b')' => return Ok((&s[1..index], index + 1)),
+                                    b'(' => return ::core::result::Result::Err(#error_path::Invalid),
+                                    b')' => return ::core::result::Result::Ok((&s[1..index], index + 1)),
                                     _ => (),
                                 }
                             }
                         }
 
-                        Err(#error_path::Invalid)
+                        ::core::result::Result::Err(#error_path::Invalid)
                     }
                 }
             };
 
             let handle_comment_1 = if type_attribute.comment.disallow() {
                 quote! {
-                    return Err(#error_path::CommentDisallow);
+                    return ::core::result::Result::Err(#error_path::CommentDisallow);
                 }
             } else {
                 quote! {
                     let (comment, local_part_length) = parse_comment(s, length)?;
 
                     if local_part_length == length {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
 
-                    (local_part_length, Some(comment))
+                    (local_part_length, ::core::option::Option::Some(comment))
                 }
             };
 
             let handle_comment_2 = if type_attribute.comment.disallow() {
                 quote! {
-                    return Err(#error_path::CommentDisallow);
+                    return ::core::result::Result::Err(#error_path::CommentDisallow);
                 }
             } else {
                 quote! {
@@ -615,26 +615,26 @@ impl ValidatorHandler for EmailHandler {
                     local_part_length += comment_len;
 
                     if local_part_length == length {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
 
-                    Some(comment)
+                    ::core::option::Option::Some(comment)
                 }
             };
 
             let handle_comment_3 = if type_attribute.comment.disallow() {
                 quote! {
-                    return Err(#error_path::CommentDisallow);
+                    return ::core::result::Result::Err(#error_path::CommentDisallow);
                 }
             } else {
                 quote! {
                     let (comment, domain_part_length) = parse_comment(s, length)?;
 
                     if domain_part_length == length {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
 
-                    (domain_part_length, Some(comment))
+                    (domain_part_length, ::core::option::Option::Some(comment))
                 }
             };
 
@@ -642,39 +642,39 @@ impl ValidatorHandler for EmailHandler {
                 quote! {
                     // Other bytes after an IP literal are not a comment.
                     if bytes[domain_part_length] != b'(' {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
 
-                    return Err(#error_path::CommentDisallow);
+                    return ::core::result::Result::Err(#error_path::CommentDisallow);
                 }
             } else {
                 quote! {
                     if bytes[domain_part_length] != b'(' {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
 
                     let tail = &s[domain_part_length..];
                     let (comment, comment_len) = parse_comment(tail, tail.len())?;
 
                     if comment_len != tail.len() {
-                        return Err(#error_path::Invalid);
+                        return ::core::result::Result::Err(#error_path::Invalid);
                     }
 
-                    Some(comment)
+                    ::core::option::Option::Some(comment)
                 }
             };
 
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, ::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, Option<&str>, Option<&str>, Option<&str>, Option<&str>, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(&str, bool, ::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, ::core::option::Option<&str>, ::core::option::Option<&str>, ::core::option::Option<&str>, ::core::option::Option<&str>, bool), #error_path> {
                         #parse_comment
 
                         let bytes = s.as_bytes();
                         let length = bytes.len();
 
                         if length == 0 || length > 320 {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
                         let input_length = length;
@@ -683,7 +683,7 @@ impl ValidatorHandler for EmailHandler {
                         let (mut local_part_length, comment_before_local_part) = if bytes[0] == b'(' {
                             #handle_comment_1
                         } else {
-                            (0, None::<&str>)
+                            (0, ::core::option::Option::None::<&str>)
                         };
 
                         // RFC 5321 limits the local part to 64 octets, and comments are not part of it.
@@ -695,7 +695,7 @@ impl ValidatorHandler for EmailHandler {
                             let mut p = local_part_length + 1;
 
                             if p - local_part_start >= 64 || p == length {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             let e = bytes[p];
@@ -729,7 +729,7 @@ impl ValidatorHandler for EmailHandler {
 
                             loop {
                                 if p == length || p - local_part_start >= 64 {
-                                    return Err(#error_path::Invalid);
+                                    return ::core::result::Result::Err(#error_path::Invalid);
                                 }
 
                                 let e = bytes[p];
@@ -779,7 +779,7 @@ impl ValidatorHandler for EmailHandler {
 
                                             if local_part_length == length {
                                                 // end
-                                                return Err(#error_path::Invalid);
+                                                return ::core::result::Result::Err(#error_path::Invalid);
                                             }
 
                                             // A trailing dot is only valid inside quotes.
@@ -823,7 +823,7 @@ impl ValidatorHandler for EmailHandler {
 
                             loop {
                                 if p == length || p - local_part_start > 64 {
-                                    return Err(#error_path::Invalid);
+                                    return ::core::result::Result::Err(#error_path::Invalid);
                                 }
 
                                 let e = bytes[p];
@@ -846,14 +846,14 @@ impl ValidatorHandler for EmailHandler {
                                     }
                                     b'.' => {
                                         if last_dot {
-                                            return Err(#error_path::Invalid);
+                                            return ::core::result::Result::Err(#error_path::Invalid);
                                         }
 
                                         last_dot = true;
                                     }
                                     b'@' | b'(' => {
                                         if last_dot {
-                                            return Err(#error_path::Invalid);
+                                            return ::core::result::Result::Err(#error_path::Invalid);
                                         }
 
                                         let local_part =
@@ -876,11 +876,11 @@ impl ValidatorHandler for EmailHandler {
                         let comment_after_local_part = if bytes[local_part_length] == b'(' {
                             #handle_comment_2
                         } else {
-                            None::<&str>
+                            ::core::option::Option::None::<&str>
                         };
 
                         if bytes[local_part_length] != b'@' || local_part_length + 1 == length {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
                         let s = &s[(local_part_length + 1)..];
@@ -891,14 +891,14 @@ impl ValidatorHandler for EmailHandler {
                         let (mut domain_part_length, comment_before_domain_part) = if bytes[0] == b'(' {
                             #handle_comment_3
                         } else {
-                            (0, None::<&str>)
+                            (0, ::core::option::Option::None::<&str>)
                         };
 
                         let domain_part_start = domain_part_length;
                         let mut domain_part_length_offset = 0isize;
 
                         let (host, is_local): (::core::result::Result<::core::net::IpAddr, validators_prelude::Cow<'_, str>>, bool) = match bytes[domain_part_length] {
-                            b'(' => return Err(#error_path::Invalid),
+                            b'(' => return ::core::result::Result::Err(#error_path::Invalid),
                             b'[' => {
                                 #handle_ip
                             }
@@ -911,7 +911,7 @@ impl ValidatorHandler for EmailHandler {
 
                         // RFC 5321 limits the domain to 255 octets, and comments are not part of it.
                         if (domain_part_length - domain_part_start) as isize + domain_part_length_offset > 255 {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
                         // RFC 5321 limits an address without comments to 254 octets.
@@ -920,7 +920,7 @@ impl ValidatorHandler for EmailHandler {
                             let quotes_length = if need_quoted { 2 } else { 0 };
 
                             if local_part.len() + quotes_length + 1 + domain.len() > 254 {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
                         }
 
@@ -929,17 +929,17 @@ impl ValidatorHandler for EmailHandler {
                         let removed_quotes_length = if quoted && !need_quoted { 2 } else { 0 };
 
                         if input_length as isize + domain_part_length_offset - removed_quotes_length > 320 {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
                         // comment 4
                         let comment_after_domain_part = if length > domain_part_length {
                             #handle_comment_4
                         } else {
-                            None::<&str>
+                            ::core::option::Option::None::<&str>
                         };
 
-                        return Ok((
+                        return ::core::result::Result::Ok((
                             local_part,
                             need_quoted,
                             host,
@@ -954,211 +954,45 @@ impl ValidatorHandler for EmailHandler {
             });
 
             let create_instance = {
-                if type_attribute.comment.allow() {
-                    match type_attribute.ip {
-                        TriAllow::Allow => {
-                            if type_attribute.local == TriAllow::Allow
-                                && type_attribute.at_least_two_labels != TriAllow::Allow
-                            {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part,
-                                        comment_before_local_part: _comment_before_local_part,
-                                        comment_after_local_part: _comment_after_local_part,
-                                        comment_before_domain_part: _comment_before_domain_part,
-                                        comment_after_domain_part: _comment_after_domain_part,
-                                        is_local: _is_local,
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part,
-                                        comment_before_local_part: _comment_before_local_part,
-                                        comment_after_local_part: _comment_after_local_part,
-                                        comment_before_domain_part: _comment_before_domain_part,
-                                        comment_after_domain_part: _comment_after_domain_part,
-                                    }
-                                }
-                            }
-                        },
-                        TriAllow::Must => {
-                            if type_attribute.local == TriAllow::Allow
-                                && type_attribute.at_least_two_labels != TriAllow::Allow
-                            {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
-                                                validators_prelude::Host::Domain(_) => ::core::unreachable!(),
-                                            }
-                                        },
-                                        comment_before_local_part: _comment_before_local_part,
-                                        comment_after_local_part: _comment_after_local_part,
-                                        comment_before_domain_part: _comment_before_domain_part,
-                                        comment_after_domain_part: _comment_after_domain_part,
-                                        is_local: _is_local,
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
-                                                _ => ::core::unreachable!(),
-                                            }
-                                        },
-                                        comment_before_local_part: _comment_before_local_part,
-                                        comment_after_local_part: _comment_after_local_part,
-                                        comment_before_domain_part: _comment_before_domain_part,
-                                        comment_after_domain_part: _comment_after_domain_part,
-                                    }
-                                }
-                            }
-                        },
-                        TriAllow::Disallow => {
-                            if type_attribute.local == TriAllow::Allow
-                                && type_attribute.at_least_two_labels != TriAllow::Allow
-                            {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::Domain(domain) => domain,
-                                                _ => ::core::unreachable!(),
-                                            }
-                                        },
-                                        comment_before_local_part: _comment_before_local_part,
-                                        comment_after_local_part: _comment_after_local_part,
-                                        comment_before_domain_part: _comment_before_domain_part,
-                                        comment_after_domain_part: _comment_after_domain_part,
-                                        is_local: _is_local,
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::Domain(domain) => domain,
-                                                _ => ::core::unreachable!(),
-                                            }
-                                        },
-                                        comment_before_local_part: _comment_before_local_part,
-                                        comment_after_local_part: _comment_after_local_part,
-                                        comment_before_domain_part: _comment_before_domain_part,
-                                        comment_after_domain_part: _comment_after_domain_part,
-                                    }
-                                }
-                            }
-                        },
+                let domain_part = match type_attribute.ip {
+                    TriAllow::Allow => quote! { domain_part },
+                    TriAllow::Must => quote! {
+                        match domain_part {
+                            validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
+                            validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
+                            validators_prelude::Host::Domain(_) => ::core::unreachable!(),
+                        }
+                    },
+                    TriAllow::Disallow => quote! {
+                        match domain_part {
+                            validators_prelude::Host::Domain(domain) => domain,
+                            _ => ::core::unreachable!(),
+                        }
+                    },
+                };
+                let comments = if type_attribute.comment.allow() {
+                    quote! {
+                        comment_before_local_part: _comment_before_local_part,
+                        comment_after_local_part: _comment_after_local_part,
+                        comment_before_domain_part: _comment_before_domain_part,
+                        comment_after_domain_part: _comment_after_domain_part,
                     }
                 } else {
-                    match type_attribute.ip {
-                        TriAllow::Allow => {
-                            if type_attribute.local == TriAllow::Allow
-                                && type_attribute.at_least_two_labels != TriAllow::Allow
-                            {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part,
-                                        is_local: _is_local,
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part,
-                                    }
-                                }
-                            }
-                        },
-                        TriAllow::Must => {
-                            if type_attribute.local == TriAllow::Allow
-                                && type_attribute.at_least_two_labels != TriAllow::Allow
-                            {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
-                                                validators_prelude::Host::Domain(_) => ::core::unreachable!(),
-                                            }
-                                        },
-                                        is_local: _is_local,
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::IPv4(ip) => ::core::net::IpAddr::V4(ip),
-                                                validators_prelude::Host::IPv6(ip) => ::core::net::IpAddr::V6(ip),
-                                                _ => ::core::unreachable!(),
-                                            }
-                                        },
-                                    }
-                                }
-                            }
-                        },
-                        TriAllow::Disallow => {
-                            if type_attribute.local == TriAllow::Allow
-                                && type_attribute.at_least_two_labels != TriAllow::Allow
-                            {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::Domain(domain) => domain,
-                                                _ => ::core::unreachable!(),
-                                            }
-                                        },
-                                        is_local: _is_local,
-                                    }
-                                }
-                            } else {
-                                quote! {
-                                    Self {
-                                        local_part,
-                                        need_quoted,
-                                        domain_part: {
-                                            match domain_part {
-                                                validators_prelude::Host::Domain(domain) => domain,
-                                                _ => ::core::unreachable!(),
-                                            }
-                                        },
-                                    }
-                                }
-                            }
-                        },
+                    quote! {}
+                };
+                let local = if has_local_field {
+                    quote! { is_local: _is_local, }
+                } else {
+                    quote! {}
+                };
+
+                quote! {
+                    Self {
+                        local_part,
+                        need_quoted,
+                        domain_part: #domain_part,
+                        #comments
+                        #local
                     }
                 }
             };
@@ -1185,7 +1019,7 @@ impl ValidatorHandler for EmailHandler {
 
                 #own_comments
 
-                Ok(#create_instance)
+                ::core::result::Result::Ok(#create_instance)
             };
 
             token_stream.extend(quote! {
@@ -1268,7 +1102,7 @@ impl ValidatorHandler for EmailHandler {
                 let generate_s = quote! {
                     let mut s = validators_prelude::String::with_capacity(64);
 
-                    if let Some(comment) = &self.comment_before_local_part {
+                    if let ::core::option::Option::Some(comment) = &self.comment_before_local_part {
                         s.push('(');
                         s.push_str(comment);
                         s.push(')');
@@ -1284,7 +1118,7 @@ impl ValidatorHandler for EmailHandler {
                         s.push('"');
                     }
 
-                    if let Some(comment) = &self.comment_after_local_part {
+                    if let ::core::option::Option::Some(comment) = &self.comment_after_local_part {
                         s.push('(');
                         s.push_str(comment);
                         s.push(')');
@@ -1292,7 +1126,7 @@ impl ValidatorHandler for EmailHandler {
 
                     s.push('@');
 
-                    if let Some(comment) = &self.comment_before_domain_part {
+                    if let ::core::option::Option::Some(comment) = &self.comment_before_domain_part {
                         s.push('(');
                         s.push_str(comment);
                         s.push(')');
@@ -1300,7 +1134,7 @@ impl ValidatorHandler for EmailHandler {
                 };
 
                 let finish_s = quote! {
-                    if let Some(comment) = &self.comment_after_domain_part {
+                    if let ::core::option::Option::Some(comment) = &self.comment_after_domain_part {
                         s.push('(');
                         s.push_str(comment);
                         s.push(')');

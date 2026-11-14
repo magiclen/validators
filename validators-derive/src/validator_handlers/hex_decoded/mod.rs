@@ -42,10 +42,10 @@ impl ValidatorHandler for HexDecodedHandler {
                     #[inline]
                     fn v_check_hex_length(v: &[u8]) -> ::core::result::Result<(), #error_path> {
                         if v.is_empty() || !v.len().is_multiple_of(2) {
-                            return Err(#error_path);
+                            return ::core::result::Result::Err(#error_path);
                         }
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
 
                     #digit_decoder
@@ -62,7 +62,7 @@ impl ValidatorHandler for HexDecodedHandler {
                             decoded.push((high << 4) | low);
                         }
 
-                        Ok(decoded)
+                        ::core::result::Result::Ok(decoded)
                     }
 
                     fn v_parse_vec_u8(mut v: validators_prelude::Vec<u8>) -> ::core::result::Result<validators_prelude::Vec<u8>, #error_path> {
@@ -79,7 +79,7 @@ impl ValidatorHandler for HexDecodedHandler {
 
                         v.truncate(decoded_len);
 
-                        Ok(v)
+                        ::core::result::Result::Ok(v)
                     }
                 }
 
@@ -93,7 +93,7 @@ impl ValidatorHandler for HexDecodedHandler {
 
                     #[inline]
                     fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                        Ok(Self(Self::v_parse_u8_slice(s.as_ref().as_bytes())?))
+                        ::core::result::Result::Ok(Self(Self::v_parse_u8_slice(s.as_ref().as_bytes())?))
                     }
 
                     #[inline]
@@ -112,7 +112,7 @@ impl ValidatorHandler for HexDecodedHandler {
 
                     #[inline]
                     fn parse_u8_slice<V: AsRef<[u8]>>(v: V) -> ::core::result::Result<Self, Self::Error> {
-                        Ok(Self(Self::v_parse_u8_slice(v.as_ref())?))
+                        ::core::result::Result::Ok(Self(Self::v_parse_u8_slice(v.as_ref())?))
                     }
 
                     #[inline]
@@ -125,16 +125,16 @@ impl ValidatorHandler for HexDecodedHandler {
                             Self::v_decode_hex_digit(digit)?;
                         }
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
 
                     #[inline]
                     fn parse_decoded_vec_u8(v: validators_prelude::Vec<u8>) -> ::core::result::Result<Self, Self::Error> {
                         if v.is_empty() {
-                            return Err(#error_path);
+                            return ::core::result::Result::Err(#error_path);
                         }
 
-                        Ok(Self(v))
+                        ::core::result::Result::Ok(Self(v))
                     }
                 }
 

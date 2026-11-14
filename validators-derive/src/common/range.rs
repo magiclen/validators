@@ -6,7 +6,7 @@ use syn::{Expr, ExprRange, RangeLimits};
 use syn::{Meta, Token, punctuated::Punctuated};
 
 #[cfg(feature = "full")]
-use crate::common::number::expr_2_number;
+use crate::common::{number::expr_2_number, peel_expr_groups};
 use crate::{
     common::{boolean::meta_2_bool, number::meta_2_number},
     panic,
@@ -114,7 +114,7 @@ where
             },
             Meta::NameValue(name_value) => {
                 #[cfg(feature = "full")]
-                if let Expr::Range(range) = &name_value.value {
+                if let Expr::Range(range) = peel_expr_groups(&name_value.value) {
                     return Self::from_expr_range(range);
                 }
 

@@ -41,7 +41,7 @@ impl ValidatorHandler for SemverHandler {
                         impl #name {
                             #[inline]
                             fn v_parse_str(s: &str) -> ::core::result::Result<validators_prelude::semver::Version, #error_path> {
-                                Ok(validators_prelude::semver::Version::parse(s)?)
+                                ::core::result::Result::Ok(validators_prelude::semver::Version::parse(s)?)
                             }
                         }
                     });
@@ -52,19 +52,19 @@ impl ValidatorHandler for SemverHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

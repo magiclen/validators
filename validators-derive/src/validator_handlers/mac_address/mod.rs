@@ -69,12 +69,12 @@ impl ValidatorHandler for MacAddressHandler {
                                         || bytes[11] != #separator
                                         || bytes[14] != #separator
                                     {
-                                        return Err(#error_path::Invalid);
+                                        return ::core::result::Result::Err(#error_path::Invalid);
                                     }
 
                                     (&bytes[0..2], &bytes[3..5], &bytes[6..8], &bytes[9..11], &bytes[12..14], &bytes[15..])
                                 },
-                                _ => return Err(#error_path::Invalid),
+                                _ => return ::core::result::Result::Err(#error_path::Invalid),
                             };
 
                             first.iter().chain(second).chain(third).chain(forth).chain(fifth).chain(sixth).copied()
@@ -84,7 +84,7 @@ impl ValidatorHandler for MacAddressHandler {
                         quote! {
                             if length != 17 {
                                 // Only the length without separators means that separators are missing.
-                                return Err(if length == 12 { #error_path::SeparatorMust } else { #error_path::Invalid });
+                                return ::core::result::Result::Err(if length == 12 { #error_path::SeparatorMust } else { #error_path::Invalid });
                             }
 
                             if bytes[2] != #separator
@@ -93,7 +93,7 @@ impl ValidatorHandler for MacAddressHandler {
                                 || bytes[11] != #separator
                                 || bytes[14] != #separator
                             {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             let first = &bytes[0..2];
@@ -110,7 +110,7 @@ impl ValidatorHandler for MacAddressHandler {
                         quote! {
                             if length != 12 {
                                 // Only the length with separators means that separators exist.
-                                return Err(if length == 17 { #error_path::SeparatorDisallow } else { #error_path::Invalid });
+                                return ::core::result::Result::Err(if length == 17 { #error_path::SeparatorDisallow } else { #error_path::Invalid });
                             }
 
                             bytes.iter().copied()
@@ -136,7 +136,7 @@ impl ValidatorHandler for MacAddressHandler {
                                     b'A'..=b'F' => {
                                         mac_address_decoded |= u64::from(e - (b'A' - 10));
                                     }
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -153,7 +153,7 @@ impl ValidatorHandler for MacAddressHandler {
                                     b'A'..=b'F' => {
                                         mac_address_decoded |= u64::from(e - (b'A' - 10));
                                     }
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -170,7 +170,7 @@ impl ValidatorHandler for MacAddressHandler {
                                     b'a'..=b'f' => {
                                         mac_address_decoded |= u64::from(e - (b'a' - 10));
                                     }
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -185,7 +185,7 @@ impl ValidatorHandler for MacAddressHandler {
                             for e in iter {
                                 match e {
                                     b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -195,7 +195,7 @@ impl ValidatorHandler for MacAddressHandler {
                             for e in iter {
                                 match e {
                                     b'0'..=b'9' | b'A'..=b'F' => (),
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -205,7 +205,7 @@ impl ValidatorHandler for MacAddressHandler {
                             for e in iter {
                                 match e {
                                     b'0'..=b'9' | b'a'..=b'f' => (),
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -227,7 +227,7 @@ impl ValidatorHandler for MacAddressHandler {
 
                         #handle_decode
 
-                        Ok(mac_address_decoded)
+                        ::core::result::Result::Ok(mac_address_decoded)
                     }
 
                     fn v_validate_str(s: &str) -> ::core::result::Result<(), #error_path> {
@@ -240,7 +240,7 @@ impl ValidatorHandler for MacAddressHandler {
 
                         #handle_check
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -251,19 +251,19 @@ impl ValidatorHandler for MacAddressHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_validate_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

@@ -99,8 +99,8 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             quote! {
                                 match ::core::cmp::Ord::cmp(&u, &#min) {
                                     ::core::cmp::Ordering::Equal => (),
-                                    ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
-                                    ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
+                                    ::core::cmp::Ordering::Less => return ::core::result::Result::Err(#error_path::TooSmall),
+                                    ::core::cmp::Ordering::Greater => return ::core::result::Result::Err(#error_path::TooLarge),
                                 }
                             }
                         } else {
@@ -109,7 +109,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             if let Some(min) = min {
                                 token_stream.extend(quote! {
                                     if u < #min {
-                                        return Err(#error_path::TooSmall);
+                                        return ::core::result::Result::Err(#error_path::TooSmall);
                                     }
                                 });
                             }
@@ -118,13 +118,13 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                 token_stream.extend(if *inclusive {
                                     quote! {
                                         if u > #max {
-                                            return Err(#error_path::TooLarge);
+                                            return ::core::result::Result::Err(#error_path::TooLarge);
                                         }
                                     }
                                 } else {
                                     quote! {
                                         if u >= #max {
-                                            return Err(#error_path::TooLarge);
+                                            return ::core::result::Result::Err(#error_path::TooLarge);
                                         }
                                     }
                                 });
@@ -142,7 +142,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                         if *equal {
                             quote! {
                                 if u == #min {
-                                    return Err(#error_path::Forbidden);
+                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                 }
                             }
                         } else {
@@ -152,13 +152,13 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                         if *inclusive {
                                             quote! {
                                                 if (#min..=#max).contains(&u) {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
                                                 if (#min..#max).contains(&u) {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         }
@@ -166,7 +166,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                     None => {
                                         quote! {
                                             if u >= #min {
-                                                return Err(#error_path::Forbidden);
+                                                return ::core::result::Result::Err(#error_path::Forbidden);
                                             }
                                         }
                                     },
@@ -176,13 +176,13 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                                         if *inclusive {
                                             quote! {
                                                 if u <= #max {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
                                                 if u < #max {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         }
@@ -207,13 +207,13 @@ impl ValidatorHandler for UnsignedIntegerHandler {
 
                         Self::v_parse_u(u)?;
 
-                        Ok(u)
+                        ::core::result::Result::Ok(u)
                     }
 
                     fn v_parse_u(u: #data_type) -> ::core::result::Result<(), #error_path> {
                         #handle_range
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -224,19 +224,19 @@ impl ValidatorHandler for UnsignedIntegerHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });
@@ -251,14 +251,14 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(Self(u))
+                                ::core::result::Result::Ok(Self(u))
                             }
 
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -271,7 +271,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > u64::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::parse_u64(u as u64)
                                 }
@@ -280,7 +280,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 if u > u64::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::validate_u64(u as u64)
                                 }
@@ -290,14 +290,14 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             fn parse_u64(u: u64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(Self(u))
+                                ::core::result::Result::Ok(Self(u))
                             }
 
                             #[inline]
                             fn validate_u64(u: u64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -310,7 +310,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > u32::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::parse_u32(u as u32)
                                 }
@@ -319,7 +319,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 if u > u32::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::validate_u32(u as u32)
                                 }
@@ -329,14 +329,14 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             fn parse_u32(u: u32) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(Self(u))
+                                ::core::result::Result::Ok(Self(u))
                             }
 
                             #[inline]
                             fn validate_u32(u: u32) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -349,7 +349,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > u16::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::parse_u16(u as u16)
                                 }
@@ -358,7 +358,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 if u > u16::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::validate_u16(u as u16)
                                 }
@@ -368,14 +368,14 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             fn parse_u16(u: u16) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(Self(u))
+                                ::core::result::Result::Ok(Self(u))
                             }
 
                             #[inline]
                             fn validate_u16(u: u16) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -388,7 +388,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > u8::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::parse_u8(u as u8)
                                 }
@@ -397,7 +397,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 if u > u8::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::validate_u8(u as u8)
                                 }
@@ -407,14 +407,14 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             fn parse_u8(u: u8) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(Self(u))
+                                ::core::result::Result::Ok(Self(u))
                             }
 
                             #[inline]
                             fn validate_u8(u: u8) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -427,7 +427,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn parse_u128(u: u128) -> ::core::result::Result<Self, Self::Error> {
                                 if u > usize::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::parse_usize(u as usize)
                                 }
@@ -436,7 +436,7 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             #[inline]
                             fn validate_u128(u: u128) -> ::core::result::Result<(), Self::Error> {
                                 if u > usize::MAX as u128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else {
                                     Self::validate_usize(u as usize)
                                 }
@@ -446,14 +446,14 @@ impl ValidatorHandler for UnsignedIntegerHandler {
                             fn parse_usize(u: usize) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(Self(u))
+                                ::core::result::Result::Ok(Self(u))
                             }
 
                             #[inline]
                             fn validate_usize(u: usize) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_u(u)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
 
                             #[cfg(target_pointer_width = "16")]

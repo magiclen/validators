@@ -5,6 +5,29 @@ use std::sync::LazyLock;
 use validators::{prelude::*, regex::Regex};
 
 #[test]
+fn regex_macro_expression() {
+    macro_rules! validators {
+        ($value:ident, $list:ident, $pattern:expr) => {
+            #[derive(Validator)]
+            #[validator(regex(regex = $pattern))]
+            struct $value(String);
+
+            #[derive(Validator)]
+            #[validator(regex(regex($pattern)))]
+            struct $list(String);
+        };
+    }
+
+    validators!(Literal, LiteralList, "^a$");
+    validators!(Existing, ExistingList, RE_POKER);
+
+    assert_eq!("a", Literal::parse_str("a").unwrap().0);
+    assert_eq!("a", LiteralList::parse_str("a").unwrap().0);
+    assert_eq!("J", Existing::parse_str("J").unwrap().0);
+    assert_eq!("J", ExistingList::parse_str("J").unwrap().0);
+}
+
+#[test]
 fn parse_shadowed_name() {
     #[derive(Validator)]
     #[validator(regex(regex("^a$")))]

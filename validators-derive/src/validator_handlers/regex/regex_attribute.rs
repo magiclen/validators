@@ -4,7 +4,7 @@ use regex::Regex;
 use syn::{Expr, ExprLit, Lit, Meta, Token, punctuated::Punctuated};
 
 use crate::{
-    common::{rocket_options::RocketOptions, serde_options::SerdeOptions},
+    common::{peel_expr_groups, rocket_options::RocketOptions, serde_options::SerdeOptions},
     panic,
 };
 
@@ -133,7 +133,7 @@ fn expr_lit_2_regex_expr(lit: &ExprLit) -> syn::Result<TokenStream> {
 fn meta_2_regex_expr(meta: &Meta) -> syn::Result<TokenStream> {
     match meta {
         Meta::NameValue(name_value) => {
-            return if let Expr::Lit(lit) = &name_value.value {
+            return if let Expr::Lit(lit) = peel_expr_groups(&name_value.value) {
                 expr_lit_2_regex_expr(lit)
             } else {
                 Ok(name_value.value.to_token_stream())
@@ -142,7 +142,7 @@ fn meta_2_regex_expr(meta: &Meta) -> syn::Result<TokenStream> {
         Meta::List(list) => {
             let expr: Expr = list.parse_args()?;
 
-            return if let Expr::Lit(lit) = &expr {
+            return if let Expr::Lit(lit) = peel_expr_groups(&expr) {
                 expr_lit_2_regex_expr(lit)
             } else {
                 Ok(expr.into_token_stream())

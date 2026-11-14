@@ -2,6 +2,10 @@
 pub trait ValidateNumber: Sized {
     type Error;
 
+    /// Whether the inner value is `f32`, so `validators::Result` can read integers and binary formats as `f32`.
+    #[doc(hidden)]
+    const __VALIDATORS_IS_F32: bool = false;
+
     fn parse_f64(f: f64) -> Result<Self, Self::Error>;
 
     fn validate_f64(f: f64) -> Result<(), Self::Error>;

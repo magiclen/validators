@@ -213,21 +213,21 @@ impl ValidatorHandler for DomainHandler {
 
             let handle_domain_and_port = if type_attribute.port.disallow() {
                 quote! {
-                    Some(colon_index) => {
+                    ::core::option::Option::Some(colon_index) => {
                         // `host:port` has only one colon, so an input with more colons is just invalid.
                         if bytes[..colon_index].contains(&b':') {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
-                        return Err(#error_path::PortDisallow);
+                        return ::core::result::Result::Err(#error_path::PortDisallow);
                     }
                 }
             } else {
                 quote! {
-                    Some(colon_index) => {
+                    ::core::option::Option::Some(colon_index) => {
                         (
                             &s[..colon_index],
-                            Some(&s[(colon_index + 1)..]),
+                            ::core::option::Option::Some(&s[(colon_index + 1)..]),
                         )
                     }
                 }
@@ -235,33 +235,33 @@ impl ValidatorHandler for DomainHandler {
 
             let handle_none_port = if type_attribute.port.must() {
                 quote! {
-                    return Err(#error_path::PortMust);
+                    return ::core::result::Result::Err(#error_path::PortMust);
                 }
             } else {
                 quote! {
-                    (s, None::<&str>)
+                    (s, ::core::option::Option::None::<&str>)
                 }
             };
 
             let handle_port = if type_attribute.port.disallow() {
                 quote! {
-                    None::<u16>
+                    ::core::option::Option::None::<u16>
                 }
             } else {
                 quote! {
                     match port_str {
-                        Some(port_str) => {
+                        ::core::option::Option::Some(port_str) => {
                             // A port has only digits, but `parse` also accepts a leading `+`.
                             if port_str.starts_with('+') {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             match port_str.parse::<u16>() {
-                                Ok(port) => Some(port),
-                                Err(_) => return Err(#error_path::Invalid),
+                                ::core::result::Result::Ok(port) => ::core::option::Option::Some(port),
+                                ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::Invalid),
                             }
                         }
-                        None => None,
+                        ::core::option::Option::None => ::core::option::Option::None,
                     }
                 }
             };
@@ -272,14 +272,14 @@ impl ValidatorHandler for DomainHandler {
                     TriAllow::Must => {
                         quote! {
                             if !is_local {
-                                return Err(#error_path::LocalMust);
+                                return ::core::result::Result::Err(#error_path::LocalMust);
                             }
                         }
                     },
                     TriAllow::Disallow => {
                         quote! {
                             if is_local {
-                                return Err(#error_path::LocalDisallow);
+                                return ::core::result::Result::Err(#error_path::LocalDisallow);
                             }
                         }
                     },
@@ -316,14 +316,14 @@ impl ValidatorHandler for DomainHandler {
                 } else {
                     let handle_ipv4 = if type_attribute.ipv4.disallow() {
                         quote! {
-                            Ok(_) => {
-                                return Err(#error_path::IPv4Disallow);
+                            ::core::result::Result::Ok(_) => {
+                                return ::core::result::Result::Err(#error_path::IPv4Disallow);
                             }
                         }
                     } else if type_attribute.at_least_two_labels.disallow() {
                         quote! {
-                            Ok(_) => {
-                                return Err(#error_path::AtLeastTwoLabelsDisallow);
+                            ::core::result::Result::Ok(_) => {
+                                return ::core::result::Result::Err(#error_path::AtLeastTwoLabelsDisallow);
                             }
                         }
                     } else {
@@ -340,7 +340,7 @@ impl ValidatorHandler for DomainHandler {
                         };
 
                         quote! {
-                            Ok((ip, ascii_domain)) => {
+                            ::core::result::Result::Ok((ip, ascii_domain)) => {
                                 let port = #handle_port;
 
                                 let is_local = #handle_local_ipv4;
@@ -354,7 +354,7 @@ impl ValidatorHandler for DomainHandler {
 
                     let handle_none_ipv4 = if type_attribute.ipv4.must() {
                         quote! {
-                            Err(_) => return Err(#error_path::IPv4Must),
+                            ::core::result::Result::Err(_) => return ::core::result::Result::Err(#error_path::IPv4Must),
                         }
                     } else {
                         let handle_local_domain = if type_attribute.local == TriAllow::Allow
@@ -375,7 +375,7 @@ impl ValidatorHandler for DomainHandler {
                                 TriAllow::Must => {
                                     quote! {
                                         if !is_local && !validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
-                                            return Err(#error_path::AtLeastTwoLabelsMust);
+                                            return ::core::result::Result::Err(#error_path::AtLeastTwoLabelsMust);
                                         }
                                     }
                                 },
@@ -383,7 +383,7 @@ impl ValidatorHandler for DomainHandler {
                                     // Local names are not exempt here, because subdomains such as `foo.localhost` have two labels.
                                     quote! {
                                         if validators_prelude::is_at_least_two_labels_domain(&ascii_domain) {
-                                            return Err(#error_path::AtLeastTwoLabelsDisallow);
+                                            return ::core::result::Result::Err(#error_path::AtLeastTwoLabelsDisallow);
                                         }
                                     }
                                 },
@@ -391,7 +391,7 @@ impl ValidatorHandler for DomainHandler {
                         };
 
                         quote! {
-                            Err(ascii_domain) => {
+                            ::core::result::Result::Err(ascii_domain) => {
                                 let port = #handle_port;
 
                                 let is_local = #handle_local_domain;
@@ -407,13 +407,13 @@ impl ValidatorHandler for DomainHandler {
 
                     quote! {{
                         let domain = match validators_prelude::parse_ipv4_allow_an_ended_dot(domain_str) {
-                            Ok(ip) => Ok((ip, validators_prelude::Cow::Borrowed(domain_str))),
-                            Err(_) => {
+                            ::core::result::Result::Ok(ip) => ::core::result::Result::Ok((ip, validators_prelude::Cow::Borrowed(domain_str))),
+                            ::core::result::Result::Err(_) => {
                                 let ascii_domain = #normalize_domain;
 
                                 match validators_prelude::parse_ipv4_allow_an_ended_dot(&ascii_domain) {
-                                    Ok(ip) => Ok((ip, ascii_domain)),
-                                    Err(_) => Err(ascii_domain),
+                                    ::core::result::Result::Ok(ip) => ::core::result::Result::Ok((ip, ascii_domain)),
+                                    ::core::result::Result::Err(_) => ::core::result::Result::Err(ascii_domain),
                                 }
                             }
                         };
@@ -437,21 +437,21 @@ impl ValidatorHandler for DomainHandler {
             token_stream.extend(quote! {
                 impl #name {
                     #conflict_meta
-                    fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::Cow<'_, str>, Option<u16>, bool, bool), #error_path> {
+                    fn v_parse_str(s: &str) -> ::core::result::Result<(validators_prelude::Cow<'_, str>, ::core::option::Option<u16>, bool, bool), #error_path> {
                         let bytes = s.as_bytes();
 
                         if bytes.is_empty() {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
 
                         let (domain_str, port_str) = match bytes.iter().copied().rposition(|e| e == b':') {
                             #handle_domain_and_port
-                            None => {
+                            ::core::option::Option::None => {
                                 #handle_none_port
                             }
                         };
 
-                        Ok(#handle_domain_str_and_port_str)
+                        ::core::result::Result::Ok(#handle_domain_str_and_port_str)
                     }
                 }
             });
@@ -597,7 +597,7 @@ impl ValidatorHandler for DomainHandler {
                             validators_prelude::Cow::Owned(domain) => domain,
                         };
 
-                        Ok(#create_instance)
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
@@ -605,14 +605,14 @@ impl ValidatorHandler for DomainHandler {
                         let (domain, _port, _is_ipv4, _is_local) = Self::v_parse_str(s.as_ref())?;
                         let domain = domain.into_owned();
 
-                        Ok(#create_instance)
+                        ::core::result::Result::Ok(#create_instance)
                     }
 
                     #[inline]
                     fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                         Self::v_parse_str(s.as_ref())?;
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -666,12 +666,12 @@ impl ValidatorHandler for DomainHandler {
                             #[inline]
                             fn to_uri_authority_string(&self) -> validators_prelude::Cow<'_, str> {
                                 match self.port {
-                                    Some(port) => {
+                                    ::core::option::Option::Some(port) => {
                                         let non_fully_qualified_domain = QualifyDomain::get_domain_non_fully_qualified(self);
 
                                         validators_prelude::Cow::Owned(validators_prelude::format!("{}:{}", non_fully_qualified_domain, port))
                                     },
-                                    None => validators_prelude::Cow::Borrowed(self.get_domain_non_fully_qualified()),
+                                    ::core::option::Option::None => validators_prelude::Cow::Borrowed(self.get_domain_non_fully_qualified()),
                                 }
                             }
                         }
@@ -707,7 +707,7 @@ impl ValidatorHandler for DomainHandler {
                 if type_attribute.serde_options.serialize {
                     let serialize_domain = match type_attribute.port {
                         TriAllow::Allow => quote! {
-                            if let Some(port) = self.port {
+                            if let ::core::option::Option::Some(port) = self.port {
                                 serializer.collect_str(&::core::format_args!("{}:{}", self.domain, port))
                             } else {
                                 serializer.serialize_str(self.domain.as_str())

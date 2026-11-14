@@ -12,8 +12,8 @@ impl<T: ToTokens> ToTokens for OptionToken<T> {
     #[inline]
     fn to_tokens(&self, token_stream: &mut proc_macro2::TokenStream) {
         match &self.0 {
-            Some(t) => token_stream.extend(quote! { Some(#t) }),
-            None => token_stream.extend(quote! { None }),
+            Some(t) => token_stream.extend(quote! { ::core::option::Option::Some(#t) }),
+            None => token_stream.extend(quote! { ::core::option::Option::None }),
         }
     }
 }

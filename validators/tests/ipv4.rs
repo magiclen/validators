@@ -3,6 +3,28 @@
 use validators::prelude::*;
 
 #[test]
+fn builtin_type_names() {
+    macro_rules! check {
+        ($($name:ident),* $(,)?) => {
+            $(
+                {
+                    #[derive(Validator)]
+                    #[validator(ipv4(port(Disallow)))]
+                    struct $name(core::net::Ipv4Addr);
+
+                    let value = $name::parse_str("127.0.0.1").unwrap();
+
+                    assert_eq!(core::net::Ipv4Addr::LOCALHOST, value.0);
+                    assert!(<$name as ValidateString>::validate_str("127.0.0.1").is_ok());
+                }
+            )*
+        };
+    }
+
+    check!(Option, Some, None, Ok, Err);
+}
+
+#[test]
 fn basic() {
     macro_rules! test_case {
         ($test:ident, $validator:ident) => {

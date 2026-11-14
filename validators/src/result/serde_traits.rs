@@ -974,32 +974,55 @@ impl<'de, T: ValidateString<Error = NumberError> + ValidateNumber<Error = Number
             fn visit_i64<E>(self, v: i64) -> core::result::Result<Self::Value, E>
             where
                 E: DeError, {
-                self.visit_f64(v as f64)
+                if <T as ValidateNumber>::__VALIDATORS_IS_F32 {
+                    self.visit_f32(v as f32)
+                } else {
+                    self.visit_f64(v as f64)
+                }
             }
 
             #[inline]
             fn visit_u64<E>(self, v: u64) -> core::result::Result<Self::Value, E>
             where
                 E: DeError, {
-                self.visit_f64(v as f64)
+                if <T as ValidateNumber>::__VALIDATORS_IS_F32 {
+                    self.visit_f32(v as f32)
+                } else {
+                    self.visit_f64(v as f64)
+                }
             }
 
             #[inline]
             fn visit_i128<E>(self, v: i128) -> core::result::Result<Self::Value, E>
             where
                 E: DeError, {
-                self.visit_f64(v as f64)
+                if <T as ValidateNumber>::__VALIDATORS_IS_F32 {
+                    self.visit_f32(v as f32)
+                } else {
+                    self.visit_f64(v as f64)
+                }
             }
 
             #[inline]
             fn visit_u128<E>(self, v: u128) -> core::result::Result<Self::Value, E>
             where
                 E: DeError, {
-                self.visit_f64(v as f64)
+                if <T as ValidateNumber>::__VALIDATORS_IS_F32 {
+                    self.visit_f32(v as f32)
+                } else {
+                    self.visit_f64(v as f64)
+                }
             }
         }
 
-        deserializer.deserialize_any(MyVisitor(PhantomData))
+        if deserializer.is_human_readable() {
+            deserializer.deserialize_any(MyVisitor(PhantomData))
+        } else if <T as ValidateNumber>::__VALIDATORS_IS_F32 {
+            // Formats such as bincode do not support `deserialize_any`, so ask for the stored float type.
+            deserializer.deserialize_f32(MyVisitor(PhantomData))
+        } else {
+            deserializer.deserialize_f64(MyVisitor(PhantomData))
+        }
     }
 }
 

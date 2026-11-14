@@ -62,8 +62,8 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                 quote! {
                     // 0xE2 0x80 0xA8 and 0xE2 0x80 0xA9 encode U+2028 and U+2029.
                     0xE2 => {
-                        if let Some([0x80, 0xA8 | 0xA9]) = bytes.get(i + 1..i + 3) {
-                            return Err(#error_path::Invalid);
+                        if let ::core::option::Option::Some([0x80, 0xA8 | 0xA9]) = bytes.get(i + 1..i + 3) {
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
                     }
                 }
@@ -77,12 +77,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                 for (i, e) in bytes.iter().copied().enumerate() {
                     match e {
                         #invalid_ascii => {
-                            return Err(#error_path::Invalid);
+                            return ::core::result::Result::Err(#error_path::Invalid);
                         }
                         // 0xC2 followed by 0x80..=0x9F encodes U+0080..=U+009F.
                         0xC2 => {
-                            if let Some(0x80..=0x9F) = bytes.get(i + 1) {
-                                return Err(#error_path::Invalid);
+                            if let ::core::option::Option::Some(0x80..=0x9F) = bytes.get(i + 1) {
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
                         }
                         #check_line_separators
@@ -116,17 +116,17 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                 token_stream.extend(if is_byte_length {
                             quote! {
                                 impl #name {
-                                    pub(crate) const V_BYTE_LENGTH_MIN: Option<usize> = #v_min;
-                                    pub(crate) const V_BYTE_LENGTH_TRIMMED_MIN: Option<usize> = #v_trimmed_min;
-                                    pub(crate) const V_BYTE_LENGTH_MAX: Option<usize> = #v_max;
+                                    pub(crate) const V_BYTE_LENGTH_MIN: ::core::option::Option<usize> = #v_min;
+                                    pub(crate) const V_BYTE_LENGTH_TRIMMED_MIN: ::core::option::Option<usize> = #v_trimmed_min;
+                                    pub(crate) const V_BYTE_LENGTH_MAX: ::core::option::Option<usize> = #v_max;
                                 }
                             }
                         } else {
                             quote! {
                                 impl #name {
-                                    pub(crate) const V_CHAR_LENGTH_MIN: Option<usize> = #v_min;
-                                    pub(crate) const V_CHAR_LENGTH_TRIMMED_MIN: Option<usize> = #v_trimmed_min;
-                                    pub(crate) const V_CHAR_LENGTH_MAX: Option<usize> = #v_max;
+                                    pub(crate) const V_CHAR_LENGTH_MIN: ::core::option::Option<usize> = #v_min;
+                                    pub(crate) const V_CHAR_LENGTH_TRIMMED_MIN: ::core::option::Option<usize> = #v_trimmed_min;
+                                    pub(crate) const V_CHAR_LENGTH_MAX: ::core::option::Option<usize> = #v_max;
                                 }
                             }
                         });
@@ -142,14 +142,14 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     let handle_trimmed_empty = if trimmed_min == 0 {
                                         quote! {
                                             if counter < #min {
-                                                Err(#error_path::TooShort)
+                                                ::core::result::Result::Err(#error_path::TooShort)
                                             } else {
-                                                Ok(())
+                                                ::core::result::Result::Ok(())
                                             }
                                         }
                                     } else {
                                         quote! {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         }
                                     };
 
@@ -157,18 +157,18 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             let len = c.len_utf8();
 
                                             counter += len;
 
                                             if counter > #max {
-                                                return Err(#error_path::TooLong);
+                                                return ::core::result::Result::Err(#error_path::TooLong);
                                             }
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -177,18 +177,18 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = len;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     let len = c.len_utf8();
 
                                                     counter += len;
 
                                                     if counter > #max {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
 
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             if c.is_whitespace() {
@@ -203,12 +203,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
 
                                                 if trimmed_counter >= #trimmed_min && counter >= #min {
                                                     if counter <= #max {
-                                                        return Ok(());
+                                                        return ::core::result::Result::Ok(());
                                                     } else {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -219,16 +219,16 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     let handle_trimmed_empty = if trimmed_min == 0 {
                                         quote! {
                                             if counter < #min {
-                                                Err(#error_path::TooShort)
+                                                ::core::result::Result::Err(#error_path::TooShort)
                                             } else if counter > #max {
-                                                Err(#error_path::TooLong)
+                                                ::core::result::Result::Err(#error_path::TooLong)
                                             } else {
-                                                Ok(())
+                                                ::core::result::Result::Ok(())
                                             }
                                         }
                                     } else {
                                         quote! {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         }
                                     };
 
@@ -236,16 +236,16 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             counter += 1;
 
                                             if counter > #max {
-                                                return Err(#error_path::TooLong);
+                                                return ::core::result::Result::Err(#error_path::TooLong);
                                             }
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -254,16 +254,16 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     counter += 1;
 
                                                     if counter > #max {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
 
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             if c.is_whitespace() {
@@ -278,12 +278,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
 
                                                 if trimmed_counter >= #trimmed_min && counter >= #min {
                                                     if counter <= #max {
-                                                        return Ok(());
+                                                        return ::core::result::Result::Ok(());
                                                     } else {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -296,14 +296,14 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                 if is_byte_length {
                                     quote! {
                                         if s.len() > #max {
-                                            return Err(#error_path::TooLong);
+                                            return ::core::result::Result::Err(#error_path::TooLong);
                                         } else if s.len() < #min {
-                                            return Err(#error_path::TooShort);
+                                            return ::core::result::Result::Err(#error_path::TooShort);
                                         }
 
                                         #check_bytes
 
-                                        Ok(())
+                                        ::core::result::Result::Ok(())
                                     }
                                 } else {
                                     quote! {
@@ -313,21 +313,21 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                             counter += 1;
 
                                             if counter > #max {
-                                                return Err(#error_path::TooLong);
+                                                return ::core::result::Result::Err(#error_path::TooLong);
                                             }
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
                                         }
 
                                         if counter < #min {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         } else {
-                                            Ok(())
+                                            ::core::result::Result::Ok(())
                                         }
                                     }
                                 }
@@ -338,11 +338,11 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                 if is_byte_length {
                                     let handle_trimmed_empty = if trimmed_min == 0 {
                                         quote! {
-                                            Ok(())
+                                            ::core::result::Result::Ok(())
                                         }
                                     } else {
                                         quote! {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         }
                                     };
 
@@ -350,18 +350,18 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             let len = c.len_utf8();
 
                                             counter += len;
 
                                             if counter > #max {
-                                                return Err(#error_path::TooLong);
+                                                return ::core::result::Result::Err(#error_path::TooLong);
                                             }
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -370,18 +370,18 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = len;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     let len = c.len_utf8();
 
                                                     counter += len;
 
                                                     if counter > #max {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
 
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             if c.is_whitespace() {
@@ -396,12 +396,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
 
                                                 if trimmed_counter >= #trimmed_min {
                                                     if counter <= #max {
-                                                        return Ok(());
+                                                        return ::core::result::Result::Ok(());
                                                     } else {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -412,14 +412,14 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     let handle_trimmed_empty = if trimmed_min == 0 {
                                         quote! {
                                             if counter <= #max {
-                                                Ok(())
+                                                ::core::result::Result::Ok(())
                                             } else {
-                                                Err(#error_path::TooLong)
+                                                ::core::result::Result::Err(#error_path::TooLong)
                                             }
                                         }
                                     } else {
                                         quote! {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         }
                                     };
 
@@ -427,16 +427,16 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             counter += 1;
 
                                             if counter > #max {
-                                                return Err(#error_path::TooLong);
+                                                return ::core::result::Result::Err(#error_path::TooLong);
                                             }
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -445,16 +445,16 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     counter += 1;
 
                                                     if counter > #max {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
 
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             if c.is_whitespace() {
@@ -469,12 +469,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
 
                                                 if trimmed_counter >= #trimmed_min {
                                                     if counter <= #max {
-                                                        return Ok(());
+                                                        return ::core::result::Result::Ok(());
                                                     } else {
-                                                        return Err(#error_path::TooLong);
+                                                        return ::core::result::Result::Err(#error_path::TooLong);
                                                     }
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -487,12 +487,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                 if is_byte_length {
                                     quote! {
                                         if s.len() > #max {
-                                            return Err(#error_path::TooLong);
+                                            return ::core::result::Result::Err(#error_path::TooLong);
                                         }
 
                                         #check_bytes
 
-                                        Ok(())
+                                        ::core::result::Result::Ok(())
                                     }
                                 } else {
                                     quote! {
@@ -502,18 +502,18 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                             counter += 1;
 
                                             if counter > #max {
-                                                return Err(#error_path::TooLong);
+                                                return ::core::result::Result::Err(#error_path::TooLong);
                                             }
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
                                         }
 
-                                        Ok(())
+                                        ::core::result::Result::Ok(())
                                     }
                                 }
                             },
@@ -525,14 +525,14 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                 let handle_trimmed_empty = if trimmed_min == 0 {
                                     quote! {
                                         if counter >= #min {
-                                            Ok(())
+                                            ::core::result::Result::Ok(())
                                         } else {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         }
                                     }
                                 } else {
                                     quote! {
-                                        Err(#error_path::TooShort)
+                                        ::core::result::Result::Err(#error_path::TooShort)
                                     }
                                 };
 
@@ -541,14 +541,14 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             let len = c.len_utf8();
 
                                             counter += len;
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -557,10 +557,10 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = len;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             let len = c.len_utf8();
@@ -578,9 +578,9 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 }
 
                                                 if trimmed_counter >= #trimmed_min && counter >= #min {
-                                                    return Ok(());
+                                                    return ::core::result::Result::Ok(());
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -592,12 +592,12 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             counter += 1;
 
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -606,10 +606,10 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             counter += 1;
@@ -625,9 +625,9 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 }
 
                                                 if trimmed_counter >= #trimmed_min && counter >= #min {
-                                                    return Ok(());
+                                                    return ::core::result::Result::Ok(());
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -640,31 +640,31 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                 if is_byte_length {
                                     quote! {
                                         if s.len() < #min {
-                                            return Err(#error_path::TooShort);
+                                            return ::core::result::Result::Err(#error_path::TooShort);
                                         }
 
                                         #check_bytes
 
-                                        Ok(())
+                                        ::core::result::Result::Ok(())
                                     }
                                 } else {
                                     quote! {
                                         let mut chars = s.chars();
                                         let mut counter = 0;
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => counter += 1,
                                             }
                                         }
 
                                         if counter >= #min {
-                                            Ok(())
+                                            ::core::result::Result::Ok(())
                                         } else {
-                                            Err(#error_path::TooShort)
+                                            ::core::result::Result::Err(#error_path::TooShort)
                                         }
                                     }
                                 }
@@ -674,11 +674,11 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                             Some(trimmed_min) => {
                                 let handle_trimmed_empty = if trimmed_min == 0 {
                                     quote! {
-                                        Ok(())
+                                        ::core::result::Result::Ok(())
                                     }
                                 } else {
                                     quote! {
-                                        Err(#error_path::TooShort)
+                                        ::core::result::Result::Err(#error_path::TooShort)
                                     }
                                 };
 
@@ -686,10 +686,10 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     quote! {
                                         let mut chars = s.chars();
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -698,10 +698,10 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = c.len_utf8();
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             if c.is_whitespace() {
@@ -715,9 +715,9 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 }
 
                                                 if trimmed_counter >= #trimmed_min {
-                                                    return Ok(());
+                                                    return ::core::result::Result::Ok(());
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -728,10 +728,10 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                     quote! {
                                         let mut chars = s.chars();
 
-                                        while let Some(c) = chars.next() {
+                                        while let ::core::option::Option::Some(c) = chars.next() {
                                             match c {
                                                 #invalid_char => {
-                                                    return Err(#error_path::Invalid);
+                                                    return ::core::result::Result::Err(#error_path::Invalid);
                                                 }
                                                 _ => (),
                                             }
@@ -740,10 +740,10 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 let mut trimmed_counter = 1;
                                                 let mut temp_counter = 0;
 
-                                                while let Some(c) = chars.next() {
+                                                while let ::core::option::Option::Some(c) = chars.next() {
                                                     match c {
                                                         #invalid_char => {
-                                                            return Err(#error_path::Invalid);
+                                                            return ::core::result::Result::Err(#error_path::Invalid);
                                                         }
                                                         _ => {
                                                             if c.is_whitespace() {
@@ -757,9 +757,9 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                                 }
 
                                                 if trimmed_counter >= #trimmed_min {
-                                                    return Ok(());
+                                                    return ::core::result::Result::Ok(());
                                                 } else {
-                                                    return Err(#error_path::TooShort);
+                                                    return ::core::result::Result::Err(#error_path::TooShort);
                                                 }
                                             }
                                         }
@@ -772,7 +772,7 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
                                 quote! {
                                     #check_bytes
 
-                                    Ok(())
+                                    ::core::result::Result::Ok(())
                                 }
                             },
                         },
@@ -798,7 +798,7 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
 
                                 Self::v_parse_str(s.as_str())?;
 
-                                Ok(Self(s))
+                                ::core::result::Result::Ok(Self(s))
                             }
 
                             #[inline]
@@ -807,14 +807,14 @@ impl<const IS_LINE: bool> ValidatorHandler for Utf8Handler<IS_LINE> {
 
                                 Self::v_parse_str(s)?;
 
-                                Ok(Self(validators_prelude::String::from(s)))
+                                ::core::result::Result::Ok(Self(validators_prelude::String::from(s)))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

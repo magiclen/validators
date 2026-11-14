@@ -63,12 +63,12 @@ impl ValidatorHandler for UuidHandler {
                                 32 => (&bytes[..8], &bytes[8..12], &bytes[12..16], &bytes[16..20], &bytes[20..]),
                                 36 => {
                                     if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
-                                        return Err(#error_path::Invalid);
+                                        return ::core::result::Result::Err(#error_path::Invalid);
                                     }
 
                                     (&bytes[0..8], &bytes[9..13], &bytes[14..18], &bytes[19..23], &bytes[24..])
                                 },
-                                _ => return Err(#error_path::Invalid),
+                                _ => return ::core::result::Result::Err(#error_path::Invalid),
                             };
 
                             time_low.iter().chain(time_mid).chain(time_high_and_version).chain(clock_seq).chain(node).copied()
@@ -78,11 +78,11 @@ impl ValidatorHandler for UuidHandler {
                         quote! {
                             if length != 36 {
                                 // Only the length without separators means that separators are missing.
-                                return Err(if length == 32 { #error_path::SeparatorMust } else { #error_path::Invalid });
+                                return ::core::result::Result::Err(if length == 32 { #error_path::SeparatorMust } else { #error_path::Invalid });
                             }
 
                             if bytes[8] != #separator || bytes[13] != #separator || bytes[18] != #separator || bytes[23] != #separator {
-                                return Err(#error_path::Invalid);
+                                return ::core::result::Result::Err(#error_path::Invalid);
                             }
 
                             let time_low = &bytes[0..8];
@@ -98,7 +98,7 @@ impl ValidatorHandler for UuidHandler {
                         quote! {
                             if length != 32 {
                                 // Only the length with separators means that separators exist.
-                                return Err(if length == 36 { #error_path::SeparatorDisallow } else { #error_path::Invalid });
+                                return ::core::result::Result::Err(if length == 36 { #error_path::SeparatorDisallow } else { #error_path::Invalid });
                             }
 
                             bytes.iter().copied()
@@ -124,7 +124,7 @@ impl ValidatorHandler for UuidHandler {
                                     b'A'..=b'F' => {
                                         uuid_decoded |= u128::from(e - (b'A' - 10));
                                     }
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -141,7 +141,7 @@ impl ValidatorHandler for UuidHandler {
                                     b'A'..=b'F' => {
                                         uuid_decoded |= u128::from(e - (b'A' - 10));
                                     }
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -158,7 +158,7 @@ impl ValidatorHandler for UuidHandler {
                                     b'a'..=b'f' => {
                                         uuid_decoded |= u128::from(e - (b'a' - 10));
                                     }
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -173,7 +173,7 @@ impl ValidatorHandler for UuidHandler {
                             for e in iter {
                                 match e {
                                     b'0'..=b'9' | b'a'..=b'f' | b'A'..=b'F' => (),
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -183,7 +183,7 @@ impl ValidatorHandler for UuidHandler {
                             for e in iter {
                                 match e {
                                     b'0'..=b'9' | b'A'..=b'F' => (),
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -193,7 +193,7 @@ impl ValidatorHandler for UuidHandler {
                             for e in iter {
                                 match e {
                                     b'0'..=b'9' | b'a'..=b'f' => (),
-                                    _ => return Err(#error_path::Invalid),
+                                    _ => return ::core::result::Result::Err(#error_path::Invalid),
                                 }
                             }
                         }
@@ -215,7 +215,7 @@ impl ValidatorHandler for UuidHandler {
 
                         #handle_decode
 
-                        Ok(uuid_decoded)
+                        ::core::result::Result::Ok(uuid_decoded)
                     }
 
                     fn v_validate_str(s: &str) -> ::core::result::Result<(), #error_path> {
@@ -228,7 +228,7 @@ impl ValidatorHandler for UuidHandler {
 
                         #handle_check
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -239,19 +239,19 @@ impl ValidatorHandler for UuidHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_validate_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });

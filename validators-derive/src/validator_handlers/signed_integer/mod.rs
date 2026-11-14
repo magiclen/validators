@@ -99,8 +99,8 @@ impl ValidatorHandler for SignedIntegerHandler {
                             quote! {
                                 match ::core::cmp::Ord::cmp(&i, &#min) {
                                     ::core::cmp::Ordering::Equal => (),
-                                    ::core::cmp::Ordering::Less => return Err(#error_path::TooSmall),
-                                    ::core::cmp::Ordering::Greater => return Err(#error_path::TooLarge),
+                                    ::core::cmp::Ordering::Less => return ::core::result::Result::Err(#error_path::TooSmall),
+                                    ::core::cmp::Ordering::Greater => return ::core::result::Result::Err(#error_path::TooLarge),
                                 }
                             }
                         } else {
@@ -109,7 +109,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                             if let Some(min) = min {
                                 token_stream.extend(quote! {
                                     if i < #min {
-                                        return Err(#error_path::TooSmall);
+                                        return ::core::result::Result::Err(#error_path::TooSmall);
                                     }
                                 });
                             }
@@ -118,13 +118,13 @@ impl ValidatorHandler for SignedIntegerHandler {
                                 token_stream.extend(if *inclusive {
                                     quote! {
                                         if i > #max {
-                                            return Err(#error_path::TooLarge);
+                                            return ::core::result::Result::Err(#error_path::TooLarge);
                                         }
                                     }
                                 } else {
                                     quote! {
                                         if i >= #max {
-                                            return Err(#error_path::TooLarge);
+                                            return ::core::result::Result::Err(#error_path::TooLarge);
                                         }
                                     }
                                 });
@@ -142,7 +142,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                         if *equal {
                             quote! {
                                 if i == #min {
-                                    return Err(#error_path::Forbidden);
+                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                 }
                             }
                         } else {
@@ -152,13 +152,13 @@ impl ValidatorHandler for SignedIntegerHandler {
                                         if *inclusive {
                                             quote! {
                                                 if (#min..=#max).contains(&i) {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
                                                 if (#min..#max).contains(&i) {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         }
@@ -166,7 +166,7 @@ impl ValidatorHandler for SignedIntegerHandler {
                                     None => {
                                         quote! {
                                             if i >= #min {
-                                                return Err(#error_path::Forbidden);
+                                                return ::core::result::Result::Err(#error_path::Forbidden);
                                             }
                                         }
                                     },
@@ -176,13 +176,13 @@ impl ValidatorHandler for SignedIntegerHandler {
                                         if *inclusive {
                                             quote! {
                                                 if i <= #max {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         } else {
                                             quote! {
                                                 if i < #max {
-                                                    return Err(#error_path::Forbidden);
+                                                    return ::core::result::Result::Err(#error_path::Forbidden);
                                                 }
                                             }
                                         }
@@ -207,13 +207,13 @@ impl ValidatorHandler for SignedIntegerHandler {
 
                         Self::v_parse_i(i)?;
 
-                        Ok(i)
+                        ::core::result::Result::Ok(i)
                     }
 
                     fn v_parse_i(i: #data_type) -> ::core::result::Result<(), #error_path> {
                         #handle_range
 
-                        Ok(())
+                        ::core::result::Result::Ok(())
                     }
                 }
             });
@@ -224,19 +224,19 @@ impl ValidatorHandler for SignedIntegerHandler {
 
                             #[inline]
                             fn parse_string<S: Into<validators_prelude::String>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.into().as_str())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.into().as_str())?))
                             }
 
                             #[inline]
                             fn parse_str<S: AsRef<str>>(s: S) -> ::core::result::Result<Self, Self::Error> {
-                                Ok(Self(Self::v_parse_str(s.as_ref())?))
+                                ::core::result::Result::Ok(Self(Self::v_parse_str(s.as_ref())?))
                             }
 
                             #[inline]
                             fn validate_str<S: AsRef<str>>(s: S) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_str(s.as_ref())?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     });
@@ -251,14 +251,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(Self(i))
+                                ::core::result::Result::Ok(Self(i))
                             }
 
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -271,9 +271,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i64::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i64::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::parse_i64(i as i64)
                                 }
@@ -282,9 +282,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i64::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i64::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::validate_i64(i as i64)
                                 }
@@ -294,14 +294,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             fn parse_i64(i: i64) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(Self(i))
+                                ::core::result::Result::Ok(Self(i))
                             }
 
                             #[inline]
                             fn validate_i64(i: i64) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -314,9 +314,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i32::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i32::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::parse_i32(i as i32)
                                 }
@@ -325,9 +325,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i32::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i32::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::validate_i32(i as i32)
                                 }
@@ -337,14 +337,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             fn parse_i32(i: i32) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(Self(i))
+                                ::core::result::Result::Ok(Self(i))
                             }
 
                             #[inline]
                             fn validate_i32(i: i32) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -357,9 +357,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i16::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i16::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::parse_i16(i as i16)
                                 }
@@ -368,9 +368,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i16::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i16::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::validate_i16(i as i16)
                                 }
@@ -380,14 +380,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             fn parse_i16(i: i16) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(Self(i))
+                                ::core::result::Result::Ok(Self(i))
                             }
 
                             #[inline]
                             fn validate_i16(i: i16) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -400,9 +400,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > i8::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i8::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::parse_i8(i as i8)
                                 }
@@ -411,9 +411,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > i8::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < i8::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::validate_i8(i as i8)
                                 }
@@ -423,14 +423,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             fn parse_i8(i: i8) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(Self(i))
+                                ::core::result::Result::Ok(Self(i))
                             }
 
                             #[inline]
                             fn validate_i8(i: i8) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
                         }
                     }
@@ -443,9 +443,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn parse_i128(i: i128) -> ::core::result::Result<Self, Self::Error> {
                                 if i > isize::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < isize::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::parse_isize(i as isize)
                                 }
@@ -454,9 +454,9 @@ impl ValidatorHandler for SignedIntegerHandler {
                             #[inline]
                             fn validate_i128(i: i128) -> ::core::result::Result<(), Self::Error> {
                                 if i > isize::MAX as i128 {
-                                    Err(#error_path::TooLarge)
+                                    ::core::result::Result::Err(#error_path::TooLarge)
                                 } else if i < isize::MIN as i128 {
-                                    Err(#error_path::TooSmall)
+                                    ::core::result::Result::Err(#error_path::TooSmall)
                                 } else {
                                     Self::validate_isize(i as isize)
                                 }
@@ -466,14 +466,14 @@ impl ValidatorHandler for SignedIntegerHandler {
                             fn parse_isize(i: isize) -> ::core::result::Result<Self, Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(Self(i))
+                                ::core::result::Result::Ok(Self(i))
                             }
 
                             #[inline]
                             fn validate_isize(i: isize) -> ::core::result::Result<(), Self::Error> {
                                 Self::v_parse_i(i)?;
 
-                                Ok(())
+                                ::core::result::Result::Ok(())
                             }
 
                             #[cfg(target_pointer_width = "16")]

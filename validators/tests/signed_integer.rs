@@ -2,6 +2,28 @@
 
 use validators::prelude::{validators_prelude::RangeOption, *};
 
+#[test]
+fn range_macro_expression() {
+    macro_rules! integer {
+        ($min:expr) => {
+            #[derive(Validator)]
+            #[validator(signed_integer(range(Inside(min = $min))))]
+            struct Integer(i8);
+        };
+    }
+
+    macro_rules! forward {
+        ($min:expr) => {
+            integer!($min);
+        };
+    }
+
+    forward!(-5);
+
+    assert_eq!(-5, Integer::parse_i8(-5).unwrap().0);
+    assert_eq!(0, Integer::parse_str("0").unwrap().0);
+}
+
 #[cfg(feature = "full")]
 #[test]
 fn range_expression() {
@@ -11,6 +33,23 @@ fn range_expression() {
 
     assert_eq!(-5, Integer::parse_i8(-5).unwrap().0);
     assert_eq!(5, Integer::parse_i8(5).unwrap().0);
+}
+
+#[cfg(feature = "full")]
+#[test]
+fn range_macro_range_expression() {
+    macro_rules! integer {
+        ($range:expr) => {
+            #[derive(Validator)]
+            #[validator(signed_integer(range(Inside = $range)))]
+            struct Integer(i8);
+        };
+    }
+
+    integer!(-5..=5);
+
+    assert_eq!(-5, Integer::parse_i8(-5).unwrap().0);
+    assert!(Integer::parse_i8(6).is_err());
 }
 
 #[cfg(feature = "serde_json")]
