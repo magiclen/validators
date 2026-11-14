@@ -309,6 +309,14 @@ impl ValidatorHandler for DomainHandler {
                 {
                     quote! {{
                         let ascii_domain = #normalize_domain;
+
+                        // A name that ends in a number is valid only as a dotted-decimal IPv4 address.
+                        if validators_prelude::ends_in_a_number(&ascii_domain)
+                            && validators_prelude::parse_ipv4_allow_an_ended_dot(&ascii_domain).is_err()
+                        {
+                            return ::core::result::Result::Err(#error_path::Invalid);
+                        }
+
                         let port = #handle_port;
 
                         (ascii_domain, port, false, false)
@@ -392,6 +400,11 @@ impl ValidatorHandler for DomainHandler {
 
                         quote! {
                             ::core::result::Result::Err(ascii_domain) => {
+                                // A URL parser reads a name that ends in a number as an IPv4 address, or rejects it.
+                                if validators_prelude::ends_in_a_number(&ascii_domain) {
+                                    return ::core::result::Result::Err(#error_path::Invalid);
+                                }
+
                                 let port = #handle_port;
 
                                 let is_local = #handle_local_domain;

@@ -32,6 +32,43 @@ fn ipv4_with_port() {
     }
 }
 
+#[test]
+fn ends_in_a_number() {
+    use validators::errors::DomainError;
+
+    #[derive(Validator)]
+    #[validator(domain(port(Disallow)))]
+    struct AnyDomain(String);
+
+    #[derive(Validator)]
+    #[validator(domain(local(Disallow), port(Disallow)))]
+    struct NonLocalDomain(String);
+
+    #[derive(Validator)]
+    #[validator(domain(ipv4(Must), port(Disallow)))]
+    struct Ipv4Domain(String);
+
+    // A URL parser reads these names as IPv4 addresses, or rejects them.
+    for input in
+        ["127.1", "127.1.", "0x7f.1", "2130706433", "１２７.１", "999.1.1.1", "example.123"]
+    {
+        assert!(matches!(AnyDomain::validate_str(input), Err(DomainError::Invalid)), "{input}");
+        assert!(
+            matches!(NonLocalDomain::validate_str(input), Err(DomainError::Invalid)),
+            "{input}"
+        );
+        assert!(matches!(Ipv4Domain::validate_str(input), Err(DomainError::IPv4Must)), "{input}");
+    }
+
+    // Only the last label is checked.
+    for input in ["163.com", "1.2.3.4.example.com", "0x7f.com"] {
+        assert_eq!(input, NonLocalDomain::parse_str(input).unwrap().0);
+    }
+
+    assert_eq!("127.0.0.1.", AnyDomain::parse_str("127.0.0.1.").unwrap().0);
+    assert_eq!("127.0.0.1", Ipv4Domain::parse_str("１２７.０.０.１").unwrap().0);
+}
+
 #[cfg(feature = "serde")]
 #[test]
 fn deserialize_binary_string() {

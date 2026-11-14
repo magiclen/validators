@@ -317,6 +317,29 @@ fn shadowed_prelude_names() {
 }
 
 #[test]
+fn ends_in_a_number() {
+    use validators::{errors::HostError, models::Host};
+
+    #[derive(Validator)]
+    #[validator(host(local(Disallow), port(Allow)))]
+    struct NonLocalHost {
+        host: Host,
+        port: Option<u16>,
+    }
+
+    // A URL parser reads these names as IPv4 addresses, or rejects them.
+    for input in ["127.1", "127.1:8080", "0x7f.1", "2130706433", "１２７.１", "example.123"] {
+        assert!(matches!(NonLocalHost::validate_str(input), Err(HostError::Invalid)), "{input}");
+    }
+
+    let host = NonLocalHost::parse_str("163.com:8080").unwrap();
+
+    assert_eq!(Host::Domain(String::from("163.com")), host.host);
+    assert_eq!(Some(8080), host.port);
+    assert!(matches!(NonLocalHost::validate_str("１２７.０.０.１"), Err(HostError::LocalDisallow)));
+}
+
+#[test]
 fn port_disallow_errors() {
     use validators::{errors::HostError, models::Host};
 

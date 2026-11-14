@@ -244,7 +244,7 @@ assert_eq!(1000u64, AtLeastOneByte::parse_string("1KB").unwrap().0.as_u64());
 
 #### domain
 
-See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
+See the [host validator](#host) for names that end in a number, such as `127.1`.
 
 ```rust
 use validators::prelude::*;
@@ -274,9 +274,10 @@ assert_eq!(Some(8080), DomainAllowPort::parse_string("example.com:8080").unwrap(
 
 #### email
 
-See the [host validator](#host) for how `local(Disallow)` differs from URL parsing.
+See the [host validator](#host) for names that end in a number, such as `127.1`.
 An empty local part must be quoted, such as `""@example.com`.
 The `non_ascii` option applies to the local part and comments.
+C1 control characters (U+0080 to U+009F) are always rejected in the local part and comments.
 The domain part can always be an internationalized domain name, which is converted to Punycode, such as `xn--fiq228c.com`.
 
 ```rust
@@ -375,7 +376,8 @@ assert_eq!(&[0, 171, 255], HexDecoded::parse_str("00ABFF").unwrap().0.as_slice()
 #### host
 
 The `local` option checks the parsed name or IP address.
-For example, `host`, `domain`, and `email` (such as `a@127.1`) can accept `127.1` as a domain with `local(Disallow)`, while a WHATWG URL parser reads it as the loopback address `127.0.0.1`.
+A name that ends in a number, as the WHATWG URL Standard defines, such as `127.1`, `0x7f.1`, `2130706433`, or `example.123`, is invalid for `host`, `domain`, and `email`, because a URL parser reads it as an IPv4 address (`127.1` is the loopback address `127.0.0.1`) or rejects it.
+Only a dotted-decimal IPv4 address such as `127.0.0.1` is read as an IPv4 address, and `email` needs it in brackets, such as `a@[127.0.0.1]`.
 
 ```rust
 use validators::prelude::*;

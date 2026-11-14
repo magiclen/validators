@@ -395,6 +395,11 @@ impl ValidatorHandler for HostHandler {
 
                 quote! {
                     ::core::result::Result::Err(ascii_domain) => {
+                        // A URL parser reads a name that ends in a number as an IPv4 address, or rejects it.
+                        if validators_prelude::ends_in_a_number(&ascii_domain) {
+                            return ::core::result::Result::Err(#error_path::Invalid);
+                        }
+
                         let port = #handle_port;
 
                         let is_local = #handle_local_domain;

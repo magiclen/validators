@@ -256,13 +256,23 @@ impl ValidatorHandler for EmailHandler {
                 });
             }
 
+            // 0xC2 followed by 0x80..=0x9F encodes a C1 control character (U+0080..=U+009F).
+            // `index` is the position of the byte `e` in `bytes`.
+            let is_c1_control = |index: proc_macro2::TokenStream| {
+                quote! {
+                    (e == 0xC2 && ::core::matches!(bytes.get(#index + 1), ::core::option::Option::Some(0x80..=0x9F)))
+                }
+            };
+
             let handle_unrecognized_first_byte_quoted = if type_attribute.non_ascii.disallow() {
                 quote! {
                     return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
+                let is_c1_control = is_c1_control(quote! { p });
+
                 quote! {
-                    if e < 128 {
+                    if e < 128 || #is_c1_control {
                         return ::core::result::Result::Err(#error_path::Invalid);
                     } else {
                         (false ,false, false)
@@ -279,8 +289,11 @@ impl ValidatorHandler for EmailHandler {
                     return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
+                // The unquoted local part starts at `local_part_length`.
+                let is_c1_control = is_c1_control(quote! { local_part_length });
+
                 quote! {
-                    if e < 128 {
+                    if e < 128 || #is_c1_control {
                         return ::core::result::Result::Err(#error_path::Invalid);
                     }
                 }
@@ -291,8 +304,10 @@ impl ValidatorHandler for EmailHandler {
                     return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
+                let is_c1_control = is_c1_control(quote! { p });
+
                 quote! {
-                    if e < 128 {
+                    if e < 128 || #is_c1_control {
                         return ::core::result::Result::Err(#error_path::Invalid);
                     } else {
                         last_dot = false;
@@ -306,8 +321,10 @@ impl ValidatorHandler for EmailHandler {
                     return ::core::result::Result::Err(#error_path::Invalid);
                 }
             } else {
+                let is_c1_control = is_c1_control(quote! { p });
+
                 quote! {
-                    if e < 128 {
+                    if e < 128 || #is_c1_control {
                         return ::core::result::Result::Err(#error_path::Invalid);
                     } else {
                         last_dot = false;
@@ -509,7 +526,8 @@ impl ValidatorHandler for EmailHandler {
                             }
 
                             // An IPv4 address must be written in brackets, such as `[127.0.0.1]`.
-                            if ascii_domain.parse::<::core::net::Ipv4Addr>().is_ok() {
+                            // A URL parser also reads other names that end in a number, such as `127.1`, as IPv4 addresses.
+                            if validators_prelude::ends_in_a_number(&ascii_domain) {
                                 return ::core::result::Result::Err(#error_path::Invalid);
                             }
 

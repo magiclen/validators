@@ -203,6 +203,9 @@ fn basic() {
             test("a@example.com(note)extra", false);
             test("a@example.com。", false);
             test("simple@127.0.0.1", false);
+            test("simple@127.1", false);
+            test("simple@0x7f.1", false);
+            test("simple@example.123", false);
             test("alice.@example.com", false);
             test("alice.(note)@example.com", false);
             test("(note\r\n)alice@example.com", false);
@@ -213,6 +216,10 @@ fn basic() {
             test("alice(note\x7f)@example.com", false);
             test("(note\u{85})alice@example.com", false);
             test("alice@example.com(note\u{9f})", false);
+            test("\u{80}alice@example.com", false);
+            test("a\u{85}b@example.com", false);
+            test("\"\u{9f}\"@example.com", false);
+            test("\"a\u{85}\"@example.com", false);
             test("(no(te)alice@example.com", false);
             test(&format!("{}(x)@example.com", "a".repeat(65)), false);
             test(&format!("{}@example.com", "中".repeat(22)), false);
@@ -353,6 +360,13 @@ fn basic() {
             );
             test(
                 "中文@example.com",
+                Validator::V_NON_ASCII.allow()
+                    && !Validator::V_IP.must()
+                    && !Validator::V_LOCAL.must()
+                    && Validator::V_AT_LEAST_TWO_LABELS.allow(),
+            );
+            test(
+                "a\u{a0}b@example.com",
                 Validator::V_NON_ASCII.allow()
                     && !Validator::V_IP.must()
                     && !Validator::V_LOCAL.must()
