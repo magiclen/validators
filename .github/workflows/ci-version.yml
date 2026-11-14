@@ -80,7 +80,7 @@ jobs:
           - macos-latest
           - windows-latest
         toolchain:
-          - 1.89
+          - 1.95
         features:
           -
           - --features test

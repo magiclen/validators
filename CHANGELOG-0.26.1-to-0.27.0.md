@@ -1,8 +1,10 @@
 # Validators 0.26.1 to 0.27.0
 
-Highlights from `v0.26.1` through `3222ff3`, plus the email buffer optimization added afterward.
+Highlights from `v0.26.1` through `3222ff3`, plus subsequent email buffer reuse and the MSRV update.
 
 ## Breaking changes
+
+- **MSRV:** Both crates now require Rust 1.95, up from 1.89. Rocket's `ref-swap 0.1.3` dependency uses `AtomicPtr::try_update`, which became stable in Rust 1.95. See the [runtime manifest](validators/Cargo.toml#L6) and [derive manifest](validators-derive/Cargo.toml#L6).
 
 Serde output changes (JSON examples):
 
@@ -39,4 +41,4 @@ Update stored-data schemas and consumers that depend on the previous representat
 
 - Reduce allocations with borrowed parsing, owned-buffer reuse, allocation-free IPv6 length counting, cached literal regexes, and direct Serde formatting. The post-baseline email `parse_string` optimization in [`EmailHandler`](validators-derive/src/validator_handlers/email/mod.rs#L1046) saves one allocation for prefix local parts; measured IP-literal cases need no allocation beyond the owned input. See also [regex caching](validators-derive/src/validator_handlers/regex/regex_attribute.rs).
 - Share encoding, UTF-8, HTTP, hex, and struct-shape handling; expand regression tests and `no_std` CI coverage. See [handlers](validators-derive/src/validator_handlers/mod.rs), [`fields_match`](validators-derive/src/common/mod.rs), and [CI](.github/workflows/ci.yml).
-- Update `syn` to 3, `proc-macro2` to 1.0.91, and `educe` to 0.8; pin `validators-derive` to `=0.27.0`. MSRV remains Rust 1.89. See the [derive manifest](validators-derive/Cargo.toml#L18) and [runtime manifest](validators/Cargo.toml#L16).
+- Update `syn` to 3, `proc-macro2` to 1.0.91, and `educe` to 0.8; pin `validators-derive` to `=0.27.0`. See the [derive manifest](validators-derive/Cargo.toml#L18) and [runtime manifest](validators/Cargo.toml#L16).
